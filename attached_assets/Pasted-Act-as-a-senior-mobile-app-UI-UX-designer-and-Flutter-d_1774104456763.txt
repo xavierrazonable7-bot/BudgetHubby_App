@@ -1,0 +1,110 @@
+Act as a senior mobile app UI/UX designer and Flutter developer with over 30 years of experience. Your task is to review and enhance the overall design of my existing mobile application without rewriting the entire codebase.
+
+Only update and improve the necessary parts of the UI and UX. Do NOT remove or break any existing working functionality. Maintain the current logic, structure, and features while upgrading the visual design, consistency, and user experience to a modern, premium level.
+
+---
+
+### 🎯 GOAL
+Transform the current UI into a modern, clean, and visually appealing design inspired by:
+- Modern dark dashboard UI
+- Neumorphism (soft UI)
+- Subtle glassmorphism effects
+- Accent-based color system
+
+---
+
+### 🎨 DESIGN IMPROVEMENTS REQUIRED
+
+#### 1. 🧱 CARD DESIGN
+- Improve all cards (dashboard, bills, summaries):
+  - Add soft shadows (neumorphism style)
+  - Use smooth border radius (12–20)
+  - Apply subtle gradient backgrounds
+- Ensure cards look elevated but not overly heavy
+
+---
+
+#### 2. 🌈 COLOR SYSTEM & ICON HIGHLIGHTS
+- Enhance icon colors:
+  - Each category (expense, task, event, note) should have a distinct accent color
+  - Add soft glow or highlight effect around icons
+- Maintain consistency in color usage across the app
+- Avoid overly bright or clashing colors
+
+---
+
+#### 3. 🌑 DARK MODE ENHANCEMENT
+- Improve contrast and readability
+- Use layered dark tones (not pure black everywhere)
+- Ensure text hierarchy is clear:
+  - Primary text (high contrast)
+  - Secondary text (slightly muted)
+
+---
+
+#### 4. 🔘 BUTTONS & INTERACTIONS
+- Upgrade buttons:
+  - Rounded corners
+  - Subtle elevation
+  - Smooth press/hover animations
+- Add micro-interactions (tap feedback, ripple, scale)
+
+---
+
+#### 5. 📊 TYPOGRAPHY & SPACING
+- Improve font sizes and weights:
+  - Clear hierarchy (title, subtitle, body)
+- Add consistent padding and margins
+- Avoid cramped layouts
+
+---
+
+#### 6. 📈 DASHBOARD REFINEMENT
+- Improve the main summary card:
+  - Better spacing
+  - Clear emphasis on key numbers (balance, spending)
+- Enhance progress bars (smooth, modern look)
+
+---
+
+#### 7. 📋 LIST ITEMS (e.g., Bills, Transactions)
+- Improve list cards:
+  - Better spacing between items
+  - Add subtle separators or elevation
+- Highlight important info (amount, due date)
+
+---
+
+#### 8. 🧭 NAVIGATION BAR
+- Improve bottom navigation:
+  - Add subtle glow or highlight for active tab
+  - Smooth transition when switching tabs
+- Keep it minimal and clean
+
+---
+
+### ⚙️ TECHNICAL REQUIREMENTS
+- Use Flutter best practices
+- Update only UI-related code (no breaking logic)
+- Reuse existing components where possible
+- Keep performance optimized (avoid heavy rendering)
+
+---
+
+### 🚫 IMPORTANT CONSTRAINTS
+- Do NOT rewrite the entire app
+- Do NOT change business logic or backend structure
+- Do NOT remove existing features
+- Only enhance and refine UI/UX
+
+---
+
+### ✅ EXPECTED OUTPUT
+- Updated UI components (cards, buttons, lists, navigation)
+- Cleaner, modern, and consistent design
+- Smooth user experience with no bugs or visual issues
+- Production-ready UI improvements
+
+---
+
+Carefully analyze the current design and apply only necessary improvements to elevate the app into a premium, modern mobile experience.

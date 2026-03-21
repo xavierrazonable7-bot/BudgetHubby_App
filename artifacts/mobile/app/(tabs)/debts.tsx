@@ -11,18 +11,19 @@ import {
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, { FadeInRight } from "react-native-reanimated";
+import { LinearGradient } from "expo-linear-gradient";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp, Debt } from "@/context/AppContext";
 import { formatCurrency, formatDate } from "@/utils/format";
-import { Card } from "@/components/ui/Card";
+import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 type DebtFilter = "all" | "lent" | "borrowed";
 
 export default function DebtsScreen() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { debts, updateDebt, deleteDebt } = useApp();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<DebtFilter>("all");
@@ -53,58 +54,87 @@ export default function DebtsScreen() {
     ]);
   };
 
+  const FILTERS: { key: DebtFilter; label: string }[] = [
+    { key: "all", label: "All" },
+    { key: "lent", label: "Lent" },
+    { key: "borrowed", label: "Borrowed" },
+  ];
+
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <ScreenWrapper>
       {/* Header */}
-      <View
-        style={[
-          styles.header,
-          { paddingTop: Platform.OS === "web" ? 67 : insets.top + 12 },
-        ]}
-      >
-        <Text style={[styles.title, { color: theme.text }]}>Debts</Text>
+      <View style={[styles.header, { paddingTop: Platform.OS === "web" ? 67 : insets.top + 12 }]}>
+        <View>
+          <Text style={[styles.screenLabel, { color: theme.textSecondary }]}>Utang tracker</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Debts</Text>
+        </View>
         <Pressable
           onPress={() => router.push("/add-debt")}
-          style={[styles.addBtn, { backgroundColor: theme.primary }]}
+          style={({ pressed }) => [
+            styles.addBtn,
+            {
+              backgroundColor: theme.primary,
+              shadowColor: theme.primary,
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.4,
+              shadowRadius: 10,
+              elevation: 6,
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}
         >
-          <Ionicons name="add" size={20} color="#fff" />
+          <Ionicons name="add" size={22} color="#fff" />
         </Pressable>
       </View>
 
-      {/* Summary */}
+      {/* Summary Row */}
       <View style={styles.summaryRow}>
-        <View style={[styles.summaryCard, { backgroundColor: theme.accentLight }]}>
-          <Ionicons name="arrow-down-circle" size={20} color={theme.accent} />
-          <Text style={[styles.summaryLabel, { color: theme.accent }]}>They owe you</Text>
-          <Text style={[styles.summaryAmount, { color: theme.accent }]}>
-            {formatCurrency(totalLent)}
-          </Text>
-        </View>
-        <View style={[styles.summaryCard, { backgroundColor: theme.dangerLight }]}>
-          <Ionicons name="arrow-up-circle" size={20} color={theme.danger} />
-          <Text style={[styles.summaryLabel, { color: theme.danger }]}>You owe</Text>
-          <Text style={[styles.summaryAmount, { color: theme.danger }]}>
-            {formatCurrency(totalBorrowed)}
-          </Text>
-        </View>
+        <LinearGradient
+          colors={isDark ? ["#0D2018", "#102A1E"] : ["#D1FAE5", "#E8FFF5"]}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={[styles.summaryCard, { borderColor: theme.income + "30", shadowColor: theme.income, shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.25 : 0.1, shadowRadius: 10, elevation: 5 }]}
+        >
+          <View style={[styles.summaryIconWrap, { backgroundColor: theme.income + "20" }]}>
+            <Ionicons name="arrow-down" size={16} color={theme.income} />
+          </View>
+          <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>They owe you</Text>
+          <Text style={[styles.summaryAmount, { color: theme.income }]}>{formatCurrency(totalLent)}</Text>
+        </LinearGradient>
+        <LinearGradient
+          colors={isDark ? ["#2A1018", "#2A1820"] : ["#FFE4E8", "#FFF0F2"]}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={[styles.summaryCard, { borderColor: theme.expense + "30", shadowColor: theme.expense, shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0.25 : 0.1, shadowRadius: 10, elevation: 5 }]}
+        >
+          <View style={[styles.summaryIconWrap, { backgroundColor: theme.expense + "20" }]}>
+            <Ionicons name="arrow-up" size={16} color={theme.expense} />
+          </View>
+          <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>You owe</Text>
+          <Text style={[styles.summaryAmount, { color: theme.expense }]}>{formatCurrency(totalBorrowed)}</Text>
+        </LinearGradient>
       </View>
 
-      {/* Filter */}
+      {/* Filter Tabs */}
       <View style={styles.filterRow}>
-        {(["all", "lent", "borrowed"] as DebtFilter[]).map((f) => (
-          <Pressable
-            key={f}
-            onPress={() => setFilter(f)}
-            style={[
-              styles.filterTab,
-              { backgroundColor: filter === f ? theme.primary : theme.surfaceSecondary },
-            ]}
-          >
-            <Text style={[styles.filterText, { color: filter === f ? "#fff" : theme.textSecondary }]}>
-              {f === "all" ? "All" : f === "lent" ? "Lent" : "Borrowed"}
-            </Text>
-          </Pressable>
-        ))}
+        {FILTERS.map((f) => {
+          const active = filter === f.key;
+          return (
+            <Pressable
+              key={f.key}
+              onPress={() => setFilter(f.key)}
+              style={[
+                styles.filterTab,
+                active
+                  ? { backgroundColor: theme.primary + "20", borderColor: theme.primary + "50" }
+                  : { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.06)" : theme.border },
+              ]}
+            >
+              {active && <View style={[styles.filterDot, { backgroundColor: theme.primary }]} />}
+              <Text style={[styles.filterText, { color: active ? theme.primary : theme.textSecondary }]}>
+                {f.label}
+              </Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       <FlatList
@@ -114,8 +144,8 @@ export default function DebtsScreen() {
         contentContainerStyle={{
           paddingHorizontal: 20,
           paddingBottom: insets.bottom + 100,
-          paddingTop: 8,
-          gap: 10,
+          paddingTop: 4,
+          gap: 12,
         }}
         ListEmptyComponent={
           <EmptyState
@@ -124,114 +154,105 @@ export default function DebtsScreen() {
             subtitle="Track money you lent or borrowed"
           />
         }
-        renderItem={({ item: debt, index }) => (
-          <Animated.View entering={FadeInRight.delay(index * 40).duration(300)}>
-            <Card>
-              <View style={styles.debtRow}>
-                <View
-                  style={[
-                    styles.debtIcon,
-                    {
-                      backgroundColor:
-                        debt.type === "lent" ? theme.accentLight : theme.dangerLight,
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name={debt.type === "lent" ? "arrow-down" : "arrow-up"}
-                    size={18}
-                    color={debt.type === "lent" ? theme.accent : theme.danger}
-                  />
-                </View>
-                <View style={styles.debtInfo}>
-                  <View style={styles.debtTop}>
-                    <Text style={[styles.debtName, { color: theme.text }]}>
-                      {debt.personName}
-                    </Text>
-                    <View
-                      style={[
-                        styles.statusBadge,
-                        {
-                          backgroundColor:
-                            debt.status === "paid"
-                              ? theme.accentLight
-                              : theme.warningLight,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.statusText,
-                          { color: debt.status === "paid" ? theme.accent : theme.warning },
-                        ]}
-                      >
-                        {debt.status === "paid" ? "Paid" : "Pending"}
+        renderItem={({ item: debt, index }) => {
+          const isLent = debt.type === "lent";
+          const accentColor = isLent ? theme.income : theme.expense;
+          const gradientColors = isLent
+            ? (isDark ? ["#0D2018", "#102A1E"] : ["#D1FAE5", "#E8FFF5"]) as [string, string]
+            : (isDark ? ["#2A1018", "#2A1820"] : ["#FFE4E8", "#FFF0F2"]) as [string, string];
+
+          return (
+            <Animated.View entering={FadeInDown.delay(index * 40).duration(300)}>
+              <LinearGradient
+                colors={gradientColors}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={[
+                  styles.debtCard,
+                  {
+                    borderColor: accentColor + "25",
+                    shadowColor: accentColor,
+                    shadowOffset: { width: 0, height: 3 },
+                    shadowOpacity: isDark ? 0.2 : 0.08,
+                    shadowRadius: 10,
+                    elevation: 4,
+                  },
+                ]}
+              >
+                <View style={styles.debtRow}>
+                  <View style={[styles.debtIcon, { backgroundColor: accentColor + "20", borderWidth: 1, borderColor: accentColor + "30", shadowColor: accentColor, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.4, shadowRadius: 8 }]}>
+                    <Ionicons name={isLent ? "arrow-down" : "arrow-up"} size={18} color={accentColor} />
+                  </View>
+
+                  <View style={styles.debtInfo}>
+                    <View style={styles.debtTop}>
+                      <Text style={[styles.debtName, { color: theme.text }]}>{debt.personName}</Text>
+                      <View style={[styles.statusBadge, { backgroundColor: debt.status === "paid" ? theme.income + "20" : "#F59E0B20" }]}>
+                        <View style={[styles.statusDot, { backgroundColor: debt.status === "paid" ? theme.income : "#F59E0B" }]} />
+                        <Text style={[styles.statusText, { color: debt.status === "paid" ? theme.income : "#F59E0B" }]}>
+                          {debt.status === "paid" ? "Paid" : "Pending"}
+                        </Text>
+                      </View>
+                    </View>
+                    {debt.note ? (
+                      <Text style={[styles.debtNote, { color: theme.textTertiary }]} numberOfLines={1}>
+                        {debt.note}
                       </Text>
+                    ) : null}
+                    <Text style={[styles.debtDate, { color: theme.textTertiary }]}>
+                      {formatDate(debt.date)}
+                    </Text>
+                    {debt.paidAmount > 0 && debt.status !== "paid" && (
+                      <View style={[styles.partialBar, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }]}>
+                        <View style={[styles.partialFill, { width: `${(debt.paidAmount / debt.amount) * 100}%`, backgroundColor: accentColor }]} />
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.debtRight}>
+                    <Text style={[styles.debtAmount, { color: accentColor }]}>
+                      {formatCurrency(debt.amount - debt.paidAmount)}
+                    </Text>
+                    <View style={styles.debtActions}>
+                      {debt.status === "pending" && (
+                        <Pressable
+                          onPress={() => handleMarkPaid(debt)}
+                          style={({ pressed }) => [styles.actionBtn, { backgroundColor: theme.income + "20", borderColor: theme.income + "30", opacity: pressed ? 0.7 : 1 }]}
+                        >
+                          <Ionicons name="checkmark" size={14} color={theme.income} />
+                        </Pressable>
+                      )}
+                      <Pressable
+                        onPress={() => handleDelete(debt.id)}
+                        style={({ pressed }) => [styles.actionBtn, { backgroundColor: theme.expense + "18", borderColor: theme.expense + "28", opacity: pressed ? 0.7 : 1 }]}
+                      >
+                        <Ionicons name="trash-outline" size={14} color={theme.expense} />
+                      </Pressable>
                     </View>
                   </View>
-                  {debt.note ? (
-                    <Text style={[styles.debtNote, { color: theme.textTertiary }]} numberOfLines={1}>
-                      {debt.note}
-                    </Text>
-                  ) : null}
-                  <Text style={[styles.debtDate, { color: theme.textTertiary }]}>
-                    {formatDate(debt.date)}
-                  </Text>
-                  {debt.paidAmount > 0 && debt.status !== "paid" && (
-                    <Text style={[styles.partialText, { color: theme.accent }]}>
-                      Paid: {formatCurrency(debt.paidAmount)} / {formatCurrency(debt.amount)}
-                    </Text>
-                  )}
                 </View>
-                <View style={styles.debtRight}>
-                  <Text
-                    style={[
-                      styles.debtAmount,
-                      { color: debt.type === "lent" ? theme.accent : theme.danger },
-                    ]}
-                  >
-                    {formatCurrency(debt.amount - debt.paidAmount)}
-                  </Text>
-                  <View style={styles.debtActions}>
-                    {debt.status === "pending" && (
-                      <Pressable
-                        onPress={() => handleMarkPaid(debt)}
-                        style={[styles.actionIcon, { backgroundColor: theme.accentLight }]}
-                      >
-                        <Ionicons name="checkmark" size={14} color={theme.accent} />
-                      </Pressable>
-                    )}
-                    <Pressable
-                      onPress={() => handleDelete(debt.id)}
-                      style={[styles.actionIcon, { backgroundColor: theme.dangerLight }]}
-                    >
-                      <Ionicons name="trash-outline" size={14} color={theme.danger} />
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-            </Card>
-          </Animated.View>
-        )}
+              </LinearGradient>
+            </Animated.View>
+          );
+        }}
       />
-    </View>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-end",
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: 16,
   },
-  title: { fontSize: 28, fontFamily: "Inter_700Bold" },
+  screenLabel: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 2 },
+  title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
   addBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -239,52 +260,70 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: 20,
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   summaryCard: {
     flex: 1,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 14,
-    gap: 4,
+    gap: 6,
+    borderWidth: 1,
   },
-  summaryLabel: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  summaryIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
+  },
+  summaryLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
   summaryAmount: { fontSize: 18, fontFamily: "Inter_700Bold" },
   filterRow: {
     flexDirection: "row",
     paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingBottom: 14,
     gap: 8,
   },
   filterTab: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingVertical: 9,
+    borderRadius: 22,
+    borderWidth: 1,
+    gap: 6,
   },
+  filterDot: { width: 6, height: 6, borderRadius: 3 },
   filterText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  debtCard: { borderRadius: 18, padding: 16, borderWidth: 1 },
   debtRow: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
   debtIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: "center",
     justifyContent: "center",
     marginTop: 2,
   },
-  debtInfo: { flex: 1, gap: 4 },
+  debtInfo: { flex: 1, gap: 5 },
   debtTop: { flexDirection: "row", alignItems: "center", gap: 8 },
   debtName: { fontSize: 15, fontFamily: "Inter_600SemiBold", flex: 1 },
-  statusBadge: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  statusBadge: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10 },
+  statusDot: { width: 5, height: 5, borderRadius: 3 },
   statusText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
   debtNote: { fontSize: 12, fontFamily: "Inter_400Regular" },
   debtDate: { fontSize: 11, fontFamily: "Inter_400Regular" },
-  partialText: { fontSize: 12, fontFamily: "Inter_500Medium" },
+  partialBar: { height: 4, borderRadius: 2, overflow: "hidden", marginTop: 2 },
+  partialFill: { height: "100%", borderRadius: 2 },
   debtRight: { alignItems: "flex-end", gap: 8 },
   debtAmount: { fontSize: 16, fontFamily: "Inter_700Bold" },
   debtActions: { flexDirection: "row", gap: 6 },
-  actionIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  actionBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
   },
