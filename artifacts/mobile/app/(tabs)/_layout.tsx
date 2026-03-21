@@ -18,33 +18,32 @@ function NativeTabLayout() {
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="transactions">
         <Icon sf={{ default: "list.bullet", selected: "list.bullet.fill" }} />
-        <Label>Transactions</Label>
+        <Label>Expenses</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="wallets">
         <Icon sf={{ default: "creditcard", selected: "creditcard.fill" }} />
         <Label>Wallets</Label>
       </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="insights">
+        <Icon sf={{ default: "chart.bar", selected: "chart.bar.fill" }} />
+        <Label>Insights</Label>
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="debts">
         <Icon sf={{ default: "person.2", selected: "person.2.fill" }} />
         <Label>Debts</Label>
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="insights">
-        <Icon sf={{ default: "chart.pie", selected: "chart.pie.fill" }} />
-        <Label>Insights</Label>
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="assistant">
         <Icon sf={{ default: "sparkles", selected: "sparkles" }} />
-        <Label>Assistant</Label>
+        <Label>AI</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
 }
 
 function ClassicTabLayout() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const isIOS = Platform.OS === "ios";
   const isWeb = Platform.OS === "web";
-  const isDark = useColorScheme() === "dark";
   const insets = useSafeAreaInsets();
 
   return (
@@ -60,9 +59,9 @@ function ClassicTabLayout() {
         },
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: isIOS ? "transparent" : theme.tabBar,
+          backgroundColor: isIOS ? "transparent" : isDark ? "#111111" : "#FFFFFF",
           borderTopWidth: 1,
-          borderTopColor: theme.tabBarBorder,
+          borderTopColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
           elevation: 0,
           paddingBottom: insets.bottom,
           ...(isWeb ? { height: 84 } : {}),
@@ -70,12 +69,12 @@ function ClassicTabLayout() {
         tabBarBackground: () =>
           isIOS ? (
             <BlurView
-              intensity={80}
+              intensity={isDark ? 60 : 80}
               tint={isDark ? "dark" : "light"}
               style={StyleSheet.absoluteFill}
             />
           ) : isWeb ? (
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.tabBar }]} />
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? "#111111" : "#FFFFFF" }]} />
           ) : null,
       }}
     >
@@ -94,7 +93,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="transactions"
         options={{
-          title: "History",
+          title: "Expenses",
           tabBarIcon: ({ color, focused }) =>
             isIOS ? (
               <SymbolView name="list.bullet" tintColor={color} size={22} />
@@ -116,6 +115,18 @@ function ClassicTabLayout() {
         }}
       />
       <Tabs.Screen
+        name="insights"
+        options={{
+          title: "Insights",
+          tabBarIcon: ({ color, focused }) =>
+            isIOS ? (
+              <SymbolView name={focused ? "chart.bar.fill" : "chart.bar"} tintColor={color} size={22} />
+            ) : (
+              <Ionicons name={focused ? "bar-chart" : "bar-chart-outline"} size={22} color={color} />
+            ),
+        }}
+      />
+      <Tabs.Screen
         name="debts"
         options={{
           title: "Debts",
@@ -124,18 +135,6 @@ function ClassicTabLayout() {
               <SymbolView name={focused ? "person.2.fill" : "person.2"} tintColor={color} size={22} />
             ) : (
               <Ionicons name={focused ? "people" : "people-outline"} size={22} color={color} />
-            ),
-        }}
-      />
-      <Tabs.Screen
-        name="insights"
-        options={{
-          title: "Insights",
-          tabBarIcon: ({ color, focused }) =>
-            isIOS ? (
-              <SymbolView name={focused ? "chart.pie.fill" : "chart.pie"} tintColor={color} size={22} />
-            ) : (
-              <Ionicons name={focused ? "pie-chart" : "pie-chart-outline"} size={22} color={color} />
             ),
         }}
       />

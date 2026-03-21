@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useColorScheme } from "react-native";
 import { Colors, ColorScheme, ThemeColors } from "@/constants/colors";
 
 interface ThemeContextValue {
@@ -16,8 +15,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 const THEME_STORAGE_KEY = "@budgetbuddy_theme";
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const systemScheme = useColorScheme();
-  const [colorScheme, setColorScheme] = useState<ColorScheme>("light");
+  const [colorScheme, setColorScheme] = useState<ColorScheme>("dark");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -25,7 +23,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (saved === "light" || saved === "dark") {
         setColorScheme(saved);
       } else {
-        setColorScheme(systemScheme === "dark" ? "dark" : "light");
+        setColorScheme("dark");
       }
       setLoaded(true);
     });

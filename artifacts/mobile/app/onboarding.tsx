@@ -12,12 +12,13 @@ import {
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
 
 export default function OnboardingScreen() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { completeOnboarding } = useApp();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState("");
@@ -41,11 +42,16 @@ export default function OnboardingScreen() {
     });
   };
 
+  const bgGradient: [string, string, string] = isDark
+    ? ["#0E0E0E", "#140810", "#0E0E0E"]
+    : ["#F0F0F5", "#EDE8F5", "#F0F0F5"];
+
   return (
-    <KeyboardAvoidingView
-      style={[styles.container, { backgroundColor: theme.background }]}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
+    <LinearGradient colors={bgGradient} style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
       <View style={[styles.inner, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 40 }]}>
         <View style={styles.hero}>
           <View style={[styles.logoCircle, { backgroundColor: theme.primaryLight }]}>
@@ -123,6 +129,7 @@ export default function OnboardingScreen() {
                 styles.button,
                 {
                   backgroundColor: theme.primary,
+                  shadowColor: theme.primary,
                   opacity: pressed ? 0.9 : 1,
                   transform: [{ scale: pressed ? 0.98 : 1 }],
                 },
@@ -134,7 +141,8 @@ export default function OnboardingScreen() {
           </Animated.View>
         </View>
       </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
