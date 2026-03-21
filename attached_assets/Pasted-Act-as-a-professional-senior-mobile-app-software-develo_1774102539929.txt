@@ -1,0 +1,177 @@
+Act as a professional senior mobile app software developer with over 30 years of experience in building scalable, production-ready mobile applications using Flutter (Dart). Your task is to design, architect, and fully develop a modern, high-quality mobile application focused on budgeting and expense tracking, specifically tailored for students, teachers, and instructors.
+
+The application must be fully functional, optimized, cleanly structured, and ready for deployment on both Android and iOS platforms. Ensure that all features work correctly without bugs, crashes, or incomplete logic.
+
+---
+
+### 🧠 APP OVERVIEW
+Build a smart budget and expense tracking app that includes:
+- Wallet management (Cash, GCash, Bank, etc.)
+- Income / Allowance tracking
+- Expense tracking
+- Debt/Utang tracking system
+- Insights and analytics dashboard
+- Offline AI chatbot assistant
+- Clean, modern UI with theme customization
+
+---
+
+### 👤 USER ONBOARDING FLOW
+1. When the app is first launched:
+   - Ask the user: “What is your name?”
+   - Save the name locally (no login required)
+   - After input, automatically navigate to the Home Page
+
+---
+
+### 🎨 THEME SYSTEM (IMPORTANT)
+- Allow users to switch between:
+  - Light Mode (White theme)
+  - Dark Mode
+- Theme preference must:
+  - Be saved locally
+  - Persist even after app restart
+- UI must adapt properly without visual bugs
+- Use smooth transitions between themes
+
+---
+
+### 🏠 HOME PAGE (DASHBOARD)
+Display:
+- User greeting (e.g., “Good evening, John”)
+- Total balance across all wallets
+- Today’s available budget
+- Monthly income vs expenses summary
+- Quick action buttons:
+  - Add Expense
+  - Add Income
+
+---
+
+### 💼 WALLET SYSTEM
+- Predefined wallets:
+  - Cash
+  - GCash
+  - Maya
+  - Bank
+- Allow user to:
+  - Add custom wallets
+- Each wallet must:
+  - Display balance
+  - Track its own transactions
+
+---
+
+### 💰 INCOME / ALLOWANCE SYSTEM
+- Allow user to input:
+  - Allowance (for students)
+  - Salary (for teachers/instructors)
+  - Extra income
+- Support:
+  - Weekly
+  - Monthly
+  - One-time income
+
+---
+
+### 💸 EXPENSE TRACKING
+Each expense must include:
+- Amount
+- Category (Food, Transport, School, etc.)
+- Selected wallet
+- Date
+- Optional note
+
+---
+
+### 🤝 DEBT TRACKER (UTANG SYSTEM)
+- Two categories:
+  - People who owe the user
+  - People the user owes
+- Features:
+  - Add name, amount, and note
+  - Mark as paid/unpaid
+  - Partial payments
+  - Status tracking
+
+---
+
+### 📊 INSIGHTS PAGE
+Provide clear analytics:
+- Spending breakdown (by category)
+- Weekly and monthly summaries
+- Visual charts (pie chart, bar graph)
+- Smart insights like:
+  - “You spent 40% on food this week”
+  - “You saved ₱500 compared to last week”
+
+---
+
+### 🤖 OFFLINE AI CHATBOT
+- Must work WITHOUT internet
+- Should analyze local data (expenses, budget, etc.)
+- Provide intelligent responses such as:
+  - Budget advice
+  - Spending warnings
+  - Savings suggestions
+- Start with rule-based logic, but structure code so it can be upgraded to ML later
+
+---
+
+### 🎨 UI/UX DESIGN REQUIREMENTS
+- Use a modern, clean, minimal design system inspired by shadcn UI principles
+- Smooth animations and transitions
+- Rounded cards, clean spacing, and professional typography
+- Icons must have highlighted accent colors (glow or emphasis effect based on category)
+- Ensure responsive layout across different screen sizes
+- Follow best practices in UX (easy navigation, intuitive flow)
+
+---
+
+### 🧭 NAVIGATION STRUCTURE
+Use bottom navigation bar:
+1. Home
+2. Transactions
+3. Wallets
+4. Debts (Utang)
+5. Insights
+6. AI Assistant
+
+---
+
+### 💾 DATA MANAGEMENT
+- Use local database (Hive or SQLite)
+- Ensure:
+  - Fast performance
+  - Offline-first functionality
+  - Data persistence
+
+---
+
+### ⚙️ CODE QUALITY & ARCHITECTURE
+- Use clean architecture principles
+- Apply proper state management (Riverpod, Provider, or Bloc)
+- Modular and scalable code structure
+- Proper folder organization (models, services, UI, logic)
+- Add comments where necessary
+
+---
+
+### 🧪 TESTING & STABILITY
+- Ensure all features are working correctly
+- Handle edge cases (empty data, invalid inputs)
+- No crashes or UI glitches
+- Validate user inputs properly
+
+---
+
+### 🚀 FINAL OUTPUT REQUIREMENTS
+- Fully working Flutter project
+- Clean UI and smooth UX
+- No placeholder logic — everything must be functional
+- Ready for deployment (Play Store / App Store)
+- Optimized performance
+
+---
+
+Take your time to design and implement this like a production-level application built by a senior engineer. Focus on usability, reliability, and modern design quality.
