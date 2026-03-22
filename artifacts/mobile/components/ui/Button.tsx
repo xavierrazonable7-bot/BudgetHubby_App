@@ -1,5 +1,6 @@
 import React from "react";
-import { Pressable, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from "react-native";
+import { Pressable, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle, View } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 
@@ -13,6 +14,7 @@ interface ButtonProps {
   style?: ViewStyle;
   textStyle?: TextStyle;
   fullWidth?: boolean;
+  leftIcon?: React.ReactNode;
 }
 
 export function Button({
@@ -25,6 +27,7 @@ export function Button({
   style,
   textStyle,
   fullWidth = false,
+  leftIcon,
 }: ButtonProps) {
   const { theme, isDark } = useTheme();
 
@@ -34,59 +37,80 @@ export function Button({
     onPress();
   };
 
-  const getVariantStyle = (): ViewStyle => {
-    switch (variant) {
-      case "primary":
-        return { backgroundColor: theme.primary };
-      case "secondary":
-        return { backgroundColor: theme.secondary };
-      case "outline":
-        return {
-          backgroundColor: "transparent",
-          borderWidth: 1.5,
-          borderColor: theme.primary,
-        };
-      case "danger":
-        return { backgroundColor: theme.danger };
-      case "ghost":
-        return { backgroundColor: "transparent" };
-      default:
-        return { backgroundColor: theme.primary };
-    }
-  };
-
   const getTextColor = (): string => {
     switch (variant) {
-      case "outline":
-        return theme.primary;
-      case "ghost":
-        return theme.textSecondary;
-      default:
-        return "#FFFFFF";
+      case "outline": return theme.primary;
+      case "ghost": return theme.textSecondary;
+      default: return "#FFFFFF";
     }
   };
 
-  const getSizeStyle = (): ViewStyle => {
-    switch (size) {
-      case "sm":
-        return { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 10 };
-      case "lg":
-        return { paddingVertical: 18, paddingHorizontal: 24, borderRadius: 14 };
-      default:
-        return { paddingVertical: 14, paddingHorizontal: 20, borderRadius: 12 };
-    }
+  const sizeMap = {
+    sm: { py: 9, px: 18, radius: 12, fontSize: 13 },
+    md: { py: 14, px: 22, radius: 14, fontSize: 15 },
+    lg: { py: 18, px: 28, radius: 16, fontSize: 17 },
+  };
+  const sz = sizeMap[size];
+
+  const baseStyle: ViewStyle = {
+    paddingVertical: sz.py,
+    paddingHorizontal: sz.px,
+    borderRadius: sz.radius,
+    ...(fullWidth ? { width: "100%" as any } : {}),
+    ...(disabled || loading ? { opacity: 0.5 } : {}),
   };
 
-  const getFontSize = (): number => {
-    switch (size) {
-      case "sm":
-        return 13;
-      case "lg":
-        return 17;
-      default:
-        return 15;
-    }
-  };
+  // Glow shadow for primary/danger/secondary
+  const glowColor = variant === "danger" ? theme.danger : variant === "secondary" ? theme.secondary : theme.primary;
+
+  if (variant === "primary" || variant === "secondary" || variant === "danger") {
+    const gradStart = variant === "danger" ? "#C0394D" : variant === "secondary" ? "#5B21B6" : "#C0394D";
+    const gradEnd = variant === "danger" ? "#E05A6D" : variant === "secondary" ? "#7C3AED" : "#E05A6D";
+
+    // Override with passed style backgroundColor if provided
+    const styleColor = (style as any)?.backgroundColor;
+    const g1 = styleColor ? styleColor + "CC" : gradStart;
+    const g2 = styleColor ? styleColor : gradEnd;
+
+    return (
+      <Pressable
+        onPress={handlePress}
+        disabled={disabled || loading}
+        style={({ pressed }) => [
+          { opacity: pressed ? 0.88 : 1, transform: [{ scale: pressed ? 0.985 : 1 }] },
+          fullWidth && { width: "100%" as any },
+        ]}
+      >
+        <LinearGradient
+          colors={[g1, g2]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={[
+            styles.button,
+            baseStyle,
+            {
+              shadowColor: g2,
+              shadowOffset: { width: 0, height: 5 },
+              shadowOpacity: 0.45,
+              shadowRadius: 14,
+              elevation: 8,
+            },
+            style,
+            { backgroundColor: undefined },
+          ]}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <>
+              {leftIcon}
+              <Text style={[styles.text, { color: "#fff", fontSize: sz.fontSize }, textStyle]}>{title}</Text>
+            </>
+          )}
+        </LinearGradient>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -94,10 +118,9 @@ export function Button({
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.button,
-        getVariantStyle(),
-        getSizeStyle(),
-        fullWidth && styles.fullWidth,
-        (disabled || loading) && styles.disabled,
+        baseStyle,
+        variant === "outline" && { borderWidth: 1.5, borderColor: theme.primary, backgroundColor: "transparent" },
+        variant === "ghost" && { backgroundColor: "transparent" },
         pressed && styles.pressed,
         style,
       ]}
@@ -105,15 +128,10 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={getTextColor()} size="small" />
       ) : (
-        <Text
-          style={[
-            styles.text,
-            { color: getTextColor(), fontSize: getFontSize() },
-            textStyle,
-          ]}
-        >
-          {title}
-        </Text>
+        <>
+          {leftIcon}
+          <Text style={[styles.text, { color: getTextColor(), fontSize: sz.fontSize }, textStyle]}>{title}</Text>
+        </>
       )}
     </Pressable>
   );
@@ -126,18 +144,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-  fullWidth: {
-    width: "100%",
-  },
-  disabled: {
-    opacity: 0.5,
-  },
   pressed: {
     opacity: 0.85,
     transform: [{ scale: 0.98 }],
   },
   text: {
-    fontFamily: "Inter_600SemiBold",
+    fontFamily: "Inter_700Bold",
     textAlign: "center",
   },
 });

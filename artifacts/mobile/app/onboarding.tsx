@@ -17,6 +17,12 @@ import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
 
+const FEATURES = [
+  { icon: "wallet-outline", text: "Track all your wallets", color: "#2DD4BF", grad: ["#0D2018", "#102A1E"] as [string, string] },
+  { icon: "stats-chart-outline", text: "Visual spending insights", color: "#6366F1", grad: ["#0D102A", "#121630"] as [string, string] },
+  { icon: "chatbubble-ellipses-outline", text: "AI budget assistant", color: "#F59E0B", grad: ["#1A1608", "#221C08"] as [string, string] },
+];
+
 export default function OnboardingScreen() {
   const { theme, isDark } = useTheme();
   const { completeOnboarding } = useApp();
@@ -29,6 +35,7 @@ export default function OnboardingScreen() {
   const handleContinue = () => {
     if (!name.trim()) {
       setError("Please enter your name to continue");
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       return;
     }
     setError("");
@@ -48,99 +55,140 @@ export default function OnboardingScreen() {
 
   return (
     <LinearGradient colors={bgGradient} style={styles.container}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-      <View style={[styles.inner, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 40 }]}>
-        <View style={styles.hero}>
-          <View style={[styles.logoCircle, { backgroundColor: theme.primaryLight }]}>
-            <Ionicons name="wallet" size={40} color={theme.primary} />
-          </View>
-          <Text style={[styles.appName, { color: theme.text }]}>BudgetBuddy</Text>
-          <Text style={[styles.tagline, { color: theme.textSecondary }]}>
-            Smart budgeting for students & educators
-          </Text>
-        </View>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
+        <View style={[styles.inner, { paddingTop: insets.top + 40, paddingBottom: insets.bottom + 40 }]}>
 
-        <View style={styles.form}>
-          <Text style={[styles.question, { color: theme.text }]}>
-            What should we call you?
-          </Text>
-          <Text style={[styles.subtext, { color: theme.textSecondary }]}>
-            We'll personalize your experience
-          </Text>
-
-          <View
-            style={[
-              styles.inputWrapper,
-              {
-                backgroundColor: theme.surfaceSecondary,
-                borderColor: focused ? theme.primary : error ? theme.danger : theme.border,
-                borderWidth: focused ? 2 : 1,
-              },
-            ]}
-          >
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color={focused ? theme.primary : theme.textTertiary}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={[styles.input, { color: theme.text, fontFamily: "Inter_500Medium" }]}
-              value={name}
-              onChangeText={(t) => { setName(t); setError(""); }}
-              placeholder="Enter your name"
-              placeholderTextColor={theme.textTertiary}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={handleContinue}
-              onFocus={() => setFocused(true)}
-              onBlur={() => setFocused(false)}
-              maxLength={30}
-            />
-          </View>
-          {error ? (
-            <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>
-          ) : null}
-        </View>
-
-        <View style={styles.footer}>
-          <View style={styles.features}>
-            {[
-              { icon: "wallet-outline", text: "Track all your wallets" },
-              { icon: "stats-chart-outline", text: "Visual spending insights" },
-              { icon: "chatbubble-ellipses-outline", text: "AI budget assistant" },
-            ].map((f, i) => (
-              <View key={i} style={styles.featureRow}>
-                <View style={[styles.featureIcon, { backgroundColor: theme.primaryLight }]}>
-                  <Ionicons name={f.icon as any} size={16} color={theme.primary} />
-                </View>
-                <Text style={[styles.featureText, { color: theme.textSecondary }]}>{f.text}</Text>
-              </View>
-            ))}
+          {/* Hero */}
+          <View style={styles.hero}>
+            {/* Outer glow ring */}
+            <View style={[styles.glowRing, { borderColor: "#E05A6D30" }]}>
+              <LinearGradient
+                colors={["#C0394D", "#E05A6D", "#8B1A2E"]}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={[
+                  styles.logoCircle,
+                  {
+                    shadowColor: "#E05A6D",
+                    shadowOffset: { width: 0, height: 8 },
+                    shadowOpacity: 0.7,
+                    shadowRadius: 20,
+                    elevation: 12,
+                  },
+                ]}
+              >
+                <Ionicons name="wallet" size={38} color="#fff" />
+              </LinearGradient>
+            </View>
+            <Text style={[styles.appName, { color: theme.text }]}>BudgetBuddy</Text>
+            <Text style={[styles.tagline, { color: theme.textSecondary }]}>
+              Smart budgeting for students & educators
+            </Text>
+            {/* Accent line */}
+            <View style={styles.accentDivider}>
+              <View style={[styles.accentLine, { backgroundColor: theme.border }]} />
+              <View style={[styles.accentDot, { backgroundColor: "#E05A6D" }]} />
+              <View style={[styles.accentLine, { backgroundColor: theme.border }]} />
+            </View>
           </View>
 
-          <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
-            <Pressable
-              onPress={handleContinue}
-              style={({ pressed }) => [
-                styles.button,
+          {/* Form */}
+          <View style={styles.form}>
+            <Text style={[styles.question, { color: theme.text }]}>What should we call you?</Text>
+            <Text style={[styles.subtext, { color: theme.textSecondary }]}>
+              We'll personalize your BudgetBuddy experience
+            </Text>
+            <View
+              style={[
+                styles.inputWrapper,
                 {
-                  backgroundColor: theme.primary,
-                  shadowColor: theme.primary,
-                  opacity: pressed ? 0.9 : 1,
-                  transform: [{ scale: pressed ? 0.98 : 1 }],
+                  backgroundColor: theme.surface,
+                  borderColor: focused ? "#E05A6D" : error ? theme.danger : isDark ? "rgba(255,255,255,0.07)" : theme.border,
+                  borderWidth: focused ? 2 : 1,
+                  shadowColor: focused ? "#E05A6D" : "#000",
+                  shadowOffset: { width: 0, height: focused ? 0 : 2 },
+                  shadowOpacity: focused ? 0.25 : isDark ? 0.3 : 0.05,
+                  shadowRadius: focused ? 12 : 4,
+                  elevation: focused ? 4 : 1,
                 },
               ]}
             >
-              <Text style={styles.buttonText}>Get Started</Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
-            </Pressable>
-          </Animated.View>
+              <Ionicons
+                name="person-outline"
+                size={20}
+                color={focused ? "#E05A6D" : theme.textTertiary}
+              />
+              <TextInput
+                style={[styles.input, { color: theme.text, fontFamily: "Inter_600SemiBold" }]}
+                value={name}
+                onChangeText={(t) => { setName(t); setError(""); }}
+                placeholder="Enter your name"
+                placeholderTextColor={theme.textTertiary}
+                autoFocus
+                returnKeyType="done"
+                onSubmitEditing={handleContinue}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
+                maxLength={30}
+              />
+            </View>
+            {error ? (
+              <View style={styles.errorRow}>
+                <Ionicons name="alert-circle-outline" size={14} color={theme.danger} />
+                <Text style={[styles.error, { color: theme.danger }]}>{error}</Text>
+              </View>
+            ) : null}
+          </View>
+
+          {/* Footer */}
+          <View style={styles.footer}>
+            {/* Feature List */}
+            <View style={styles.features}>
+              {FEATURES.map((f, i) => (
+                <LinearGradient
+                  key={i}
+                  colors={isDark ? f.grad : ["rgba(0,0,0,0.02)", "rgba(0,0,0,0.02)"]}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                  style={[styles.featureRow, { borderColor: f.color + "25", borderWidth: 1 }]}
+                >
+                  <View style={[styles.featureIcon, { backgroundColor: f.color + "20", borderWidth: 1, borderColor: f.color + "30" }]}>
+                    <Ionicons name={f.icon as any} size={16} color={f.color} />
+                  </View>
+                  <Text style={[styles.featureText, { color: theme.textSecondary }]}>{f.text}</Text>
+                  <Ionicons name="checkmark-circle" size={16} color={f.color} />
+                </LinearGradient>
+              ))}
+            </View>
+
+            {/* CTA Button */}
+            <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+              <Pressable
+                onPress={handleContinue}
+                style={({ pressed }) => [{ opacity: pressed ? 0.9 : 1 }]}
+              >
+                <LinearGradient
+                  colors={["#C0394D", "#E05A6D"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={[
+                    styles.button,
+                    {
+                      shadowColor: "#E05A6D",
+                      shadowOffset: { width: 0, height: 6 },
+                      shadowOpacity: 0.5,
+                      shadowRadius: 16,
+                      elevation: 10,
+                    },
+                  ]}
+                >
+                  <Text style={styles.buttonText}>Get Started</Text>
+                  <View style={styles.buttonArrow}>
+                    <Ionicons name="arrow-forward" size={18} color="#E05A6D" />
+                  </View>
+                </LinearGradient>
+              </Pressable>
+            </Animated.View>
+          </View>
         </View>
-      </View>
       </KeyboardAvoidingView>
     </LinearGradient>
   );
@@ -150,39 +198,49 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   inner: {
     flex: 1,
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
     justifyContent: "space-between",
   },
-  hero: { alignItems: "center", gap: 12 },
-  logoCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+  hero: { alignItems: "center", gap: 10 },
+  glowRing: {
+    width: 110,
+    height: 110,
+    borderRadius: 55,
+    borderWidth: 1,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 4,
   },
+  logoCircle: {
+    width: 90,
+    height: 90,
+    borderRadius: 45,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   appName: {
-    fontSize: 32,
+    fontSize: 34,
     fontFamily: "Inter_700Bold",
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
   },
   tagline: {
-    fontSize: 15,
-    fontFamily: "Inter_400Regular",
-    textAlign: "center",
-  },
-  form: { gap: 10 },
-  question: {
-    fontSize: 24,
-    fontFamily: "Inter_700Bold",
-    letterSpacing: -0.3,
-  },
-  subtext: {
     fontSize: 14,
     fontFamily: "Inter_400Regular",
-    marginBottom: 8,
+    textAlign: "center",
+    lineHeight: 22,
   },
+  accentDivider: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 4,
+    width: 120,
+  },
+  accentLine: { flex: 1, height: 1 },
+  accentDot: { width: 6, height: 6, borderRadius: 3 },
+  form: { gap: 10 },
+  question: { fontSize: 22, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
+  subtext: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 6, lineHeight: 20 },
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -191,23 +249,23 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 12,
   },
-  inputIcon: {},
   input: {
     flex: 1,
-    fontSize: 18,
+    fontSize: 17,
     padding: 0,
     margin: 0,
   },
-  error: {
-    fontSize: 13,
-    fontFamily: "Inter_400Regular",
-  },
-  footer: { gap: 24 },
-  features: { gap: 12 },
+  errorRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  error: { fontSize: 13, fontFamily: "Inter_400Regular" },
+  footer: { gap: 20 },
+  features: { gap: 10 },
   featureRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
   featureIcon: {
     width: 34,
@@ -216,26 +274,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  featureText: {
-    fontSize: 14,
-    fontFamily: "Inter_500Medium",
-  },
+  featureText: { flex: 1, fontSize: 13, fontFamily: "Inter_500Medium" },
   button: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 18,
-    borderRadius: 16,
+    paddingHorizontal: 28,
+    borderRadius: 18,
     gap: 10,
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 6,
   },
-  buttonText: {
-    color: "#fff",
-    fontSize: 17,
-    fontFamily: "Inter_700Bold",
+  buttonText: { color: "#fff", fontSize: 17, fontFamily: "Inter_700Bold" },
+  buttonArrow: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

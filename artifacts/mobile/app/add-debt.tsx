@@ -10,15 +10,17 @@ import {
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp, DebtType } from "@/context/AppContext";
 import { AmountInput } from "@/components/ui/AmountInput";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { ScreenWrapper } from "@/components/ScreenWrapper";
 
 export default function AddDebtScreen() {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { addDebt } = useApp();
   const insets = useSafeAreaInsets();
 
@@ -28,7 +30,8 @@ export default function AddDebtScreen() {
   const [note, setNote] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const accentColor = type === "lent" ? theme.accent : theme.danger;
+  const isLent = type === "lent";
+  const accentColor = isLent ? theme.income : theme.expense;
 
   const validate = () => {
     const errs: Record<string, string> = {};
@@ -41,73 +44,81 @@ export default function AddDebtScreen() {
   const handleSave = () => {
     if (!validate()) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    addDebt({
-      type,
-      personName: personName.trim(),
-      amount: parseFloat(amount),
-      paidAmount: 0,
-      note,
-      date: new Date().toISOString(),
-      status: "pending",
-    });
+    addDebt({ type, personName: personName.trim(), amount: parseFloat(amount), paidAmount: 0, note, date: new Date().toISOString(), status: "pending" });
     router.back();
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background }]}>
+    <ScreenWrapper>
       {/* Header */}
       <View style={[styles.header, { paddingTop: Platform.OS === "ios" ? insets.top + 8 : 20 }]}>
-        <Pressable onPress={() => router.back()} style={styles.closeBtn}>
-          <Ionicons name="close" size={24} color={theme.text} />
+        <Pressable
+          onPress={() => router.back()}
+          style={[styles.iconBtn, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border, borderWidth: 1 }]}
+        >
+          <Ionicons name="close" size={20} color={theme.text} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: theme.text }]}>Add Debt</Text>
+        <View style={styles.headerCenter}>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Record Debt</Text>
+          <View style={[styles.headerDot, { backgroundColor: accentColor }]} />
+        </View>
         <View style={{ width: 40 }} />
       </View>
 
       {/* Type Toggle */}
-      <View style={[styles.typeRow, { backgroundColor: theme.surfaceSecondary, marginHorizontal: 20 }]}>
-        <Pressable
-          onPress={() => setType("lent")}
-          style={[styles.typeBtn, { backgroundColor: type === "lent" ? theme.accent : "transparent" }]}
-        >
-          <Ionicons name="arrow-down" size={16} color={type === "lent" ? "#fff" : theme.textSecondary} />
-          <Text style={[styles.typeText, { color: type === "lent" ? "#fff" : theme.textSecondary }]}>
-            I Lent
-          </Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setType("borrowed")}
-          style={[styles.typeBtn, { backgroundColor: type === "borrowed" ? theme.danger : "transparent" }]}
-        >
-          <Ionicons name="arrow-up" size={16} color={type === "borrowed" ? "#fff" : theme.textSecondary} />
-          <Text style={[styles.typeText, { color: type === "borrowed" ? "#fff" : theme.textSecondary }]}>
-            I Borrowed
-          </Text>
-        </Pressable>
+      <View style={[styles.typeToggle, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border, marginHorizontal: 20 }]}>
+        {([
+          { t: "lent" as DebtType, label: "I Lent", icon: "arrow-down", color: theme.income, grad: ["#0D2018", "#102A1E"] as [string, string] },
+          { t: "borrowed" as DebtType, label: "I Borrowed", icon: "arrow-up", color: theme.expense, grad: ["#2A1018", "#2A1820"] as [string, string] },
+        ]).map((item) => {
+          const active = type === item.t;
+          return (
+            <Pressable key={item.t} onPress={() => { setType(item.t); Haptics.selectionAsync(); }} style={{ flex: 1 }}>
+              {active ? (
+                <LinearGradient
+                  colors={item.grad}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                  style={[styles.typeBtn, { borderWidth: 1, borderColor: item.color + "40", shadowColor: item.color, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 8 }]}
+                >
+                  <View style={[styles.typeIconWrap, { backgroundColor: item.color + "25" }]}>
+                    <Ionicons name={item.icon as any} size={14} color={item.color} />
+                  </View>
+                  <Text style={[styles.typeText, { color: item.color }]}>{item.label}</Text>
+                </LinearGradient>
+              ) : (
+                <View style={[styles.typeBtn, { backgroundColor: "transparent" }]}>
+                  <Ionicons name={item.icon as any} size={14} color={theme.textTertiary} />
+                  <Text style={[styles.typeText, { color: theme.textTertiary }]}>{item.label}</Text>
+                </View>
+              )}
+            </Pressable>
+          );
+        })}
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingBottom: insets.bottom + 100,
-          gap: 20,
-          paddingTop: 20,
-        }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 120, gap: 22, paddingTop: 20 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={[styles.contextCard, { backgroundColor: accentColor + "15", borderColor: accentColor + "30" }]}>
-          <Ionicons
-            name={type === "lent" ? "arrow-down-circle" : "arrow-up-circle"}
-            size={22}
-            color={accentColor}
-          />
-          <Text style={[styles.contextText, { color: accentColor }]}>
-            {type === "lent"
-              ? "Someone owes you money"
-              : "You owe someone money"}
-          </Text>
-        </View>
+        {/* Context Banner */}
+        <LinearGradient
+          colors={isLent ? ["#0D2018", "#102A1E"] : ["#2A1018", "#2A1820"]}
+          start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+          style={[styles.contextBanner, { borderColor: accentColor + "30" }]}
+        >
+          <View style={[styles.contextIconWrap, { backgroundColor: accentColor + "20" }]}>
+            <Ionicons name={isLent ? "arrow-down-circle" : "arrow-up-circle"} size={24} color={accentColor} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.contextTitle, { color: accentColor }]}>
+              {isLent ? "Money Lent" : "Money Borrowed"}
+            </Text>
+            <Text style={[styles.contextSub, { color: theme.textSecondary }]}>
+              {isLent ? "Record money someone owes you" : "Record money you owe someone"}
+            </Text>
+          </View>
+        </LinearGradient>
 
         <Input
           label="Person's Name"
@@ -118,72 +129,71 @@ export default function AddDebtScreen() {
           error={errors.name}
         />
 
-        <AmountInput
-          value={amount}
-          onChangeText={setAmount}
-          label="Amount"
-          error={errors.amount}
-          color={accentColor}
-        />
+        <AmountInput value={amount} onChangeText={setAmount} label="Amount" error={errors.amount} color={accentColor} />
 
         <Input
           label="Note (optional)"
           value={note}
           onChangeText={setNote}
-          placeholder="What's this for?"
+          placeholder="What's this for? (e.g., baon, utang, etc.)"
           leftIcon="document-text-outline"
           multiline
         />
       </ScrollView>
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 16, backgroundColor: theme.background, borderTopColor: theme.border }]}>
+      <View style={[styles.footer, { paddingBottom: insets.bottom + 16, borderTopColor: isDark ? "rgba(255,255,255,0.06)" : theme.border }]}>
         <Button
-          title={type === "lent" ? "Record Lent Amount" : "Record Borrowed Amount"}
+          title={isLent ? "Record Lent Amount" : "Record Borrowed Amount"}
           onPress={handleSave}
           fullWidth
           size="lg"
           style={{ backgroundColor: accentColor }}
         />
       </View>
-    </View>
+    </ScreenWrapper>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingBottom: 14,
   },
-  closeBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  headerCenter: { alignItems: "center", gap: 4 },
   headerTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
-  typeRow: {
+  headerDot: { width: 20, height: 3, borderRadius: 2 },
+  typeToggle: {
     flexDirection: "row",
-    borderRadius: 14,
-    padding: 4,
+    borderRadius: 16,
+    padding: 5,
     marginBottom: 8,
+    borderWidth: 1,
   },
   typeBtn: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
+    paddingVertical: 11,
+    borderRadius: 12,
+    gap: 7,
   },
+  typeIconWrap: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   typeText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  contextCard: {
+  contextBanner: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 10,
-    padding: 14,
-    borderRadius: 12,
+    gap: 14,
+    padding: 16,
+    borderRadius: 16,
     borderWidth: 1,
   },
-  contextText: { fontSize: 14, fontFamily: "Inter_500Medium" },
-  footer: { paddingHorizontal: 20, paddingTop: 12, borderTopWidth: 1 },
+  contextIconWrap: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
+  contextTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  contextSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  footer: { paddingHorizontal: 20, paddingTop: 14, borderTopWidth: 1 },
 });

@@ -94,3 +94,38 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+### `artifacts/mobile` (`@workspace/mobile`)
+
+Expo React Native mobile app — **BudgetBuddy**. Philippine Peso budget tracker for students and teachers.
+
+**Features**: wallet management (Cash, GCash, Maya, Bank, custom), income/expense tracking, debt/utang tracker, insights with pie charts, offline AI chat assistant, dark/light mode (default dark).
+
+**Design system**: Neumorphic dark UI — primary `#E05A6D`, income `#2DD4BF`, expense `#E05A6D`, bg dark `#0E0E0E`. LinearGradient backgrounds on all screens (`ScreenWrapper`). Glow shadows on cards/icons/buttons.
+
+**Key files**:
+- `app/(tabs)/index.tsx` — Home (balance hero, spending card, quick actions, wallet chips, recent activity)
+- `app/(tabs)/transactions.tsx` — Transactions (filter tabs, grouped by date, neumorphic cards)
+- `app/(tabs)/wallets.tsx` — Wallets (gradient total card, per-wallet balance bars)
+- `app/(tabs)/debts.tsx` — Debts/Utang tracker (lent/borrowed toggle, gradient cards)
+- `app/(tabs)/insights.tsx` — Analytics (pie chart, category breakdown, smart insights)
+- `app/(tabs)/assistant.tsx` — AI chat (offline response engine, indigo #6366F1 theme)
+- `app/onboarding.tsx` — Onboarding (gradient logo, feature cards, name input)
+- `app/add-transaction.tsx` — Add income/expense modal
+- `app/add-debt.tsx` — Record debt modal
+- `app/add-wallet.tsx` — Create wallet modal
+- `app/transaction-detail.tsx` — Transaction detail/delete
+- `context/AppContext.tsx` — Global state (AsyncStorage)
+- `context/ThemeContext.tsx` — Dark/light theme (default dark)
+- `constants/colors.ts` — Color palette
+- `components/ScreenWrapper.tsx` — 3-stop gradient background wrapper
+- `components/ui/` — Button (LinearGradient glow), Input (focus glow), AmountInput (accent bar + 42px display), Card, CategoryPicker, EmptyState, WalletPicker
+- `utils/format.ts` — formatCurrency (₱), generateId, date helpers
+- `utils/categories.ts` — getCategoryColor, getCategoryIcon, getCategoryLabel
+
+**Important conventions**:
+- Never use `uuid` — use `generateId()` from utils/format.ts
+- Web: `paddingTop 67` web-only guard with `Platform.OS === "web"`
+- `expo-linear-gradient` installed; `react-native-chart-kit` in devDependencies
+- Inter font family: 400/500/600/700 loaded in `_layout.tsx`
+- AsyncStorage only (no backend); STORAGE_KEYS in utils/storage.ts
