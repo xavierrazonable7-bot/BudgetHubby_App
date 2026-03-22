@@ -1,0 +1,190 @@
+Act as a senior mobile app software engineer and UI/UX designer with 30+ years of experience in Flutter (Dart). Your task is to extend and enhance my existing budgeting application by adding new student-focused productivity features.
+
+IMPORTANT:
+- Do NOT rewrite the entire codebase
+- Do NOT break existing features (wallets, expenses, income, debts, insights)
+- Only ADD and INTEGRATE new features cleanly
+- Follow clean architecture and modular structure
+- Ensure all features are fully functional, bug-free, and production-ready
+
+---
+
+# 🎯 NEW FEATURE MODULES TO IMPLEMENT
+
+---
+
+## 📅 1. EVENT & ACADEMIC REMINDERS
+Create a full event/reminder system for students.
+
+### Features:
+- Add events:
+  - Assignment deadlines
+  - Quizzes
+  - Exams
+  - Custom events
+- Fields:
+  - Title
+  - Description
+  - Date & time
+  - Type (Assignment, Quiz, Exam, Personal)
+- Display:
+  - Upcoming events list
+  - Highlight urgent events (e.g., “Due Tomorrow”)
+- Add local notifications/reminders
+
+---
+
+## ⏱️ 2. POMODORO STUDY TIMER
+Implement a built-in Pomodoro timer.
+
+### Features:
+- Default cycle:
+  - 25 min focus
+  - 5 min break
+- Allow customization
+- Start / Pause / Reset
+- Track completed sessions
+- Save study sessions locally
+
+---
+
+## 📝 3. NOTES (TEXT + CHECKLIST)
+Allow users to create notes.
+
+### Features:
+- Two types:
+  - Text notes
+  - Checklist notes (to-do style)
+- Add, edit, delete notes
+- Clean card-based UI
+- Store locally
+
+---
+
+## ✅ 4. TASK MANAGEMENT SYSTEM
+Create a task/to-do system.
+
+### Features:
+- Add tasks:
+  - Title
+  - Deadline
+  - Priority
+- Mark as complete/incomplete
+- Filter (All / Completed / Pending)
+
+---
+
+## 🔥 5. STUDY HEATMAP
+Create a visual heatmap of study activity.
+
+### Features:
+- Track daily study time (from Pomodoro)
+- Show calendar-style heatmap
+- Color intensity based on study duration
+- Weekly/monthly view
+
+---
+
+## 🤖 6. AI INSIGHTS (EXPENSE + STUDY)
+Enhance insights system.
+
+### Expense insights:
+- Spending patterns
+- Budget warnings
+- Savings suggestions
+
+### Study insights:
+- “You studied more this week”
+- “You missed 2 days of study”
+- “Most productive day: Monday”
+
+### Implementation:
+- Must work offline
+- Use rule-based logic initially
+- Structure code for future ML upgrade
+
+---
+
+## 📄 7. PDF EXPORT FEATURE (IMPORTANT)
+Allow user to export data into a well-designed PDF.
+
+### Exportable data:
+- Expenses
+- Income
+- Tasks
+- Study sessions
+
+### PDF Requirements:
+- Clean and professional layout
+- Include:
+  - App name header
+  - User name
+  - Date range
+- Sections:
+  - Summary
+  - Tables (transactions, tasks, etc.)
+- Proper spacing and typography
+- Use a PDF library in Flutter (e.g., pdf package)
+
+---
+
+# 🎨 UI/UX REQUIREMENTS
+- Follow modern dark UI design
+- Use card-based layout
+- Maintain consistency with existing design
+- Add smooth animations and transitions
+- Ensure responsive layout
+
+---
+
+# 🧭 NAVIGATION UPDATE
+Update bottom navigation to include:
+- Home
+- Transactions
+- Tasks
+- Events
+- Insights
+- More (Notes, Pomodoro, PDF Export, AI)
+
+---
+
+# 💾 DATA STORAGE
+- Use local database (Hive or SQLite)
+- Ensure:
+  - Fast performance
+  - Offline functionality
+  - Persistent data
+
+---
+
+# ⚙️ CODE STRUCTURE
+- Modular architecture:
+  - Separate folders for:
+    - events
+    - pomodoro
+    - notes
+    - tasks
+    - insights
+    - export
+- Clean, readable, maintainable code
+
+---
+
+# 🧪 TESTING
+- Ensure:
+  - No crashes
+  - Proper validation
+  - Smooth performance
+- Handle edge cases (empty data, invalid inputs)
+
+---
+
+# ✅ FINAL OUTPUT
+- Fully working features integrated into the app
+- Clean UI and smooth UX
+- All features functional offline
+- Ready for production deployment
+
+---
+
+Focus on quality, usability, and seamless integration with the existing system

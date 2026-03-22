@@ -25,4 +25,8 @@ export const STORAGE_KEYS = {
   DEBTS: "@bb_debts",
   THEME: "@bb_theme",
   ONBOARDED: "@bb_onboarded",
+  TASKS: "@bb_tasks",
+  EVENTS: "@bb_events",
+  NOTES: "@bb_notes",
+  STUDY_SESSIONS: "@bb_study_sessions",
 };
