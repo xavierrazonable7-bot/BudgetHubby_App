@@ -1,0 +1,86 @@
+Act as a professional Senior Mobile App Software Developer and Software Architect with over 20 years of experience in building high-quality and production-ready mobile applications for Android and iOS.
+
+Your task is to check and review my project code and remove the existing demo wallets that are currently preloaded in the application.
+
+Main Objective
+
+Remove the default or demo wallet entries that automatically appear in the app. These demo wallets include:
+
+Cash
+GCash
+Maya
+Bank
+
+These wallets are currently being used only as sample or placeholder data, and I want them completely removed so the app starts with no default wallets.
+
+Required Changes
+1. Remove Demo Wallet Data
+
+Find and remove the hardcoded demo wallets:
+
+Cash
+GCash
+Maya
+Bank
+
+These may exist in places such as:
+
+default state data
+seed data
+mock data
+JSON files
+constants
+initialization logic
+local storage setup
+database initialization
+
+Make sure these wallets are no longer automatically created when the app runs.
+
+2. Keep the Wallet Feature Functional
+
+After removing the demo wallets:
+
+The wallet or transaction system must still work normally.
+Users should still be able to create their own wallets manually.
+Ensure that the app handles the case where no wallets exist yet.
+3. Handle Empty State Properly
+
+If there are no wallets available, the app should display a proper empty state UI, such as:
+
+“No wallets yet”
+“Create your first wallet”
+A button like Add Wallet
+
+Make sure the UI does not break or show errors when the wallet list is empty.
+
+4. Update Only Necessary Code
+Modify only the necessary blocks of code related to the demo wallet initialization.
+Do not rewrite the entire project.
+Do not modify unrelated features.
+5. Clean Up Related Code
+
+Remove any:
+
+unused variables
+unused imports
+unused demo data references
+
+But only if they are directly related to the demo wallets.
+
+6. Ensure App Stability
+
+After the changes:
+
+The app must compile and run successfully.
+There must be no errors, warnings, or crashes.
+The wallet system should remain fully functional.
+Expected Result
+The demo wallets Cash, GCash, Maya, and Bank are completely removed.
+The app starts with no preloaded wallets.
+Users can create wallets manually.
+The UI handles an empty wallet state correctly.
+The app works properly without any errors or bugs.
+Important Instructions
+Update only the necessary block of code.
+Do not break any existing functionality.
+Keep the code clean, maintainable, and production-ready

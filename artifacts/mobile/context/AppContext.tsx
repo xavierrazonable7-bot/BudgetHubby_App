@@ -137,17 +137,10 @@ interface AppContextValue {
 
 const AppContext = createContext<AppContextValue | null>(null);
 
-const DEFAULT_WALLETS: Wallet[] = [
-  { id: "wallet_cash", name: "Cash", type: "cash", balance: 0, color: "#10B981", icon: "cash" },
-  { id: "wallet_gcash", name: "GCash", type: "gcash", balance: 0, color: "#2563EB", icon: "phone-portrait" },
-  { id: "wallet_maya", name: "Maya", type: "maya", balance: 0, color: "#7C3AED", icon: "card" },
-  { id: "wallet_bank", name: "Bank", type: "bank", balance: 0, color: "#F59E0B", icon: "business" },
-];
-
 export function AppProvider({ children }: { children: ReactNode }) {
   const [userName, setUserNameState] = useState("");
   const [isOnboarded, setIsOnboarded] = useState(false);
-  const [wallets, setWallets] = useState<Wallet[]>(DEFAULT_WALLETS);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -161,7 +154,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const [name, onboarded, savedWallets, savedTx, savedDebts, savedTasks, savedEvents, savedNotes, savedSessions] = await Promise.all([
         loadData<string>(STORAGE_KEYS.USER_NAME, ""),
         loadData<boolean>(STORAGE_KEYS.ONBOARDED, false),
-        loadData<Wallet[]>(STORAGE_KEYS.WALLETS, DEFAULT_WALLETS),
+        loadData<Wallet[]>(STORAGE_KEYS.WALLETS, []),
         loadData<Transaction[]>(STORAGE_KEYS.TRANSACTIONS, []),
         loadData<Debt[]>(STORAGE_KEYS.DEBTS, []),
         loadData<Task[]>(STORAGE_KEYS.TASKS, []),
@@ -171,7 +164,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ]);
       setUserNameState(name);
       setIsOnboarded(onboarded);
-      setWallets(savedWallets.length > 0 ? savedWallets : DEFAULT_WALLETS);
+      setWallets(savedWallets);
       setTransactions(savedTx);
       setDebts(savedDebts);
       setTasks(savedTasks);
