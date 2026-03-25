@@ -1,0 +1,120 @@
+Act as a professional Senior Mobile App Software Developer, Mobile UI/UX Designer, and Frontend Architect with over 20 years of experience in building clean, modern, and production-ready mobile applications for Android and iOS.
+
+Your task is to create a complete Planner page for my mobile app and make the UI and layout look modern, clean, organized, and visually appealing. The design should feel polished, user-friendly, and suitable for a premium productivity app.
+
+Main Goal
+
+Build a Planner page that helps users manage their daily planning in one place. The page should be beautiful, easy to use, and well-structured.
+
+Planner Page Requirements
+Core Sections
+
+Create a Planner page that includes these sections inside one screen:
+
+Tasks
+Events
+Notes
+
+You may organize them using:
+
+top tabs
+segmented controls
+pill buttons
+internal tab switcher
+
+Use the option that best fits a modern mobile app UI.
+
+UI and Layout
+Make the overall layout look modern, clean, and balanced
+Use proper spacing, padding, and alignment
+Make the page visually organized and easy to scan
+Use a professional card-based layout where appropriate
+Ensure the visual hierarchy is clear
+Make the page look polished in both light mode and dark mode if the app supports themes
+Planner Cards
+
+Design clean and modern cards for planner items.
+Each card should feel neat and professional and may include:
+
+title
+description
+date
+time
+status
+category
+icon
+
+Make sure the icons inside the cards are properly positioned, visually balanced, and not awkwardly placed.
+
+Tasks Section
+
+For tasks, include:
+
+task title
+optional description
+due date
+status such as pending or completed
+clean task card or list item design
+Events Section
+
+For events, include:
+
+event title
+date
+time
+location if applicable
+clean event card layout
+Notes Section
+
+For notes, include:
+
+note title
+short content preview
+last updated date if needed
+clean and readable note card design
+Add Functionality UI
+
+Add a clean and modern Add button or floating action button that allows the user to add:
+
+new task
+new event
+new note
+
+If needed, use a modal, bottom sheet, or dedicated form screen.
+
+Date Input
+
+Whenever the user adds or edits a task or event date, use a proper calendar date picker instead of plain text input.
+
+The user should tap the date field
+A calendar should appear
+The selected date should display correctly in the form
+Empty State
+
+If there are no planner items yet, show a modern empty state UI such as:
+
+“No planner items yet”
+“Add your first task, event, or note”
+Code Requirements
+Create only the files and code needed for the Planner page
+Keep the code clean, organized, reusable, and maintainable
+Follow best practices for React Native / Expo mobile app development
+Make the implementation responsive and stable
+Do not add unnecessary complexity
+Functional Requirements
+Make sure navigation to the Planner page works properly
+Make sure switching between Tasks, Events, and Notes works correctly
+Make sure add actions and date picker interactions work properly
+Ensure there are no errors, warnings, crashes, or broken UI
+Expected Result
+A fully created Planner page
+Modern and attractive UI design
+Clean layout with Tasks, Events, and Notes
+Properly positioned icons in cards
+Working calendar date picker for date fields
+Smooth and fully functional user experience without errors and bugs
+Important Instructions
+Make it modern, clean, and visually appealing
+Keep the layout user-friendly and professional
+Ensure all functions work properly
+Make the page fully functional without errors and bugs
