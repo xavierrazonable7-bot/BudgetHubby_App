@@ -1,0 +1,82 @@
+Act as a professional Senior Mobile App Software Developer, Mobile UI/UX Designer, and Frontend Architect with over 20 years of experience in building clean, modern, and production-ready mobile applications for Android and iOS.
+
+Your task is to check and review my existing project and enhance and improve the layout and UI design of the Planner page. Only update the necessary blocks of code and do not rewrite the entire project.
+
+Main Goal
+
+Improve the overall appearance, structure, and usability of the Planner page, especially the card layout and icon positioning, and also improve the date input experience by replacing manual text input with a proper calendar date picker.
+
+Required Improvements
+1. Enhance the Planner Page UI Layout
+Review the current Planner page design and improve the overall layout.
+Make the page look more modern, clean, organized, and visually balanced.
+Improve:
+spacing
+padding
+alignment
+typography
+card structure
+visual hierarchy
+Ensure the Planner page looks polished and professional.
+2. Improve Card Design
+Enhance the layout and design of all cards used in the Planner page.
+Make the cards cleaner and more visually appealing.
+Ensure the card content is properly aligned and easy to read.
+Improve the design so it feels modern and user-friendly.
+3. Fix the Positioning of the Icons in the Card
+Carefully review the current icon placement inside the cards.
+Improve the positioning, alignment, spacing, and visual balance of the icons.
+Make sure the icons are not awkwardly placed, too close to text, or visually misaligned.
+The icon should feel intentionally placed and properly integrated into the card layout.
+If needed, improve the icon container styling so the icon looks more polished and consistent with the card design.
+4. Replace Manual Date Input with a Proper Calendar Picker
+When the user adds or selects a date in the Planner page, do not use plain text typing for the date.
+Replace the current date input with a proper calendar date picker.
+When the date field is tapped, a real calendar UI should open so the user can choose the date more easily and cleanly.
+The date selection should feel intuitive, modern, and user-friendly.
+5. Date Picker Requirements
+Use a proper mobile-friendly date picker / calendar picker.
+Ensure it works correctly on the supported platform and matches the app’s overall UI.
+The selected date should display correctly in the field after selection.
+Make sure date formatting is clean, readable, and consistent throughout the Planner page.
+If the project already uses a date picker library, use and improve it properly instead of creating unnecessary duplicate logic.
+6. Improve User Experience for Add/Edit Planner Items
+Review the form or modal where planner items are created or edited.
+Improve the date selection experience so it feels smooth and professional.
+Ensure users can:
+tap the date field
+open the calendar
+select a date
+save it correctly without issues
+7. Keep Existing Functionality Working
+Do not break any existing Planner functionality.
+Keep all current working features intact unless a small refactor is required for the date picker and UI improvement.
+Ensure tasks, events, notes, and any related planner content continue working properly.
+Code Requirements
+8. Update Only the Necessary Blocks of Code
+Modify only the files and code blocks directly related to:
+Planner page layout
+card UI
+icon positioning
+date input / date picker
+Do not rewrite the whole project.
+Do not touch unrelated pages or features.
+9. Clean Up Related Code if Needed
+Remove or refactor only unnecessary UI code directly related to the old Planner layout or manual date input if no longer needed.
+Delete unused imports, duplicate styles, or obsolete date input logic only if they are directly related to this update.
+10. Ensure Stability and Quality
+Fix any layout issues, alignment issues, broken imports, warnings, or bugs caused by the update.
+Make sure the Planner page compiles and runs properly.
+Ensure there are no crashes, broken UI elements, or date handling errors.
+Keep the code clean, readable, maintainable, and production-ready.
+Expected Result
+The Planner page has a more modern and improved UI design.
+The cards look cleaner and more polished.
+The icons inside the cards are positioned properly and look visually balanced.
+When adding a date, a proper calendar picker opens instead of typing the date manually.
+Everything works and functions properly without any errors or bugs.
+Important Instructions
+Update only the necessary blocks of code.
+Do not rewrite the whole app.
+Do not break any existing working features.
+Make the implementation clean, professional, and fully functional.
