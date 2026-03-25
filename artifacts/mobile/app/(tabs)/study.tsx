@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, Pressable,
-  Platform, Alert, Dimensions,
+  View, Text, StyleSheet, ScrollView, Pressable, Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,23 +10,17 @@ import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 type Phase = "focus" | "break";
 
 function pad(n: number) { return String(n).padStart(2, "0"); }
 function formatMinutes(seconds: number) {
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  return `${pad(m)}:${pad(s)}`;
+  return `${pad(Math.floor(seconds / 60))}:${pad(seconds % 60)}`;
 }
 
 function buildHeatmap(sessions: { date: string; duration: number }[], weeks = 8) {
   const map: Record<string, number> = {};
-  sessions.forEach((s) => {
-    const key = s.date.slice(0, 10);
-    map[key] = (map[key] || 0) + s.duration;
-  });
+  sessions.forEach((s) => { const k = s.date.slice(0, 10); map[k] = (map[k] || 0) + s.duration; });
   const today = new Date();
   const days: { date: string; minutes: number }[] = [];
   for (let i = weeks * 7 - 1; i >= 0; i--) {
@@ -40,13 +33,16 @@ function buildHeatmap(sessions: { date: string; duration: number }[], weeks = 8)
 }
 
 function heatColor(minutes: number, isDark: boolean): string {
-  if (minutes === 0) return isDark ? "#1A1A1A" : "#E5E7EB";
+  if (minutes === 0) return isDark ? "#1E1E2A" : "#E5E7EB";
   if (minutes < 25)  return isDark ? "#1A2E20" : "#BBF7D0";
   if (minutes < 50)  return isDark ? "#166534" : "#4ADE80";
   if (minutes < 100) return isDark ? "#15803D" : "#22C55E";
   return "#16A34A";
 }
 
+const DAY_LABELS = ["S", "M", "T", "W", "T", "F", "S"];
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 export default function StudyScreen() {
   const { theme, isDark } = useTheme();
   const { studySessions, addStudySession } = useApp();
@@ -54,44 +50,30 @@ export default function StudyScreen() {
 
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(5);
-  const [phase, setPhase] = useState<Phase>("focus");
-  const [secondsLeft, setSecondsLeft] = useState(focusMinutes * 60);
-  const [running, setRunning] = useState(false);
+  const [phase, setPhase]               = useState<Phase>("focus");
+  const [secondsLeft, setSecondsLeft]   = useState(focusMinutes * 60);
+  const [running, setRunning]           = useState(false);
   const [completedSessions, setCompletedSessions] = useState(0);
   const [todayMinutes, setTodayMinutes] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
+
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const sessionStartRef = useRef<number>(0);
 
   const totalSeconds = phase === "focus" ? focusMinutes * 60 : breakMinutes * 60;
-  const progress = 1 - secondsLeft / totalSeconds;
+  const progress     = 1 - secondsLeft / totalSeconds;
 
-  const heatmapData = useMemo(() => buildHeatmap(studySessions), [studySessions]);
-  const maxMinutes = useMemo(() => Math.max(...heatmapData.map((d) => d.minutes), 1), [heatmapData]);
-
-  const totalStudyTime = useMemo(() =>
-    studySessions.reduce((s, sess) => s + sess.duration, 0),
-    [studySessions]
-  );
-  const weekStudyTime = useMemo(() => {
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return studySessions
-      .filter((s) => new Date(s.date) >= weekAgo)
-      .reduce((sum, s) => sum + s.duration, 0);
+  const heatmapData   = useMemo(() => buildHeatmap(studySessions), [studySessions]);
+  const totalStudyMin = useMemo(() => studySessions.reduce((s, x) => s + x.duration, 0), [studySessions]);
+  const weekStudyMin  = useMemo(() => {
+    const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
+    return studySessions.filter((s) => new Date(s.date) >= weekAgo).reduce((sum, s) => sum + s.duration, 0);
   }, [studySessions]);
 
-  useEffect(() => {
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, []);
+  useEffect(() => { return () => { if (intervalRef.current) clearInterval(intervalRef.current); }; }, []);
 
   const saveSession = useCallback((minutes: number) => {
     if (minutes < 1) return;
-    addStudySession({
-      date: new Date().toISOString(),
-      duration: minutes,
-      completedPomodoros: 1,
-    });
+    addStudySession({ date: new Date().toISOString(), duration: minutes, completedPomodoros: 1 });
     setTodayMinutes((p) => p + minutes);
   }, [addStudySession]);
 
@@ -111,24 +93,16 @@ export default function StudyScreen() {
   }, [phase, focusMinutes, breakMinutes, saveSession]);
 
   const start = () => {
-    sessionStartRef.current = Date.now();
     setRunning(true);
     intervalRef.current = setInterval(() => {
       setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          handlePhaseComplete();
-          return 0;
-        }
+        if (prev <= 1) { handlePhaseComplete(); return 0; }
         return prev - 1;
       });
     }, 1000);
   };
 
-  const pause = () => {
-    setRunning(false);
-    if (intervalRef.current) clearInterval(intervalRef.current);
-  };
-
+  const pause = () => { setRunning(false); if (intervalRef.current) clearInterval(intervalRef.current); };
   const reset = () => {
     setRunning(false);
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -136,18 +110,27 @@ export default function StudyScreen() {
     setSecondsLeft(focusMinutes * 60);
   };
 
-  const isFocus = phase === "focus";
+  const isFocus    = phase === "focus";
   const phaseColor = isFocus ? "#6366F1" : "#2DD4BF";
-  const circumference = 2 * Math.PI * 90;
-  const strokeDash = circumference * (1 - progress);
+  const phaseGradient: [string, string] = isFocus
+    ? (isDark ? ["#0D102A", "#121630"] : ["#EDE9FE", "#F5F0FF"])
+    : (isDark ? ["#0D2018", "#102A1E"] : ["#D1FAE5", "#E8FFF5"]);
+
+  // Format total study time nicely
+  const totalHours = Math.floor(totalStudyMin / 60);
+  const totalMins  = totalStudyMin % 60;
+  const totalLabel = totalHours > 0 ? `${totalHours}h ${totalMins}m` : `${totalMins}m`;
 
   return (
     <ScreenWrapper>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 100, paddingTop: Platform.OS === "web" ? 67 : insets.top + 12 }}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 100,
+          paddingTop: Platform.OS === "web" ? 67 : insets.top + 12,
+        }}
       >
-        {/* Header */}
+        {/* ── Header ── */}
         <View style={styles.header}>
           <View>
             <Text style={[styles.screenLabel, { color: theme.textSecondary }]}>Study time</Text>
@@ -155,37 +138,90 @@ export default function StudyScreen() {
           </View>
           <Pressable
             onPress={() => setShowSettings((p) => !p)}
-            style={[styles.settingsBtn, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border, borderWidth: 1 }]}
+            style={[
+              styles.settingsBtn,
+              {
+                backgroundColor: showSettings ? phaseColor + "18" : theme.surface,
+                borderColor: showSettings ? phaseColor + "45" : isDark ? "rgba(255,255,255,0.08)" : theme.border,
+                borderWidth: 1,
+              },
+            ]}
           >
-            <Ionicons name="settings-outline" size={20} color={theme.textSecondary} />
+            <Ionicons
+              name={showSettings ? "close" : "settings-outline"}
+              size={20}
+              color={showSettings ? phaseColor : theme.textSecondary}
+            />
           </Pressable>
         </View>
 
-        {/* Settings Panel */}
+        {/* ── Settings Panel ── */}
         {showSettings && (
-          <View style={[styles.settingsPanel, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border, marginHorizontal: 20, marginBottom: 16 }]}>
-            <Text style={[styles.settingsPanelTitle, { color: theme.text }]}>Customize Timer</Text>
+          <View
+            style={[
+              styles.settingsPanel,
+              {
+                backgroundColor: theme.surface,
+                borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border,
+                marginHorizontal: 20,
+                marginBottom: 16,
+              },
+            ]}
+          >
+            <View style={styles.settingsPanelHeader}>
+              <View style={[styles.settingsPanelIcon, { backgroundColor: phaseColor + "18" }]}>
+                <Ionicons name="timer-outline" size={18} color={phaseColor} />
+              </View>
+              <View>
+                <Text style={[styles.settingsPanelTitle, { color: theme.text }]}>Timer Settings</Text>
+                <Text style={[styles.settingsPanelSub, { color: theme.textSecondary }]}>Customize focus & break durations</Text>
+              </View>
+            </View>
+
+            <View style={[styles.settingsDivider, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : theme.border }]} />
+
             <View style={styles.settingsRow}>
-              <View style={styles.settingItem}>
-                <Text style={[styles.settingLabel, { color: theme.textSecondary }]}>Focus (min)</Text>
+              {/* Focus */}
+              <View style={[styles.settingCard, { backgroundColor: isDark ? "rgba(99,102,241,0.08)" : "#EDE9FE", borderColor: "#6366F1" + "22" }]}>
+                <View style={[styles.settingIconWrap, { backgroundColor: "#6366F1" + "20" }]}>
+                  <Ionicons name="brain-outline" size={16} color="#6366F1" />
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textSecondary }]}>Focus</Text>
+                <Text style={[styles.settingValue, { color: theme.text }]}>{focusMinutes}<Text style={[styles.settingUnit, { color: theme.textTertiary }]}>m</Text></Text>
                 <View style={styles.settingControls}>
-                  <Pressable onPress={() => { setFocusMinutes((p) => Math.max(1, p - 5)); if (!running) setSecondsLeft(Math.max(1, focusMinutes - 5) * 60); }} style={[styles.controlBtn, { backgroundColor: phaseColor + "20" }]}>
-                    <Ionicons name="remove" size={16} color={phaseColor} />
+                  <Pressable
+                    onPress={() => { setFocusMinutes((p) => Math.max(1, p - 5)); if (!running) setSecondsLeft(Math.max(1, focusMinutes - 5) * 60); }}
+                    style={[styles.controlBtn, { backgroundColor: "#6366F1" + "20" }]}
+                  >
+                    <Ionicons name="remove" size={16} color="#6366F1" />
                   </Pressable>
-                  <Text style={[styles.settingValue, { color: theme.text }]}>{focusMinutes}</Text>
-                  <Pressable onPress={() => { setFocusMinutes((p) => Math.min(60, p + 5)); if (!running) setSecondsLeft(Math.min(60, focusMinutes + 5) * 60); }} style={[styles.controlBtn, { backgroundColor: phaseColor + "20" }]}>
-                    <Ionicons name="add" size={16} color={phaseColor} />
+                  <Pressable
+                    onPress={() => { setFocusMinutes((p) => Math.min(60, p + 5)); if (!running) setSecondsLeft(Math.min(60, focusMinutes + 5) * 60); }}
+                    style={[styles.controlBtn, { backgroundColor: "#6366F1" + "20" }]}
+                  >
+                    <Ionicons name="add" size={16} color="#6366F1" />
                   </Pressable>
                 </View>
               </View>
-              <View style={styles.settingItem}>
-                <Text style={[styles.settingLabel, { color: theme.textSecondary }]}>Break (min)</Text>
+
+              {/* Break */}
+              <View style={[styles.settingCard, { backgroundColor: isDark ? "rgba(45,212,191,0.08)" : "#D1FAE5", borderColor: "#2DD4BF" + "22" }]}>
+                <View style={[styles.settingIconWrap, { backgroundColor: "#2DD4BF" + "20" }]}>
+                  <Ionicons name="cafe-outline" size={16} color="#2DD4BF" />
+                </View>
+                <Text style={[styles.settingLabel, { color: theme.textSecondary }]}>Break</Text>
+                <Text style={[styles.settingValue, { color: theme.text }]}>{breakMinutes}<Text style={[styles.settingUnit, { color: theme.textTertiary }]}>m</Text></Text>
                 <View style={styles.settingControls}>
-                  <Pressable onPress={() => setBreakMinutes((p) => Math.max(1, p - 1))} style={[styles.controlBtn, { backgroundColor: "#2DD4BF20" }]}>
+                  <Pressable
+                    onPress={() => setBreakMinutes((p) => Math.max(1, p - 1))}
+                    style={[styles.controlBtn, { backgroundColor: "#2DD4BF" + "20" }]}
+                  >
                     <Ionicons name="remove" size={16} color="#2DD4BF" />
                   </Pressable>
-                  <Text style={[styles.settingValue, { color: theme.text }]}>{breakMinutes}</Text>
-                  <Pressable onPress={() => setBreakMinutes((p) => Math.min(30, p + 1))} style={[styles.controlBtn, { backgroundColor: "#2DD4BF20" }]}>
+                  <Pressable
+                    onPress={() => setBreakMinutes((p) => Math.min(30, p + 1))}
+                    style={[styles.controlBtn, { backgroundColor: "#2DD4BF" + "20" }]}
+                  >
                     <Ionicons name="add" size={16} color="#2DD4BF" />
                   </Pressable>
                 </View>
@@ -194,51 +230,69 @@ export default function StudyScreen() {
           </View>
         )}
 
-        {/* Timer Card */}
+        {/* ── Timer Card ── */}
         <View style={{ paddingHorizontal: 20, marginBottom: 20 }}>
           <LinearGradient
-            colors={isFocus ? (isDark ? ["#0D102A", "#121630"] : ["#EDE9FE", "#F5F0FF"]) : (isDark ? ["#0D2018", "#102A1E"] : ["#D1FAE5", "#E8FFF5"])}
+            colors={phaseGradient}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-            style={[styles.timerCard, { borderColor: phaseColor + "25", shadowColor: phaseColor, shadowOffset: { width: 0, height: 8 }, shadowOpacity: isDark ? 0.3 : 0.15, shadowRadius: 20, elevation: 8 }]}
+            style={[
+              styles.timerCard,
+              {
+                borderColor: phaseColor + "25",
+                shadowColor: phaseColor,
+                shadowOffset: { width: 0, height: 10 },
+                shadowOpacity: isDark ? 0.3 : 0.15,
+                shadowRadius: 24,
+                elevation: 10,
+              },
+            ]}
           >
-            {/* Phase Indicator */}
+            {/* Phase badge */}
             <View style={[styles.phaseBadge, { backgroundColor: phaseColor + "20", borderColor: phaseColor + "40" }]}>
               <Ionicons name={isFocus ? "brain-outline" as any : "cafe-outline"} size={14} color={phaseColor} />
-              <Text style={[styles.phaseText, { color: phaseColor }]}>{isFocus ? "Focus Time" : "Break Time"}</Text>
+              <Text style={[styles.phaseText, { color: phaseColor }]}>
+                {isFocus ? "Focus Time" : "Break Time"}
+              </Text>
             </View>
 
-            {/* SVG Circle Timer */}
+            {/* Circle timer */}
             <View style={styles.timerCircleWrap}>
-              <View style={[styles.timerCircleBg, { borderColor: phaseColor + "18" }]} />
-              <View style={[styles.timerInner]}>
-                <Text style={[styles.timerDisplay, { color: theme.text }]}>{formatMinutes(secondsLeft)}</Text>
-                <Text style={[styles.timerSub, { color: theme.textSecondary }]}>{isFocus ? "stay focused" : "take a break"}</Text>
-              </View>
-              {/* Progress arc using border trick */}
+              {/* Outer ring (track) */}
+              <View style={[styles.timerTrack, { borderColor: phaseColor + "18" }]} />
+              {/* Progress ring — CSS border trick */}
               <View
                 style={[
-                  styles.progressArc,
+                  styles.timerProgress,
                   {
                     borderColor: phaseColor,
-                    borderTopColor: progress > 0.25 ? phaseColor : "transparent",
-                    borderRightColor: progress > 0.5 ? phaseColor : "transparent",
+                    borderTopColor:    progress > 0.25 ? phaseColor : "transparent",
+                    borderRightColor:  progress > 0.5  ? phaseColor : "transparent",
                     borderBottomColor: progress > 0.75 ? phaseColor : "transparent",
-                    borderLeftColor: progress > 0.0 ? phaseColor : "transparent",
+                    borderLeftColor:   progress > 0    ? phaseColor : "transparent",
                     transform: [{ rotate: `${progress * 360}deg` }],
                   },
                 ]}
               />
+              {/* Center content */}
+              <View style={styles.timerCenter}>
+                <Text style={[styles.timerDisplay, { color: theme.text }]}>{formatMinutes(secondsLeft)}</Text>
+                <Text style={[styles.timerSub, { color: theme.textSecondary }]}>
+                  {isFocus ? "stay focused" : "take a break"}
+                </Text>
+              </View>
             </View>
 
-            {/* Controls */}
-            <View style={styles.controls}>
+            {/* Controls row */}
+            <View style={styles.controlsRow}>
+              {/* Reset */}
               <Pressable
                 onPress={reset}
-                style={[styles.controlRound, { backgroundColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)" }]}
+                style={[styles.sideBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)" }]}
               >
                 <Ionicons name="refresh" size={20} color={theme.textSecondary} />
               </Pressable>
 
+              {/* Play / Pause */}
               <Pressable
                 onPress={running ? pause : start}
                 style={({ pressed }) => [
@@ -247,72 +301,166 @@ export default function StudyScreen() {
                     backgroundColor: phaseColor,
                     shadowColor: phaseColor,
                     shadowOffset: { width: 0, height: 6 },
-                    shadowOpacity: 0.45,
-                    shadowRadius: 14,
+                    shadowOpacity: 0.5,
+                    shadowRadius: 16,
                     elevation: 8,
-                    opacity: pressed ? 0.85 : 1,
+                    opacity: pressed ? 0.88 : 1,
                   },
                 ]}
               >
                 <Ionicons name={running ? "pause" : "play"} size={28} color="#fff" style={{ marginLeft: running ? 0 : 3 }} />
               </Pressable>
 
-              <View style={[styles.controlRound, { backgroundColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)" }]}>
-                <Text style={[styles.sessionCount, { color: theme.textSecondary }]}>{completedSessions}</Text>
-                <Ionicons name="flame" size={14} color="#F59E0B" />
+              {/* Session counter */}
+              <View style={[styles.sideBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)" }]}>
+                <Ionicons name="flame" size={16} color="#F59E0B" />
+                <Text style={[styles.sessionCount, { color: theme.text }]}>{completedSessions}</Text>
               </View>
             </View>
           </LinearGradient>
         </View>
 
-        {/* Today Stats */}
-        <View style={styles.statsRowSmall}>
+        {/* ── Stats Row ── */}
+        <View style={styles.statsRow}>
           {[
-            { label: "Today", value: `${todayMinutes}m`, icon: "today-outline", color: "#6366F1" },
-            { label: "This Week", value: `${weekStudyTime}m`, icon: "calendar-outline", color: "#F59E0B" },
-            { label: "All Time", value: `${Math.floor(totalStudyTime / 60)}h ${totalStudyTime % 60}m`, icon: "time-outline", color: "#2DD4BF" },
+            { label: "Today",     value: `${todayMinutes}m`,  icon: "today-outline",    color: "#6366F1" },
+            { label: "This Week", value: `${weekStudyMin}m`,  icon: "calendar-outline", color: "#F59E0B" },
+            { label: "All Time",  value: totalLabel,           icon: "time-outline",     color: "#2DD4BF" },
           ].map((s) => (
             <LinearGradient
               key={s.label}
-              colors={[s.color + "18", s.color + "08"]}
-              style={[styles.smallStat, { borderColor: s.color + "25" }]}
+              colors={[s.color + "1C", s.color + "0A"]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={[
+                styles.statCard,
+                {
+                  borderColor: s.color + "28",
+                  shadowColor: s.color,
+                  shadowOffset: { width: 0, height: 3 },
+                  shadowOpacity: isDark ? 0.15 : 0.06,
+                  shadowRadius: 8,
+                  elevation: 3,
+                },
+              ]}
             >
-              <Ionicons name={s.icon as any} size={16} color={s.color} />
-              <Text style={[styles.smallStatValue, { color: theme.text }]}>{s.value}</Text>
-              <Text style={[styles.smallStatLabel, { color: theme.textSecondary }]}>{s.label}</Text>
+              <View style={[styles.statIconWrap, { backgroundColor: s.color + "20" }]}>
+                <Ionicons name={s.icon as any} size={18} color={s.color} />
+              </View>
+              <Text style={[styles.statValue, { color: theme.text }]}>{s.value}</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{s.label}</Text>
             </LinearGradient>
           ))}
         </View>
 
-        {/* Study Heatmap */}
-        <View style={{ paddingHorizontal: 20 }}>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Study Heatmap</Text>
-          <Text style={[styles.sectionSub, { color: theme.textSecondary }]}>Last 8 weeks of study activity</Text>
-          <View style={[styles.heatmapCard, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.05)" : theme.border, shadowColor: "#000", shadowOffset: { width: 3, height: 3 }, shadowOpacity: isDark ? 0.45 : 0.06, shadowRadius: 10 }]}>
-            <View style={styles.heatmapGrid}>
-              {Array.from({ length: 8 }, (_, week) => (
-                <View key={week} style={styles.heatmapCol}>
-                  {Array.from({ length: 7 }, (_, day) => {
-                    const idx = week * 7 + day;
-                    const d = heatmapData[idx];
-                    if (!d) return <View key={day} style={styles.heatCell} />;
-                    return (
-                      <View
-                        key={day}
-                        style={[styles.heatCell, { backgroundColor: heatColor(d.minutes, isDark) }]}
-                      />
-                    );
-                  })}
+        {/* ── Heatmap Section ── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Study Heatmap</Text>
+              <Text style={[styles.sectionSub, { color: theme.textSecondary }]}>Last 8 weeks of activity</Text>
+            </View>
+            <View style={[styles.sectionBadge, { backgroundColor: "#22C55E18", borderColor: "#22C55E28" }]}>
+              <Ionicons name="leaf-outline" size={12} color="#22C55E" />
+              <Text style={[styles.sectionBadgeText, { color: "#22C55E" }]}>Activity</Text>
+            </View>
+          </View>
+
+          <View
+            style={[
+              styles.heatmapCard,
+              {
+                backgroundColor: theme.surface,
+                borderColor: isDark ? "rgba(255,255,255,0.06)" : theme.border,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: isDark ? 0.3 : 0.06,
+                shadowRadius: 12,
+                elevation: 4,
+              },
+            ]}
+          >
+            {/* Day labels + Grid */}
+            <View style={styles.heatmapBody}>
+              {/* Day labels column */}
+              <View style={styles.dayLabelsCol}>
+                {DAY_LABELS.map((d, i) => (
+                  <Text key={i} style={[styles.dayLabel, { color: theme.textTertiary }]}>{d}</Text>
+                ))}
+              </View>
+
+              {/* Calendar grid */}
+              <View style={styles.heatmapGrid}>
+                {Array.from({ length: 8 }, (_, week) => (
+                  <View key={week} style={styles.heatmapCol}>
+                    {Array.from({ length: 7 }, (_, day) => {
+                      const d = heatmapData[week * 7 + day];
+                      return (
+                        <View
+                          key={day}
+                          style={[
+                            styles.heatCell,
+                            { backgroundColor: d ? heatColor(d.minutes, isDark) : (isDark ? "#1E1E2A" : "#E5E7EB") },
+                          ]}
+                        />
+                      );
+                    })}
+                  </View>
+                ))}
+              </View>
+            </View>
+
+            {/* Legend */}
+            <View style={[styles.legendRow, { borderTopColor: isDark ? "rgba(255,255,255,0.06)" : theme.border }]}>
+              <Text style={[styles.legendText, { color: theme.textTertiary }]}>Less</Text>
+              {[0, 20, 50, 90].map((m, i) => (
+                <View key={i} style={[styles.legendCell, { backgroundColor: heatColor(m, isDark) }]} />
+              ))}
+              <Text style={[styles.legendText, { color: theme.textTertiary }]}>More</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ── Sessions Summary ── */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Sessions</Text>
+              <Text style={[styles.sectionSub, { color: theme.textSecondary }]}>Your study history</Text>
+            </View>
+          </View>
+
+          <View
+            style={[
+              styles.summaryCard,
+              {
+                backgroundColor: theme.surface,
+                borderColor: isDark ? "rgba(255,255,255,0.06)" : theme.border,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: isDark ? 0.2 : 0.05,
+                shadowRadius: 10,
+                elevation: 3,
+              },
+            ]}
+          >
+            {[
+              { icon: "checkmark-circle-outline", color: "#6366F1", label: "Sessions completed",    value: String(studySessions.length) },
+              { icon: "flame-outline",            color: "#F59E0B", label: "Today's sessions",       value: String(completedSessions) },
+              { icon: "hourglass-outline",         color: "#2DD4BF", label: "Total study time",      value: totalLabel },
+            ].map((item, i, arr) => (
+              <View key={item.label}>
+                <View style={styles.summaryRow}>
+                  <View style={[styles.summaryIconWrap, { backgroundColor: item.color + "18" }]}>
+                    <Ionicons name={item.icon as any} size={20} color={item.color} />
+                  </View>
+                  <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>{item.label}</Text>
+                  <Text style={[styles.summaryValue, { color: theme.text }]}>{item.value}</Text>
                 </View>
-              ))}
-            </View>
-            <View style={styles.heatLegend}>
-              <Text style={[styles.heatLegendText, { color: theme.textTertiary }]}>Less</Text>
-              {[0, 25, 50, 100].map((m) => (
-                <View key={m} style={[styles.heatLegendCell, { backgroundColor: heatColor(m, isDark) }]} />
-              ))}
-              <Text style={[styles.heatLegendText, { color: theme.textTertiary }]}>More</Text>
-            </View>
+                {i < arr.length - 1 && (
+                  <View style={[styles.summaryDivider, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : theme.border }]} />
+                )}
+              </View>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -321,42 +469,166 @@ export default function StudyScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", paddingHorizontal: 20, paddingBottom: 16 },
+  /* Header */
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
   screenLabel: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 2 },
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
   settingsBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
-  settingsPanel: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
+
+  /* Settings panel */
+  settingsPanel: { borderRadius: 20, borderWidth: 1, padding: 18, gap: 14 },
+  settingsPanelHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  settingsPanelIcon: {
+    width: 42, height: 42, borderRadius: 21,
+    alignItems: "center", justifyContent: "center",
+  },
   settingsPanelTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
-  settingsRow: { flexDirection: "row", gap: 16 },
-  settingItem: { flex: 1, gap: 8 },
-  settingLabel: { fontSize: 12, fontFamily: "Inter_500Medium" },
-  settingControls: { flexDirection: "row", alignItems: "center", gap: 12 },
-  controlBtn: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-  settingValue: { fontSize: 18, fontFamily: "Inter_700Bold", minWidth: 28, textAlign: "center" },
-  timerCard: { borderRadius: 22, padding: 28, alignItems: "center", gap: 24, borderWidth: 1 },
-  phaseBadge: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1 },
-  phaseText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  timerCircleWrap: { position: "relative", width: 200, height: 200, alignItems: "center", justifyContent: "center" },
-  timerCircleBg: { position: "absolute", width: 196, height: 196, borderRadius: 98, borderWidth: 8 },
-  timerInner: { alignItems: "center", gap: 6 },
+  settingsPanelSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 1 },
+  settingsDivider: { height: 1, marginHorizontal: -18 },
+  settingsRow: { flexDirection: "row", gap: 12 },
+  settingCard: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    alignItems: "center",
+    gap: 8,
+  },
+  settingIconWrap: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: "center", justifyContent: "center",
+  },
+  settingLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
+  settingValue: { fontSize: 24, fontFamily: "Inter_700Bold" },
+  settingUnit: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  settingControls: { flexDirection: "row", gap: 8 },
+  controlBtn: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+
+  /* Timer card */
+  timerCard: {
+    borderRadius: 24,
+    padding: 28,
+    alignItems: "center",
+    gap: 26,
+    borderWidth: 1,
+  },
+  phaseBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 22,
+    borderWidth: 1,
+  },
+  phaseText: { fontSize: 13, fontFamily: "Inter_700Bold" },
+  timerCircleWrap: {
+    position: "relative",
+    width: 204,
+    height: 204,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  timerTrack: {
+    position: "absolute",
+    width: 200, height: 200,
+    borderRadius: 100,
+    borderWidth: 8,
+  },
+  timerProgress: {
+    position: "absolute",
+    width: 200, height: 200,
+    borderRadius: 100,
+    borderWidth: 8,
+  },
+  timerCenter: { alignItems: "center", gap: 6 },
   timerDisplay: { fontSize: 52, fontFamily: "Inter_700Bold", letterSpacing: -2 },
   timerSub: { fontSize: 13, fontFamily: "Inter_400Regular" },
-  progressArc: { position: "absolute", width: 196, height: 196, borderRadius: 98, borderWidth: 8 },
-  controls: { flexDirection: "row", alignItems: "center", gap: 24 },
-  controlRound: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center", flexDirection: "row", gap: 2 },
-  sessionCount: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  playBtn: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center" },
-  statsRowSmall: { flexDirection: "row", paddingHorizontal: 20, gap: 10, marginBottom: 24 },
-  smallStat: { flex: 1, borderRadius: 14, padding: 12, alignItems: "center", gap: 5, borderWidth: 1 },
-  smallStatValue: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  smallStatLabel: { fontSize: 10, fontFamily: "Inter_400Regular" },
-  sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", marginBottom: 4 },
-  sectionSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 12 },
-  heatmapCard: { borderRadius: 16, borderWidth: 1, padding: 16, gap: 12 },
-  heatmapGrid: { flexDirection: "row", gap: 3 },
-  heatmapCol: { gap: 3 },
-  heatCell: { width: 14, height: 14, borderRadius: 3 },
-  heatLegend: { flexDirection: "row", alignItems: "center", gap: 4, justifyContent: "flex-end" },
-  heatLegendText: { fontSize: 10, fontFamily: "Inter_400Regular" },
-  heatLegendCell: { width: 12, height: 12, borderRadius: 2 },
+
+  /* Controls */
+  controlsRow: { flexDirection: "row", alignItems: "center", gap: 24 },
+  sideBtn: {
+    width: 54, height: 54, borderRadius: 27,
+    alignItems: "center", justifyContent: "center",
+    flexDirection: "row", gap: 3,
+  },
+  sessionCount: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  playBtn: {
+    width: 74, height: 74, borderRadius: 37,
+    alignItems: "center", justifyContent: "center",
+  },
+
+  /* Stats row */
+  statsRow: { flexDirection: "row", paddingHorizontal: 20, gap: 10, marginBottom: 28 },
+  statCard: { flex: 1, borderRadius: 18, padding: 14, alignItems: "center", gap: 7, borderWidth: 1 },
+  statIconWrap: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: "center", justifyContent: "center",
+    marginBottom: 2,
+  },
+  statValue: { fontSize: 14, fontFamily: "Inter_700Bold" },
+  statLabel: { fontSize: 10, fontFamily: "Inter_500Medium", textAlign: "center" },
+
+  /* Section */
+  section: { paddingHorizontal: 20, marginBottom: 24 },
+  sectionHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 14,
+  },
+  sectionTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
+  sectionSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  sectionBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  sectionBadgeText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
+
+  /* Heatmap */
+  heatmapCard: { borderRadius: 20, borderWidth: 1, padding: 16, gap: 14 },
+  heatmapBody: { flexDirection: "row", gap: 8, alignItems: "flex-start" },
+  dayLabelsCol: { gap: 3, paddingTop: 1 },
+  dayLabel: { fontSize: 10, fontFamily: "Inter_500Medium", height: 16, textAlignVertical: "center" },
+  heatmapGrid: { flexDirection: "row", gap: 3, flex: 1 },
+  heatmapCol: { gap: 3, flex: 1 },
+  heatCell: { height: 14, borderRadius: 3 },
+  legendRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    justifyContent: "flex-end",
+    paddingTop: 10,
+    borderTopWidth: 1,
+  },
+  legendText: { fontSize: 10, fontFamily: "Inter_400Regular" },
+  legendCell: { width: 12, height: 12, borderRadius: 3 },
+
+  /* Sessions summary card */
+  summaryCard: { borderRadius: 20, borderWidth: 1, overflow: "hidden" },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  summaryIconWrap: {
+    width: 42, height: 42, borderRadius: 21,
+    alignItems: "center", justifyContent: "center",
+  },
+  summaryLabel: { flex: 1, fontSize: 14, fontFamily: "Inter_500Medium" },
+  summaryValue: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  summaryDivider: { height: 1, marginHorizontal: 16 },
 });

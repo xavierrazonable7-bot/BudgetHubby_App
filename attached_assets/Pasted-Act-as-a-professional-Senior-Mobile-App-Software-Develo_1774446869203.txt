@@ -1,0 +1,76 @@
+Act as a professional Senior Mobile App Software Developer, Mobile UI/UX Designer, and Frontend Architect with over 20 years of experience in building clean, modern, and production-ready mobile applications for Android and iOS.
+
+Your task is to check and review my existing project and improve and enhance the layout and UI design of the Study page. Only update the necessary blocks of code and do not rewrite the entire project.
+
+Main Goal
+
+Redesign and refine the Study page so it looks more modern, clean, visually balanced, and professional, with special focus on the positioning, alignment, and styling of the icons used inside the cards.
+
+Required Improvements
+1. Enhance the Overall Study Page Layout
+Review the current Study page structure and improve the overall visual layout.
+Make the page look more:
+modern
+clean
+polished
+organized
+user-friendly
+Improve spacing, padding, margins, alignment, typography, and visual hierarchy.
+Make sure the page feels balanced and not crowded.
+2. Improve the Card UI Design
+Review all cards used in the Study page.
+Enhance their layout, spacing, border radius, shadows, internal alignment, and content structure.
+Make the cards look cleaner, more attractive, and more professional.
+Ensure the content inside each card is easy to read and properly arranged.
+3. Fix and Improve Icon Positioning in the Cards
+Carefully review the current icon placement inside each card.
+Improve the positioning, alignment, spacing, and visual balance of the icons.
+Make sure the icons:
+are not awkwardly placed
+are not too close to the text
+are not misaligned vertically or horizontally
+have enough breathing space
+feel intentionally placed in the layout
+If needed, place the icons inside a styled icon container so they look more polished and modern.
+Ensure the icon placement is consistent across all study-related cards.
+4. Modernize the Visual Style
+Refine the UI styling so the Study page has a more modern mobile app appearance.
+Improve the design using:
+clean card layouts
+consistent spacing
+subtle depth or elevation if appropriate
+balanced typography
+proper icon emphasis
+Keep the design modern but still simple and usable.
+5. Improve Content Alignment and Readability
+Make sure card titles, subtitles, descriptions, labels, stats, and icons are aligned properly.
+Improve text hierarchy so the user can quickly understand the purpose of each card.
+Prevent any cramped or uneven layout.
+6. Keep Existing Functionality Working
+Do not break any existing Study page functionality.
+Keep all currently working features intact.
+Only improve the layout, UI presentation, and icon positioning unless a small refactor is needed to support the new design.
+Code Requirements
+7. Update Only the Necessary Blocks of Code
+Modify only the files and code blocks directly related to the Study page UI.
+Do not rewrite the full project.
+Do not touch unrelated pages or unrelated business logic.
+8. Clean Up Related UI Code if Needed
+Remove or refactor only unnecessary UI code that is directly related to the old Study page layout.
+Delete unused imports, duplicate styles, obsolete wrappers, or unnecessary layout code only if they are directly connected to this update.
+9. Ensure Stability and Quality
+Fix any layout issues, misalignment, broken imports, warnings, or UI bugs caused by the update.
+Make sure the Study page compiles and runs properly.
+Ensure there are no crashes, broken card layouts, overlapping text, or inconsistent icon positions.
+Keep the code clean, maintainable, and production-ready.
+Expected Result
+The Study page looks more modern, polished, and visually balanced.
+The card layout is cleaner and more professional.
+The icons inside the cards are properly positioned and aligned.
+The page remains fully functional.
+Everything works and functions properly without any errors or bugs.
+Important Instructions
+Update only the necessary blocks of code.
+Do not rewrite the whole app.
+Do not break any existing working features.
+Make the implementation clean, modern, and fully functional.
