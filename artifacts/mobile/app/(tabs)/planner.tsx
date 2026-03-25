@@ -75,37 +75,42 @@ function TasksPane() {
       { text: "Delete", style: "destructive", onPress: () => deleteTask(id) },
     ]);
 
-  const TASK_FILTERS: { key: TaskFilter; label: string; icon: string }[] = [
-    { key: "all",       label: "All",       icon: "layers-outline" },
-    { key: "pending",   label: "Pending",   icon: "time-outline" },
-    { key: "completed", label: "Done",      icon: "checkmark-circle-outline" },
+  const TASK_FILTERS: { key: TaskFilter; label: string; icon: string; count: number }[] = [
+    { key: "all",       label: "All",     icon: "layers-outline",           count: tasks.length },
+    { key: "pending",   label: "Pending", icon: "time-outline",             count: tasks.filter(t => !t.completed).length },
+    { key: "completed", label: "Done",    icon: "checkmark-circle-outline", count: tasks.filter(t =>  t.completed).length },
   ];
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Filter row */}
-      <View style={styles.filterRow}>
+      {/* Full-width segmented filter */}
+      <View style={[
+        styles.segmentWrap,
+        { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)" },
+      ]}>
         {TASK_FILTERS.map((f) => {
           const active = filter === f.key;
           return (
             <Pressable
               key={f.key}
               onPress={() => setFilter(f.key)}
-              style={[
-                styles.filterChip,
+              style={({ pressed }) => [
+                styles.segmentBtn,
                 active
-                  ? { backgroundColor: theme.primary + "20", borderColor: theme.primary + "50" }
-                  : { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border },
+                  ? { backgroundColor: theme.primary + "1C", borderColor: theme.primary + "55" }
+                  : { borderColor: "transparent" },
+                { opacity: pressed ? 0.8 : 1 },
               ]}
             >
-              <Ionicons
-                name={f.icon as any}
-                size={12}
-                color={active ? theme.primary : theme.textTertiary}
-              />
-              <Text style={[styles.filterText, { color: active ? theme.primary : theme.textSecondary }]}>
+              <Ionicons name={f.icon as any} size={13} color={active ? theme.primary : theme.textTertiary} />
+              <Text style={[styles.segmentLabel, { color: active ? theme.primary : theme.textSecondary, fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
                 {f.label}
               </Text>
+              {f.count > 0 && (
+                <View style={[styles.segmentBadge, { backgroundColor: active ? theme.primary : (isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") }]}>
+                  <Text style={[styles.segmentBadgeText, { color: active ? "#fff" : theme.textTertiary }]}>{f.count}</Text>
+                </View>
+              )}
             </Pressable>
           );
         })}
@@ -124,49 +129,44 @@ function TasksPane() {
           <EmptyState icon="checkbox-outline" title="No tasks" subtitle="Tap + to add a task" />
         }
         renderItem={({ item: task, index }) => {
-          const pc = PRIORITY_CONFIG[task.priority];
+          const pc  = PRIORITY_CONFIG[task.priority];
           const urg = task.deadline ? urgencyLabel(daysUntil(task.deadline)) : null;
+          const iconColor = task.completed ? theme.textTertiary : pc.color;
+
           return (
             <Animated.View entering={FadeInDown.delay(index * 40).duration(280)}>
-              <Pressable
-                onPress={() => handleToggle(task)}
-                style={({ pressed }) => [
+              <View
+                style={[
                   styles.taskCard,
                   {
                     backgroundColor: theme.surface,
                     borderColor: task.completed
-                      ? isDark ? "rgba(255,255,255,0.04)" : theme.border
-                      : pc.color + "22",
+                      ? isDark ? "rgba(255,255,255,0.05)" : theme.border
+                      : pc.color + "25",
                     shadowColor: task.completed ? "#000" : pc.color,
                     shadowOffset: { width: 0, height: 3 },
-                    shadowOpacity: task.completed ? (isDark ? 0.2 : 0.04) : (isDark ? 0.18 : 0.07),
+                    shadowOpacity: task.completed ? (isDark ? 0.15 : 0.04) : (isDark ? 0.2 : 0.08),
                     shadowRadius: 8,
                     elevation: 3,
-                    opacity: pressed ? 0.9 : 1,
                   },
                 ]}
               >
-                {/* Priority stripe */}
+                {/* Left accent stripe */}
+                <View style={[styles.taskStripe, { backgroundColor: iconColor }]} />
+
+                {/* Priority icon — left block (matches event card style) */}
                 <View
                   style={[
-                    styles.taskStripe,
-                    { backgroundColor: task.completed ? theme.border : pc.color },
+                    styles.taskIconBlock,
+                    {
+                      backgroundColor: iconColor + "1C",
+                      borderWidth: 1.5,
+                      borderColor: iconColor + "38",
+                    },
                   ]}
-                />
-
-                {/* Check circle */}
-                <Pressable onPress={() => handleToggle(task)} hitSlop={6}>
-                  <View
-                    style={[
-                      styles.checkCircle,
-                      task.completed
-                        ? { backgroundColor: theme.income, borderColor: theme.income }
-                        : { backgroundColor: "transparent", borderColor: pc.color, borderWidth: 2 },
-                    ]}
-                  >
-                    {task.completed && <Ionicons name="checkmark" size={13} color="#fff" />}
-                  </View>
-                </Pressable>
+                >
+                  <Ionicons name={pc.icon as any} size={20} color={iconColor} />
+                </View>
 
                 {/* Content */}
                 <View style={styles.taskContent}>
@@ -184,39 +184,16 @@ function TasksPane() {
                   </Text>
 
                   {task.description ? (
-                    <Text
-                      style={[styles.taskDesc, { color: theme.textTertiary }]}
-                      numberOfLines={1}
-                    >
+                    <Text style={[styles.taskDesc, { color: theme.textTertiary }]} numberOfLines={1}>
                       {task.description}
                     </Text>
                   ) : null}
 
                   <View style={styles.taskFooter}>
-                    <View
-                      style={[
-                        styles.priorityBadge,
-                        {
-                          backgroundColor: (task.completed ? theme.textTertiary : pc.color) + "18",
-                          borderColor: (task.completed ? theme.textTertiary : pc.color) + "30",
-                        },
-                      ]}
-                    >
-                      <Ionicons
-                        name={pc.icon as any}
-                        size={10}
-                        color={task.completed ? theme.textTertiary : pc.color}
-                      />
-                      <Text
-                        style={[
-                          styles.priorityText,
-                          { color: task.completed ? theme.textTertiary : pc.color },
-                        ]}
-                      >
-                        {pc.label}
-                      </Text>
+                    <View style={[styles.priorityBadge, { backgroundColor: iconColor + "18", borderColor: iconColor + "30" }]}>
+                      <Ionicons name={pc.icon as any} size={10} color={iconColor} />
+                      <Text style={[styles.priorityText, { color: iconColor }]}>{pc.label}</Text>
                     </View>
-
                     {urg && !task.completed && (
                       <View style={[styles.urgencyBadge, { backgroundColor: urg.color + "18" }]}>
                         <Ionicons name="time-outline" size={10} color={urg.color} />
@@ -226,15 +203,29 @@ function TasksPane() {
                   </View>
                 </View>
 
-                {/* Delete */}
-                <Pressable
-                  onPress={() => handleDelete(task.id)}
-                  style={[styles.actionBtn, { backgroundColor: theme.expense + "12" }]}
-                  hitSlop={8}
-                >
-                  <Ionicons name="trash-outline" size={15} color={theme.expense} />
-                </Pressable>
-              </Pressable>
+                {/* Right: check toggle + delete stacked */}
+                <View style={styles.taskRightCol}>
+                  <Pressable onPress={() => handleToggle(task)} hitSlop={8}>
+                    <View
+                      style={[
+                        styles.checkCircle,
+                        task.completed
+                          ? { backgroundColor: theme.income, borderColor: theme.income }
+                          : { backgroundColor: "transparent", borderColor: pc.color, borderWidth: 2 },
+                      ]}
+                    >
+                      {task.completed && <Ionicons name="checkmark" size={13} color="#fff" />}
+                    </View>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleDelete(task.id)}
+                    style={[styles.actionBtn, { backgroundColor: theme.expense + "12" }]}
+                    hitSlop={8}
+                  >
+                    <Ionicons name="trash-outline" size={14} color={theme.expense} />
+                  </Pressable>
+                </View>
+              </View>
             </Animated.View>
           );
         }}
@@ -747,18 +738,32 @@ const styles = StyleSheet.create({
   tabBadge: { width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
   tabBadgeText: { fontSize: 10, fontFamily: "Inter_700Bold", color: "#fff" },
 
-  /* Filter chips */
-  filterRow: { flexDirection: "row", paddingHorizontal: 20, paddingBottom: 10, gap: 8 },
-  filterChip: {
+  /* Segmented filter (full-width) */
+  segmentWrap: {
     flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
+    marginHorizontal: 20,
+    marginBottom: 10,
+    borderRadius: 14,
+    padding: 4,
     borderWidth: 1,
   },
-  filterText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  segmentBtn: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    paddingVertical: 9,
+    borderRadius: 11,
+    borderWidth: 1,
+  },
+  segmentLabel: { fontSize: 13 },
+  segmentBadge: {
+    minWidth: 18, height: 18, borderRadius: 9,
+    alignItems: "center", justifyContent: "center",
+    paddingHorizontal: 4,
+  },
+  segmentBadgeText: { fontSize: 10, fontFamily: "Inter_700Bold" },
 
   /* Task card */
   taskCard: {
@@ -778,6 +783,15 @@ const styles = StyleSheet.create({
     width: 4,
     borderTopLeftRadius: 18,
     borderBottomLeftRadius: 18,
+  },
+  taskIconBlock: {
+    width: 46, height: 46, borderRadius: 23,
+    alignItems: "center", justifyContent: "center",
+    marginLeft: 6,
+  },
+  taskRightCol: {
+    alignItems: "center",
+    gap: 8,
   },
   checkCircle: {
     width: 26, height: 26, borderRadius: 13,
