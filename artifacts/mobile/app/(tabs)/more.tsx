@@ -187,7 +187,7 @@ export default function MoreScreen() {
           </Animated.View>
         ))}
 
-        <Text style={[styles.version, { color: theme.textTertiary }]}>Timpla v1.0 · Made for students 🇵🇭</Text>
+        <Text style={[styles.version, { color: theme.textTertiary }]}>Timpla v1.0</Text>
       </ScrollView>
     </LinearGradient>
   );
