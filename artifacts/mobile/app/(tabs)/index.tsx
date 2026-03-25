@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
+import { useNotifications } from "@/context/NotificationContext";
+import { NotificationsModal } from "@/components/ui/NotificationsModal";
 import { formatCurrency, isThisMonth } from "@/utils/format";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getCategoryColor, getCategoryIcon, getCategoryLabel } from "@/utils/categories";
@@ -35,11 +37,18 @@ const QUICK_ACTIONS = [
 ];
 
 export default function HomeScreen() {
-  const { theme, isDark, toggleTheme } = useTheme();
+  const { theme, isDark } = useTheme();
   const { userName, isOnboarded, wallets, transactions, totalBalance, monthlyIncome, monthlyExpenses, todayExpenses } = useApp();
+  const { unreadCount, requestPermission, permStatus } = useNotifications();
   const insets = useSafeAreaInsets();
+  const [showNotifs, setShowNotifs] = useState(false);
 
   if (!isOnboarded) { router.replace("/onboarding"); return null; }
+
+  const handleBellPress = async () => {
+    if (permStatus === "undetermined") await requestPermission();
+    setShowNotifs(true);
+  };
 
   const monthlyTransactionCount = useMemo(() => transactions.filter((t) => isThisMonth(t.date)).length, [transactions]);
   const budgetLeft = monthlyIncome - monthlyExpenses;
@@ -65,13 +74,41 @@ export default function HomeScreen() {
               <Text style={styles.waveEmoji}>👋</Text>
             </View>
           </View>
+
+          {/* Notification Bell */}
           <Pressable
-            onPress={toggleTheme}
-            style={[styles.themeBtn, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border, borderWidth: 1, shadowColor: "#000", shadowOffset: { width: 2, height: 2 }, shadowOpacity: isDark ? 0.5 : 0.08, shadowRadius: 6, elevation: 4 }]}
+            onPress={handleBellPress}
+            style={({ pressed }) => [
+              styles.bellBtn,
+              {
+                backgroundColor: theme.surface,
+                borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border,
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: isDark ? 0.4 : 0.08,
+                shadowRadius: 6,
+                elevation: 4,
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}
           >
-            <Ionicons name={isDark ? "sunny" : "moon"} size={19} color={isDark ? "#F59E0B" : theme.textSecondary} />
+            <Ionicons
+              name={unreadCount > 0 ? "notifications" : "notifications-outline"}
+              size={20}
+              color={unreadCount > 0 ? "#E05A6D" : theme.textSecondary}
+            />
+            {unreadCount > 0 && (
+              <View style={styles.bellBadge}>
+                <Text style={styles.bellBadgeText}>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Text>
+              </View>
+            )}
           </Pressable>
         </Animated.View>
+
+        {/* Notifications Modal */}
+        <NotificationsModal visible={showNotifs} onClose={() => setShowNotifs(false)} />
 
         {/* Total Balance Hero */}
         <Animated.View entering={FadeInDown.delay(60).duration(400)} style={{ paddingHorizontal: 20, marginBottom: 16 }}>
@@ -313,7 +350,24 @@ const styles = StyleSheet.create({
   greetingRow: { flexDirection: "row", alignItems: "center", gap: 6 },
   greeting: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
   waveEmoji: { fontSize: 24 },
-  themeBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", marginTop: 4 },
+  bellBtn: {
+    width: 44, height: 44, borderRadius: 22,
+    alignItems: "center", justifyContent: "center",
+    marginTop: 4, borderWidth: 1,
+    position: "relative",
+  },
+  bellBadge: {
+    position: "absolute",
+    top: -2, right: -2,
+    minWidth: 18, height: 18,
+    borderRadius: 9,
+    backgroundColor: "#E05A6D",
+    alignItems: "center", justifyContent: "center",
+    paddingHorizontal: 3,
+    borderWidth: 2,
+    borderColor: "#0E0E0E",
+  },
+  bellBadgeText: { fontSize: 9, fontFamily: "Inter_700Bold", color: "#fff" },
   balanceCard: {
     borderRadius: 22,
     padding: 22,

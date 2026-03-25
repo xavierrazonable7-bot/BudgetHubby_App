@@ -1,0 +1,68 @@
+Act as a professional Senior Mobile App Software Developer and Mobile Architect with over 20 years of experience in building high-quality, production-ready mobile applications for Android and iOS.
+
+Your task is to modify and improve my mobile app’s home page by replacing the current white mode / dark mode toggle button with a notification bell icon, and implement a fully functional notification system.
+
+Main Requirements
+Replace the Existing Theme Toggle Button
+Remove the current white mode / dark mode button from the home page.
+Replace it with a modern and clean notification bell icon.
+Make sure the bell icon matches the app’s overall UI design and looks professional in both light mode and dark mode.
+The bell icon should have proper states such as:
+default state
+active/enabled state
+disabled state
+unread notification indicator badge if applicable
+Implement a Working Notification Feature
+The bell icon should open or connect to the app’s notification functionality.
+Notifications must work properly without errors or bugs.
+The notification system should be fully integrated into the app and function as expected.
+Push Notifications / Background Notifications
+I want the notifications to connect to the phone itself, meaning:
+the user should still receive notifications even when the app is closed
+notifications should still appear in the phone’s notification tray or system notification center
+Implement proper push notification or local notification with background support, depending on the app architecture.
+Ensure the notification behavior works correctly on both Android and iOS if supported in the project.
+Permission Handling
+Add proper notification permission requests.
+If notification permission is not yet granted, prompt the user properly and explain why notifications are needed.
+Handle all cases:
+permission granted
+permission denied
+permission blocked
+Prevent crashes or broken behavior if the user refuses notification access.
+Notification Management
+Add the necessary logic for:
+enabling notifications
+disabling notifications
+checking notification permission status
+handling notification tap actions
+If needed, create a notification settings screen or modal where users can manage their preferences.
+UI/UX Requirements
+Keep the design modern, clean, and user-friendly.
+Use a notification bell icon that is visually attractive and consistent with the existing app design.
+Make sure the icon is well-positioned in the home page header or top navigation area.
+Add subtle animations or visual feedback when the bell icon is tapped, if appropriate.
+Code Quality and Stability
+Review all related files and update the code properly.
+Fix any issues caused by the replacement of the theme toggle button.
+Make sure there are no errors, warnings, broken imports, or unused code after the update.
+Keep the code clean, organized, and maintainable.
+Remove any unnecessary or obsolete code related to the old theme toggle button if it is no longer needed.
+Functionality Verification
+Ensure the new notification feature works correctly in all important scenarios:
+app open
+app in background
+app closed
+user taps notification
+user denies permission
+Verify that the app remains fully functional after the changes.
+Expected Output
+Replace the white mode / dark mode button with a notification bell icon on the home page.
+Implement a complete and working notification system.
+Ensure notifications can reach the phone even when the app is not open.
+Make the feature stable, polished, and fully functional without any errors or bugs.
+Important Instructions
+Do not break any existing working features in the app.
+Make the implementation production-ready.
+Follow best practices for mobile app notification systems.
+Make sure everything works and functions properly without any errors, bugs, or crashes.
