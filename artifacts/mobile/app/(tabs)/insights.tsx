@@ -11,12 +11,33 @@ import { getCategoryLabel, getCategoryColor } from "@/utils/categories";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { EmptyState } from "@/components/ui/EmptyState";
 
+function dayOfWeek(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-PH", { weekday: "long" });
+}
+function isThisWeekDate(dateStr: string): boolean {
+  const now = new Date();
+  const start = new Date(now);
+  start.setDate(now.getDate() - now.getDay());
+  start.setHours(0, 0, 0, 0);
+  return new Date(dateStr) >= start;
+}
+function isLastWeekDate(dateStr: string): boolean {
+  const now = new Date();
+  const thisWeekStart = new Date(now);
+  thisWeekStart.setDate(now.getDate() - now.getDay());
+  thisWeekStart.setHours(0, 0, 0, 0);
+  const lastWeekStart = new Date(thisWeekStart);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+  const d = new Date(dateStr);
+  return d >= lastWeekStart && d < thisWeekStart;
+}
+
 type Period = "week" | "month";
 const { width: screenWidth } = Dimensions.get("window");
 
 export default function InsightsScreen() {
   const { theme, isDark } = useTheme();
-  const { transactions, monthlyIncome, monthlyExpenses } = useApp();
+  const { transactions, monthlyIncome, monthlyExpenses, studySessions, tasks } = useApp();
   const insets = useSafeAreaInsets();
   const [period, setPeriod] = useState<Period>("month");
 
@@ -65,6 +86,70 @@ export default function InsightsScreen() {
     }
     return list;
   }, [categoryBreakdown, saved, expenseTotal, incomeTotal, period]);
+
+  // ── Study Insights ───────────────────────────────────────────────────────
+  const studyInsights = useMemo(() => {
+    const list: { icon: string; text: string; color: string }[] = [];
+    if (studySessions.length === 0) return list;
+
+    const thisWeekSessions = studySessions.filter((s) => isThisWeekDate(s.date));
+    const lastWeekSessions = studySessions.filter((s) => isLastWeekDate(s.date));
+    const thisWeekMin = thisWeekSessions.reduce((s, ss) => s + ss.duration, 0);
+    const lastWeekMin = lastWeekSessions.reduce((s, ss) => s + ss.duration, 0);
+
+    if (thisWeekMin > 0 && lastWeekMin > 0) {
+      if (thisWeekMin > lastWeekMin) {
+        list.push({ icon: "trending-up-outline", text: `You studied ${thisWeekMin - lastWeekMin} more minutes this week vs last week`, color: "#2DD4BF" });
+      } else if (thisWeekMin < lastWeekMin) {
+        list.push({ icon: "trending-down-outline", text: `You studied ${lastWeekMin - thisWeekMin} fewer minutes this week vs last week`, color: "#F59E0B" });
+      }
+    }
+
+    // Days studied this week
+    const studiedDays = new Set(thisWeekSessions.map((s) => s.date.slice(0, 10))).size;
+    const today = new Date();
+    const dayOfWeekNum = today.getDay();
+    const daysSoFar = dayOfWeekNum === 0 ? 7 : dayOfWeekNum;
+    const missedDays = daysSoFar - studiedDays;
+    if (missedDays > 0 && daysSoFar >= 2) {
+      list.push({ icon: "calendar-clear-outline", text: `You missed ${missedDays} day${missedDays > 1 ? "s" : ""} of study this week`, color: "#E05A6D" });
+    } else if (studiedDays >= daysSoFar && daysSoFar >= 2) {
+      list.push({ icon: "flame-outline", text: `Studying streak! You studied every day this week`, color: "#F59E0B" });
+    }
+
+    // Most productive day
+    const dayTotals: Record<string, number> = {};
+    studySessions.forEach((s) => {
+      const day = dayOfWeek(s.date);
+      dayTotals[day] = (dayTotals[day] || 0) + s.duration;
+    });
+    const bestDay = Object.entries(dayTotals).sort((a, b) => b[1] - a[1])[0];
+    if (bestDay) {
+      list.push({ icon: "star-outline", text: `Most productive day: ${bestDay[0]} (${bestDay[1]} min total)`, color: "#6366F1" });
+    }
+
+    // Total sessions
+    const totalPomodoros = studySessions.reduce((s, ss) => s + ss.completedPomodoros, 0);
+    if (totalPomodoros > 0) {
+      list.push({ icon: "timer-outline", text: `${totalPomodoros} Pomodoro session${totalPomodoros > 1 ? "s" : ""} completed — keep it up!`, color: "#A78BFA" });
+    }
+
+    return list;
+  }, [studySessions]);
+
+  const taskInsights = useMemo(() => {
+    const list: { icon: string; text: string; color: string }[] = [];
+    if (tasks.length === 0) return list;
+    const done = tasks.filter((t) => t.completed).length;
+    const total = tasks.length;
+    const pct = Math.round((done / total) * 100);
+    list.push({ icon: "checkmark-circle-outline", text: `${pct}% of tasks completed (${done}/${total})`, color: "#2DD4BF" });
+    const highPending = tasks.filter((t) => t.priority === "high" && !t.completed).length;
+    if (highPending > 0) {
+      list.push({ icon: "flame-outline", text: `${highPending} high-priority task${highPending > 1 ? "s" : ""} still pending`, color: "#E05A6D" });
+    }
+    return list;
+  }, [tasks]);
 
   const chartConfig = {
     backgroundGradientFrom: theme.surface,
@@ -175,9 +260,68 @@ export default function InsightsScreen() {
         {/* Smart Insights */}
         {insights.length > 0 && (
           <View style={styles.sectionWrap}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>Smart Insights</Text>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIconWrap, { backgroundColor: theme.primary + "20" }]}>
+                <Ionicons name="bulb-outline" size={16} color={theme.primary} />
+              </View>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Spending Insights</Text>
+            </View>
             <View style={{ gap: 10 }}>
               {insights.map((insight, i) => (
+                <LinearGradient
+                  key={i}
+                  colors={[insight.color + "15", insight.color + "08"]}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={[styles.insightCard, { borderColor: insight.color + "25", shadowColor: insight.color, shadowOffset: { width: 0, height: 3 }, shadowOpacity: isDark ? 0.2 : 0.08, shadowRadius: 8, elevation: 3 }]}
+                >
+                  <View style={[styles.insightIcon, { backgroundColor: insight.color + "20", borderWidth: 1, borderColor: insight.color + "30" }]}>
+                    <Ionicons name={insight.icon as any} size={18} color={insight.color} />
+                  </View>
+                  <Text style={[styles.insightText, { color: theme.text }]}>{insight.text}</Text>
+                </LinearGradient>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Study Insights */}
+        {studyInsights.length > 0 && (
+          <View style={styles.sectionWrap}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIconWrap, { backgroundColor: "#6366F120" }]}>
+                <Ionicons name="timer-outline" size={16} color="#6366F1" />
+              </View>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Study Insights</Text>
+            </View>
+            <View style={{ gap: 10 }}>
+              {studyInsights.map((insight, i) => (
+                <LinearGradient
+                  key={i}
+                  colors={[insight.color + "15", insight.color + "08"]}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={[styles.insightCard, { borderColor: insight.color + "25", shadowColor: insight.color, shadowOffset: { width: 0, height: 3 }, shadowOpacity: isDark ? 0.2 : 0.08, shadowRadius: 8, elevation: 3 }]}
+                >
+                  <View style={[styles.insightIcon, { backgroundColor: insight.color + "20", borderWidth: 1, borderColor: insight.color + "30" }]}>
+                    <Ionicons name={insight.icon as any} size={18} color={insight.color} />
+                  </View>
+                  <Text style={[styles.insightText, { color: theme.text }]}>{insight.text}</Text>
+                </LinearGradient>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {/* Task Insights */}
+        {taskInsights.length > 0 && (
+          <View style={styles.sectionWrap}>
+            <View style={styles.sectionHeader}>
+              <View style={[styles.sectionIconWrap, { backgroundColor: "#F59E0B20" }]}>
+                <Ionicons name="checkbox-outline" size={16} color="#F59E0B" />
+              </View>
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Task Insights</Text>
+            </View>
+            <View style={{ gap: 10 }}>
+              {taskInsights.map((insight, i) => (
                 <LinearGradient
                   key={i}
                   colors={[insight.color + "15", insight.color + "08"]}
@@ -235,7 +379,9 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
   statValue: { fontSize: 14, fontFamily: "Inter_700Bold" },
   sectionWrap: { paddingHorizontal: 20, marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", marginBottom: 12 },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 12 },
+  sectionIconWrap: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
+  sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
   emptyCard: { borderRadius: 18, borderWidth: 1, overflow: "hidden" },
   chartCard: { borderRadius: 18, borderWidth: 1, padding: 18 },
   legendList: { gap: 10, marginTop: 4 },
