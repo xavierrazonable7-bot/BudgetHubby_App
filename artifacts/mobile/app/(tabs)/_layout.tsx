@@ -44,6 +44,7 @@ export default function TabLayout() {
           ) : null,
       }}
     >
+      {/* ── Visible tabs (5) ─────────────────────────────────────────────── */}
       <Tabs.Screen
         name="index"
         options={{
@@ -56,18 +57,18 @@ export default function TabLayout() {
       <Tabs.Screen
         name="transactions"
         options={{
-          title: "Expenses",
+          title: "Transactions",
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "receipt" : "receipt-outline"} size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="tasks"
+        name="planner"
         options={{
-          title: "Tasks",
+          title: "Planner",
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "checkbox" : "checkbox-outline"} size={22} color={color} />
+            <Ionicons name={focused ? "calendar" : "calendar-outline"} size={22} color={color} />
           ),
         }}
       />
@@ -81,15 +82,6 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="insights"
-        options={{
-          title: "Insights",
-          tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "bar-chart" : "bar-chart-outline"} size={22} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="more"
         options={{
           title: "More",
@@ -98,10 +90,13 @@ export default function TabLayout() {
           ),
         }}
       />
-      {/* Hidden from tab bar but routable */}
-      <Tabs.Screen name="wallets" options={{ href: null }} />
-      <Tabs.Screen name="debts" options={{ href: null }} />
+
+      {/* ── Hidden — accessible via More / deep links ─────────────────────── */}
+      <Tabs.Screen name="wallets"   options={{ href: null }} />
+      <Tabs.Screen name="debts"     options={{ href: null }} />
       <Tabs.Screen name="assistant" options={{ href: null }} />
+      <Tabs.Screen name="insights"  options={{ href: null }} />
+      <Tabs.Screen name="tasks"     options={{ href: null }} />
     </Tabs>
   );
 }

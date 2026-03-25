@@ -1,0 +1,127 @@
+Act as a professional Senior Mobile App Software Developer, Mobile UI/UX Architect, and Code Refactoring Specialist with over 20 years of experience in building clean, scalable, and production-ready mobile applications for Android and iOS.
+
+Your task is to check and review my existing mobile app project and update the navigation structure by modifying only the necessary blocks of code. Do not rewrite the whole project. Only make targeted, clean, and safe updates to the relevant files so the app remains stable and fully functional.
+
+Main Goal
+
+Refactor and simplify my app’s bottom navigation bar and related screens so the structure becomes cleaner, easier to use, and more organized.
+
+Required Navigation Changes
+Final Bottom Navbar Structure
+
+Update the bottom navigation so the final tabs are exactly:
+
+Home
+Transactions
+Planner
+Study
+More
+Specific Required Changes
+1. Merge Tasks and Events into Planner
+Review the current Tasks and Events sections.
+Merge them into one unified page called Planner.
+The Planner page should include:
+Tasks
+Events
+Notes
+2. Add Notes inside Planner
+Add Notes as part of the new Planner section.
+Organize the Planner page in a clean and user-friendly way.
+You may use:
+top tabs
+segmented controls
+internal tabs
+sections
+cards
+whichever is most appropriate for the existing project structure and UI.
+Make sure users can easily switch between:
+Tasks
+Events
+Notes
+3. Rename Expense to Transactions
+Change the existing Expense tab, screen name, labels, titles, route names, and related UI text into Transactions.
+Ensure that this rename is applied consistently across the app wherever necessary.
+Keep the functionality intact unless minor cleanup is needed.
+4. Move Insights into More
+Remove Insights from the bottom navbar.
+Move Insights into the More page instead.
+5. Replace Notes in More with Insights
+If the More page currently contains Notes, remove Notes from More because Notes should now be inside Planner.
+Replace that entry with Insights.
+6. Clearly Indicate What Insights Contains
+
+Inside the More page, the Insights item should clearly indicate what it includes.
+
+For example, the Insights section may contain:
+
+productivity summary
+study statistics
+task completion trends
+event activity overview
+spending or transaction summary if already supported in the app
+
+Use the existing app features and data structure to determine the most accurate insights available in the project. Do not invent fake functionality, but clearly label what the Insights page includes based on the real implementation.
+
+Code Review and Refactoring Requirements
+7. Review the Existing Project First
+
+Before making changes:
+
+inspect the current navigation setup
+inspect route definitions
+inspect screen imports
+inspect tab configuration
+inspect labels, icons, and page references
+inspect any logic connected to Tasks, Events, Notes, Expense, Insights, and More
+8. Update Only Necessary Blocks of Code
+Do not rewrite unrelated files.
+Do not restructure the entire app if not needed.
+Only update the necessary files and code blocks related to:
+navigation
+screen naming
+route configuration
+menu items
+tab labels
+screen composition
+related imports and references
+9. Remove or Clean Unnecessary Code
+Remove obsolete references that are no longer needed after the navigation update.
+Delete unused imports, routes, labels, variables, and dead code only if they are directly related to these changes.
+Make sure nothing breaks after cleanup.
+Functional Requirements
+10. Preserve Existing Working Features
+Do not break any currently working functionality.
+Keep the existing logic and data flow intact as much as possible.
+Ensure Tasks, Events, Notes, Transactions, Study, Home, and More all continue to function properly.
+11. Ensure Proper Navigation Behavior
+Verify that all bottom tabs navigate correctly.
+Verify that the Planner page loads properly and displays Tasks, Events, and Notes correctly.
+Verify that the More page properly shows Insights and other existing menu items.
+Verify that Transactions works correctly after renaming from Expense.
+12. UI/UX Consistency
+Keep the design clean, modern, and consistent with the current app style.
+Ensure icons, labels, headers, and navigation titles remain visually balanced and professional.
+Update only what is necessary to match the new structure.
+13. Stability and Error Fixing
+Fix any errors, warnings, route mismatches, broken imports, or navigation bugs caused by these changes.
+Make sure the app compiles and runs successfully.
+Ensure there are no crashes, undefined routes, duplicated tabs, or broken references.
+Expected Output
+
+Provide:
+
+The updated necessary code changes only
+A short summary of what was changed
+Confirmation that the final navbar is now:
+Home
+Transactions
+Planner
+Study
+More
+Confirmation that the app works and functions properly without errors and bugs
+Important Instructions
+Modify only the necessary block of code
+Do not rewrite the entire project
+Do not remove working functionality unless it is directly replaced by the new structure
+Keep the code clean, maintainable, and production-ready
+Make everything work properly without any errors, bugs, or broken navigation

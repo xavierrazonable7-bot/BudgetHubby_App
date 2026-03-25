@@ -53,30 +53,68 @@ function MenuItem({ icon, label, sublabel, color, gradColors, onPress, badge }: 
 
 export default function MoreScreen() {
   const { theme, isDark } = useTheme();
-  const { wallets, debts, notes, totalBalance } = useApp();
+  const { wallets, debts, tasks, studySessions, transactions, totalBalance } = useApp();
   const insets = useSafeAreaInsets();
 
-  const pendingDebts = debts.filter((d) => d.status === "pending").length;
+  const pendingDebts  = debts.filter((d) => d.status === "pending").length;
+  const doneTasks     = tasks.filter((t) => t.completed).length;
+  const totalSessions = studySessions.length;
 
   const SECTIONS = [
     {
       title: "Money",
       items: [
-        { icon: "wallet-outline", label: "Wallets", sublabel: `${wallets.length} accounts · ${formatCurrency(totalBalance)}`, color: "#2DD4BF", gradColors: ["#0D2018", "#102A1E"] as [string, string], route: "/(tabs)/wallets" },
-        { icon: "people-outline", label: "Debts / Utang", sublabel: "Track lent & borrowed money", color: "#E05A6D", gradColors: ["#2A1018", "#2A1820"] as [string, string], route: "/(tabs)/debts", badge: pendingDebts > 0 ? pendingDebts : undefined },
+        {
+          icon: "wallet-outline",
+          label: "Wallets",
+          sublabel: `${wallets.length} accounts · ${formatCurrency(totalBalance)}`,
+          color: "#2DD4BF",
+          gradColors: ["#0D2018", "#102A1E"] as [string, string],
+          route: "/(tabs)/wallets",
+        },
+        {
+          icon: "people-outline",
+          label: "Debts / Utang",
+          sublabel: "Track lent & borrowed money",
+          color: "#E05A6D",
+          gradColors: ["#2A1018", "#2A1820"] as [string, string],
+          route: "/(tabs)/debts",
+          badge: pendingDebts > 0 ? pendingDebts : undefined,
+        },
       ],
     },
     {
-      title: "Productivity",
+      title: "Analytics",
       items: [
-        { icon: "document-text-outline", label: "Notes", sublabel: `${notes.length} saved notes`, color: "#F59E0B", gradColors: ["#1A1608", "#221C08"] as [string, string], route: "/notes" },
-        { icon: "share-social-outline", label: "Export PDF", sublabel: "Export your financial report", color: "#A78BFA", gradColors: ["#1A0D2A", "#221630"] as [string, string], route: "/pdf-export" },
+        {
+          icon: "bar-chart-outline",
+          label: "Insights",
+          sublabel: "Spending · Study · Task trends",
+          color: "#6366F1",
+          gradColors: ["#0D102A", "#121630"] as [string, string],
+          route: "/(tabs)/insights",
+        },
+        {
+          icon: "share-social-outline",
+          label: "Export PDF",
+          sublabel: "Financial & study report",
+          color: "#A78BFA",
+          gradColors: ["#1A0D2A", "#221630"] as [string, string],
+          route: "/pdf-export",
+        },
       ],
     },
     {
       title: "AI & Assistant",
       items: [
-        { icon: "sparkles-outline", label: "AI Assistant", sublabel: "Your offline budget advisor", color: "#6366F1", gradColors: ["#0D102A", "#121630"] as [string, string], route: "/(tabs)/assistant" },
+        {
+          icon: "sparkles-outline",
+          label: "AI Assistant",
+          sublabel: "Your offline budget advisor",
+          color: "#6366F1",
+          gradColors: ["#0D102A", "#121630"] as [string, string],
+          route: "/(tabs)/assistant",
+        },
       ],
     },
   ];
@@ -98,7 +136,7 @@ export default function MoreScreen() {
           </View>
         </Animated.View>
 
-        {/* Quick Stats Banner */}
+        {/* Stats Banner */}
         <Animated.View entering={FadeInDown.delay(60).duration(350)} style={{ paddingHorizontal: 20, marginBottom: 24 }}>
           <LinearGradient
             colors={["#C0394D", "#E05A6D", "#8B1A2E"]}
@@ -111,18 +149,18 @@ export default function MoreScreen() {
             <Text style={styles.bannerSub}>Your all-in-one student finance & productivity app</Text>
             <View style={styles.bannerRow}>
               <View style={styles.bannerStat}>
-                <Text style={styles.bannerStatValue}>{wallets.length}</Text>
-                <Text style={styles.bannerStatLabel}>Wallets</Text>
+                <Text style={styles.bannerStatValue}>{transactions.length}</Text>
+                <Text style={styles.bannerStatLabel}>Transactions</Text>
               </View>
               <View style={styles.bannerDivider} />
               <View style={styles.bannerStat}>
-                <Text style={styles.bannerStatValue}>{pendingDebts}</Text>
-                <Text style={styles.bannerStatLabel}>Debts</Text>
+                <Text style={styles.bannerStatValue}>{doneTasks}</Text>
+                <Text style={styles.bannerStatLabel}>Tasks Done</Text>
               </View>
               <View style={styles.bannerDivider} />
               <View style={styles.bannerStat}>
-                <Text style={styles.bannerStatValue}>{notes.length}</Text>
-                <Text style={styles.bannerStatLabel}>Notes</Text>
+                <Text style={styles.bannerStatValue}>{totalSessions}</Text>
+                <Text style={styles.bannerStatLabel}>Study Sessions</Text>
               </View>
             </View>
           </LinearGradient>
@@ -142,14 +180,13 @@ export default function MoreScreen() {
                   color={item.color}
                   gradColors={item.gradColors}
                   onPress={() => router.push(item.route as any)}
-                  badge={item.badge}
+                  badge={"badge" in item ? item.badge : undefined}
                 />
               ))}
             </View>
           </Animated.View>
         ))}
 
-        {/* Version */}
         <Text style={[styles.version, { color: theme.textTertiary }]}>BudgetBuddy v1.0 · Made for students 🇵🇭</Text>
       </ScrollView>
     </LinearGradient>
