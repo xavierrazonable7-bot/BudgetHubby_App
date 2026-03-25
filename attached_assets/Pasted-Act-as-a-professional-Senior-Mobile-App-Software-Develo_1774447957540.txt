@@ -1,0 +1,160 @@
+Act as a professional Senior Mobile App Software Developer, Mobile UI/UX Designer, and Software Architect with over 20 years of experience in building modern, scalable, and production-ready mobile applications for Android and iOS.
+
+Your task is to update and improve my mobile app project by renaming the app to “Timpla” and implementing a loading screen and onboarding screen with a clean and modern UI. Only update the necessary blocks of code and do not rewrite the entire project.
+
+Main Objectives
+Change the app name to Timpla across the entire project.
+Add a loading (splash/initial loading) screen.
+Add a modern onboarding flow for first-time users.
+
+Everything must work and function properly without any errors or bugs.
+
+1. Change the App Name to “Timpla”
+
+Update the app name everywhere it appears in the project, including:
+
+App display name
+App header titles
+Navigation titles if needed
+Splash screen title (if applicable)
+Expo configuration files such as:
+app.json
+app.config.js
+package.json if needed
+
+Make sure the app displays “Timpla” as the official name when installed or opened.
+
+The branding should feel clean, modern, and consistent.
+
+2. Add a Loading Screen (Initial App Loading Screen)
+
+Create a modern loading screen that appears when the app starts.
+
+Loading Screen Requirements
+Display the Timpla app name or logo
+Show a clean loading indicator or animation
+Use a minimal and modern design
+Proper spacing and alignment
+The screen should feel polished and professional
+Loading Behavior
+
+The loading screen should appear while the app is initializing, such as when:
+
+fonts are loading
+storage data is loading
+authentication state is being checked
+app configuration is initializing
+
+After initialization is complete, the app should automatically navigate to:
+
+Onboarding (if the user is new)
+or
+Home screen (if the user has already completed onboarding)
+
+Ensure this flow works properly and smoothly.
+
+3. Add an Onboarding Screen
+
+Create a modern onboarding experience for first-time users.
+
+Onboarding Goals
+
+Introduce users to what Timpla helps them do.
+
+Timpla helps manage:
+
+transactions
+planning
+study tools
+tasks
+events
+notes
+Onboarding Design
+
+The onboarding screen should look:
+
+modern
+minimal
+clean
+visually appealing
+easy to understand
+
+Use a horizontal swipe onboarding layout with 3–4 slides.
+
+Example slides:
+
+Slide 1
+Organize Your Life
+Track tasks, events, and notes in one place.
+
+Slide 2
+Manage Your Money
+Monitor your transactions and financial activity easily.
+
+Slide 3
+Stay Productive
+Plan your day, focus on study, and stay organized.
+
+Slide 4
+Everything in One App
+Timpla helps balance your daily life.
+
+Onboarding Features
+
+Include:
+
+smooth swipe transitions
+pagination indicators (dots)
+“Next” button
+“Skip” option
+“Get Started” button on the final slide
+Onboarding Logic
+The onboarding screen should only appear the first time the user opens the app.
+After completion, store a flag in local storage.
+When the user opens the app again, skip onboarding and go directly to the Home screen.
+4. Navigation Flow
+
+The correct app flow should be:
+
+Loading Screen
+Check if onboarding is completed
+If not completed → Onboarding
+If completed → Home screen
+
+Ensure the navigation works properly without loops or crashes.
+
+5. UI/UX Requirements
+
+Ensure that:
+
+The loading screen looks clean and modern
+The onboarding design is visually balanced
+Proper spacing, padding, and alignment are used
+Typography and layout look polished
+The design is consistent with the rest of the app
+6. Code Requirements
+Update only the necessary blocks of code
+Do not rewrite unrelated parts of the project
+Do not break existing features
+Keep the code clean, organized, and maintainable
+
+Remove or refactor only code directly affected by the changes if necessary.
+
+7. Stability and Testing
+
+After implementing the changes:
+
+Ensure the app compiles and runs successfully
+Ensure onboarding appears only on the first launch
+Ensure loading screen works properly
+Ensure navigation flow is correct
+Ensure there are no errors, warnings, crashes, or broken screens
+Expected Result
+
+After the update:
+
+The app name is Timpla
+A modern loading screen appears when the app starts
+A clean onboarding flow appears for first-time users
+Returning users go directly to the home screen
+Everything works smoothly and correctly without errors or bugs

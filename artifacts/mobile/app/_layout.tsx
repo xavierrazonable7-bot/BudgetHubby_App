@@ -16,6 +16,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { AppProvider } from "@/context/AppContext";
+import { LoadingScreen } from "@/components/LoadingScreen";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -48,7 +49,7 @@ export default function RootLayout() {
     }
   }, [fontsLoaded, fontError]);
 
-  if (!fontsLoaded && !fontError) return null;
+  if (!fontsLoaded && !fontError) return <LoadingScreen />;
 
   return (
     <SafeAreaProvider>
