@@ -145,7 +145,7 @@ export default function MoreScreen() {
           >
             <View style={styles.statsBannerDeco1} />
             <View style={styles.statsBannerDeco2} />
-            <Text style={styles.bannerTitle}>BudgetBuddy</Text>
+            <Text style={styles.bannerTitle}>Timpla</Text>
             <Text style={styles.bannerSub}>Your all-in-one student finance & productivity app</Text>
             <View style={styles.bannerRow}>
               <View style={styles.bannerStat}>
@@ -187,7 +187,7 @@ export default function MoreScreen() {
           </Animated.View>
         ))}
 
-        <Text style={[styles.version, { color: theme.textTertiary }]}>BudgetBuddy v1.0 · Made for students 🇵🇭</Text>
+        <Text style={[styles.version, { color: theme.textTertiary }]}>Timpla v1.0 · Made for students 🇵🇭</Text>
       </ScrollView>
     </LinearGradient>
   );
