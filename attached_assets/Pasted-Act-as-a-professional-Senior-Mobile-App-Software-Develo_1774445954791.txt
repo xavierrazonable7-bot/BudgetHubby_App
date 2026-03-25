@@ -1,0 +1,105 @@
+Act as a professional Senior Mobile App Software Developer, Mobile UI/UX Designer, and Frontend Architect with over 20 years of experience in building clean, modern, and production-ready mobile applications for Android and iOS.
+
+Your task is to check and review my existing project and enhance and improve the layout and UI design of the Transactions page. Only update the necessary blocks of code. Do not rewrite the whole project.
+
+Main Goal
+
+Redesign the Transactions page so it looks more modern, clean, organized, and user-friendly. I want the page to have a better layout where the user can easily switch between:
+
+All
+Income
+Expense
+
+I want these options to be placed within the same page, so the user does not need to navigate to different screens just to view all transactions, income transactions, or expense transactions.
+
+Required UI/UX Improvements
+1. Improve the Overall Layout
+Enhance the structure and visual design of the Transactions page.
+Make the page look clean, modern, polished, and professional.
+Improve spacing, alignment, padding, typography, and visual hierarchy.
+Ensure the page feels organized and easy to scan.
+2. Add a Section Selector on the Same Page
+Add a clean and modern selector for:
+All
+Income
+Expense
+
+This should all be inside one page only.
+
+You may implement this using whichever fits the project best:
+
+top tabs
+segmented control
+pill buttons
+toggle chips
+tab buttons
+
+The design should look modern, responsive, and easy to use.
+
+3. Filtering Behavior
+When the user selects All, show all transactions.
+When the user selects Income, show only income transactions.
+When the user selects Expense, show only expense transactions.
+Make sure the filtering works properly without errors or lag.
+4. Improve Transaction List Design
+
+Enhance the appearance of the transaction items by improving:
+
+card layout
+row spacing
+icon placement
+category display
+amount display
+date display
+wallet/account label if available
+
+Make the transaction list easier to read and visually appealing.
+
+5. Active State Styling
+The selected option among All / Income / Expense should be visually clear.
+Add a proper active state style such as:
+highlighted background
+selected border
+bold text
+filled pill/tab appearance
+
+Make sure the inactive options still look clean and balanced.
+
+6. Empty State Handling
+
+If there are no transactions in a selected tab:
+
+show a proper empty state message
+for example:
+“No transactions yet”
+“No income transactions found”
+“No expense transactions found”
+
+Make sure the page does not look broken when empty.
+
+7. Keep Existing Functionality Working
+Do not break any existing transaction logic.
+Keep add, edit, delete, filter, and other working features intact if they already exist.
+Only improve the page layout and integrate the All / Income / Expense view into one screen.
+Code Requirements
+8. Update Only Necessary Blocks of Code
+Only modify the files and code blocks directly related to the Transactions page UI and filtering behavior.
+Do not rewrite the full project.
+Do not touch unrelated screens or logic.
+9. Clean Up Related UI Code if Needed
+Remove or refactor only unnecessary code directly related to the old Transactions layout if needed.
+Delete unused imports, duplicate styles, or old UI blocks only if they are no longer needed after the update.
+10. Maintain Clean Code
+Keep the code readable, organized, and maintainable.
+Follow best practices for mobile UI and component structure.
+Make sure the updated code is production-ready.
+Expected Result
+The Transactions page has a cleaner and more modern UI.
+The user can switch between All, Income, and Expense within the same page.
+The layout is visually improved and easier to use.
+The page works smoothly and properly without any errors or bugs.
+Important Instructions
+Update only the necessary blocks of code.
+Do not rewrite the whole app.
+Do not break existing working functionality.
+Make sure everything works and functions properly without errors, warnings, or crashes.
