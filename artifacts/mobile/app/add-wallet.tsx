@@ -20,8 +20,8 @@ import { Button } from "@/components/ui/Button";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 
 const WALLET_COLORS = [
-  "#2DD4BF", "#E05A6D", "#6366F1", "#F59E0B",
-  "#10B981", "#F472B6", "#22D3EE", "#A78BFA",
+  "#2DD4BF", "#E05A6D", "#F59E0B",
+  "#10B981", "#F472B6", "#22D3EE",
 ];
 
 const WALLET_ICONS = [
