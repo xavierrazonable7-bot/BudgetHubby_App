@@ -1,11 +1,10 @@
-import React, { useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View, Text, StyleSheet, Modal, Pressable,
-  FlatList, Animated, Platform,
+  ScrollView, Animated, Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/context/ThemeContext";
 import { useNotifications, AppNotification } from "@/context/NotificationContext";
 
@@ -24,53 +23,38 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString("en-PH", { month: "short", day: "numeric" });
 }
 
-function NotifCard({ item }: { item: AppNotification }) {
+function NotifItem({ item, isLast }: { item: AppNotification; isLast: boolean }) {
   const { theme, isDark } = useTheme();
   const { markRead } = useNotifications();
 
   return (
     <Pressable
       onPress={() => markRead(item.id)}
-      style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
+      style={({ pressed }) => [
+        styles.item,
+        !isLast && { borderBottomWidth: 1, borderBottomColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" },
+        !item.read && { backgroundColor: isDark ? "rgba(224,90,109,0.06)" : "rgba(224,90,109,0.04)" },
+        { opacity: pressed ? 0.8 : 1 },
+      ]}
     >
-      <LinearGradient
-        colors={isDark ? [item.color + "14", item.color + "07"] : [item.color + "0C", item.color + "04"]}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-        style={[
-          styles.card,
-          {
-            borderColor: item.color + (item.read ? "18" : "30"),
-            shadowColor: item.color,
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: isDark ? 0.15 : 0.06,
-            shadowRadius: 8,
-            elevation: 3,
-            opacity: item.read ? 0.65 : 1,
-          },
-        ]}
-      >
-        {/* Left stripe */}
-        <View style={[styles.cardStripe, { backgroundColor: item.read ? theme.border : item.color }]} />
-
-        {/* Icon */}
-        <View style={[styles.cardIcon, { backgroundColor: item.color + "20", borderColor: item.color + "35", borderWidth: 1.5 }]}>
-          <Ionicons name={item.icon as any} size={18} color={item.color} />
-        </View>
-
-        {/* Content */}
-        <View style={styles.cardContent}>
-          <View style={styles.cardTopRow}>
-            <Text style={[styles.cardTitle, { color: item.read ? theme.textSecondary : theme.text }]} numberOfLines={1}>
-              {item.title}
-            </Text>
-            {!item.read && <View style={[styles.unreadDot, { backgroundColor: item.color }]} />}
-          </View>
-          <Text style={[styles.cardBody, { color: theme.textSecondary }]} numberOfLines={2}>
-            {item.body}
+      <View style={[styles.itemIcon, { backgroundColor: item.color + "18" }]}>
+        <Ionicons name={item.icon as any} size={18} color={item.color} />
+      </View>
+      <View style={styles.itemContent}>
+        <View style={styles.itemTitleRow}>
+          <Text
+            style={[styles.itemTitle, { color: item.read ? theme.textSecondary : theme.text }]}
+            numberOfLines={1}
+          >
+            {item.title}
           </Text>
-          <Text style={[styles.cardTime, { color: theme.textTertiary }]}>{timeAgo(item.createdAt)}</Text>
+          {!item.read && <View style={[styles.unreadDot, { backgroundColor: item.color }]} />}
         </View>
-      </LinearGradient>
+        <Text style={[styles.itemBody, { color: theme.textSecondary }]} numberOfLines={2}>
+          {item.body}
+        </Text>
+        <Text style={[styles.itemTime, { color: theme.textTertiary }]}>{timeAgo(item.createdAt)}</Text>
+      </View>
     </Pressable>
   );
 }
@@ -78,215 +62,218 @@ function NotifCard({ item }: { item: AppNotification }) {
 export function NotificationsModal({ visible, onClose }: Props) {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { notifications, unreadCount, permStatus, requestPermission, markAllRead } = useNotifications();
+  const { notifications, unreadCount, markAllRead } = useNotifications();
 
-  const bgGradient: [string, string, string] = isDark
-    ? ["#0E0E0E", "#140810", "#0E0E0E"]
-    : ["#F0F0F5", "#EDE8F5", "#F0F0F5"];
+  const [internalVisible, setInternalVisible] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(-12)).current;
+  const animatingRef = useRef(false);
+
+  useEffect(() => {
+    if (visible && !internalVisible) {
+      setInternalVisible(true);
+      fadeAnim.setValue(0);
+      slideAnim.setValue(-12);
+      animatingRef.current = true;
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 1, duration: 200, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: 0, duration: 220, useNativeDriver: true }),
+      ]).start(() => { animatingRef.current = false; });
+    } else if (!visible && internalVisible) {
+      animatingRef.current = true;
+      Animated.parallel([
+        Animated.timing(fadeAnim, { toValue: 0, duration: 150, useNativeDriver: true }),
+        Animated.timing(slideAnim, { toValue: -8, duration: 150, useNativeDriver: true }),
+      ]).start(() => {
+        animatingRef.current = false;
+        setInternalVisible(false);
+      });
+    }
+    return () => {
+      if (animatingRef.current) {
+        fadeAnim.stopAnimation();
+        slideAnim.stopAnimation();
+      }
+    };
+  }, [visible]);
+
+  const handleClose = () => {
+    onClose();
+  };
+
+  if (!internalVisible) return null;
+
+  const topOffset = Platform.OS === "web" ? 67 + 56 : insets.top + 60;
+
+  const panelBg = isDark ? theme.surface : "#FFFFFF";
+  const panelBorder = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)";
+  const dividerColor = isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)";
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      statusBarTranslucent
-      onRequestClose={onClose}
-    >
-      {/* Backdrop */}
-      <Pressable style={styles.backdrop} onPress={onClose} />
+    <Modal transparent statusBarTranslucent visible={internalVisible} onRequestClose={handleClose}>
+      <Animated.View style={[styles.backdropFill, { opacity: fadeAnim }]}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
+      </Animated.View>
 
-      {/* Sheet */}
-      <LinearGradient
-        colors={bgGradient}
+      <Animated.View
         style={[
-          styles.sheet,
-          { paddingBottom: insets.bottom + 24 },
+          styles.dropdown,
+          {
+            top: topOffset,
+            backgroundColor: panelBg,
+            borderColor: panelBorder,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 8 },
+            shadowOpacity: isDark ? 0.5 : 0.15,
+            shadowRadius: 24,
+            elevation: 20,
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
         ]}
       >
-        {/* Handle */}
-        <View style={[styles.handle, { backgroundColor: isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)" }]} />
+        <View style={[styles.arrow, { borderBottomColor: panelBg }]} />
 
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={[styles.bellWrap, { backgroundColor: "#E05A6D18", borderColor: "#E05A6D35", borderWidth: 1 }]}>
-              <Ionicons name="notifications" size={18} color="#E05A6D" />
-            </View>
-            <View>
-              <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
-              <Text style={[styles.headerSub, { color: theme.textTertiary }]}>
-                {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
+        <View style={[styles.header, { borderBottomColor: dividerColor }]}>
+          <View>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>Notifications</Text>
+            {unreadCount > 0 && (
+              <Text style={[styles.headerSub, { color: theme.primary }]}>
+                {unreadCount} unread
               </Text>
-            </View>
+            )}
           </View>
-          <View style={styles.headerRight}>
+          <View style={styles.headerActions}>
             {unreadCount > 0 && (
               <Pressable
                 onPress={markAllRead}
-                style={({ pressed }) => [
-                  styles.readAllBtn,
-                  { backgroundColor: "#E05A6D18", borderColor: "#E05A6D35", borderWidth: 1, opacity: pressed ? 0.7 : 1 },
-                ]}
+                style={({ pressed }) => [styles.markAllBtn, { opacity: pressed ? 0.6 : 1 }]}
               >
-                <Ionicons name="checkmark-done-outline" size={14} color="#E05A6D" />
-                <Text style={[styles.readAllText, { color: "#E05A6D" }]}>All read</Text>
+                <Ionicons name="checkmark-done" size={16} color={theme.primary} />
+                <Text style={[styles.markAllText, { color: theme.primary }]}>Read all</Text>
               </Pressable>
             )}
             <Pressable
-              onPress={onClose}
-              style={[styles.closeBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }]}
+              onPress={handleClose}
+              style={({ pressed }) => [
+                styles.closeBtn,
+                { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)", opacity: pressed ? 0.6 : 1 },
+              ]}
             >
-              <Ionicons name="close" size={18} color={theme.textSecondary} />
+              <Ionicons name="close" size={16} color={theme.textSecondary} />
             </Pressable>
           </View>
         </View>
 
-        {/* Permission Banner */}
-        {permStatus !== "granted" && Platform.OS !== "web" && (
-          <Pressable
-            onPress={requestPermission}
-            style={({ pressed }) => [
-              styles.permBanner,
-              { backgroundColor: isDark ? "#1C1230" : "#F0EBFF", borderColor: "#6366F130", opacity: pressed ? 0.85 : 1 },
-            ]}
+        {notifications.length === 0 ? (
+          <View style={styles.emptyState}>
+            <View style={[styles.emptyIcon, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }]}>
+              <Ionicons name="notifications-outline" size={28} color={theme.textTertiary} />
+            </View>
+            <Text style={[styles.emptyTitle, { color: theme.textSecondary }]}>All caught up!</Text>
+            <Text style={[styles.emptySub, { color: theme.textTertiary }]}>
+              No new notifications right now.
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={styles.listScroll}
+            bounces={false}
           >
-            <View style={[styles.permIconWrap, { backgroundColor: "#6366F120" }]}>
-              <Ionicons name="notifications-off-outline" size={18} color="#6366F1" />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[styles.permTitle, { color: theme.text }]}>Enable Device Notifications</Text>
-              <Text style={[styles.permBody, { color: theme.textSecondary }]}>
-                Tap to allow Timpla to send you task and event reminders.
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color="#6366F1" />
-          </Pressable>
+            {notifications.map((item, idx) => (
+              <NotifItem key={item.id} item={item} isLast={idx === notifications.length - 1} />
+            ))}
+          </ScrollView>
         )}
 
-        {/* Notification List */}
-        <FlatList
-          data={notifications}
-          keyExtractor={(n) => n.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, gap: 10 }}
-          ListEmptyComponent={
-            <View style={styles.emptyState}>
-              <View style={[styles.emptyIcon, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }]}>
-                <Ionicons name="notifications-outline" size={32} color={theme.textTertiary} />
-              </View>
-              <Text style={[styles.emptyTitle, { color: theme.textSecondary }]}>No Notifications</Text>
-              <Text style={[styles.emptySub, { color: theme.textTertiary }]}>
-                You'll be notified about tasks, events, and budget alerts here.
-              </Text>
-            </View>
-          }
-          renderItem={({ item }) => <NotifCard item={item} />}
-        />
-      </LinearGradient>
+        {notifications.length > 0 && (
+          <View style={[styles.footer, { borderTopColor: dividerColor }]}>
+            <Text style={[styles.footerText, { color: theme.textTertiary }]}>
+              {notifications.length} notification{notifications.length !== 1 ? "s" : ""}
+            </Text>
+          </View>
+        )}
+      </Animated.View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.55)",
+  backdropFill: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
-  sheet: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: "78%",
+  dropdown: {
+    position: "absolute",
+    right: 16,
+    width: 340,
+    maxWidth: "92%",
+    maxHeight: 420,
+    borderRadius: 20,
+    borderWidth: 1,
     overflow: "hidden",
   },
-  handle: {
-    width: 38,
-    height: 4,
-    borderRadius: 2,
-    alignSelf: "center",
-    marginTop: 12,
-    marginBottom: 8,
+  arrow: {
+    position: "absolute",
+    top: -8,
+    right: 26,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 9,
+    borderRightWidth: 9,
+    borderBottomWidth: 9,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
   },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
   },
-  headerLeft: { flexDirection: "row", alignItems: "center", gap: 12 },
-  bellWrap: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  headerTitle: { fontSize: 18, fontFamily: "Inter_700Bold" },
-  headerSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 1 },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: 8 },
-  readAllBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 10,
-  },
-  readAllText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
-  closeBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  headerTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
+  headerSub: { fontSize: 12, fontFamily: "Inter_500Medium", marginTop: 2 },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 8 },
+  markAllBtn: { flexDirection: "row", alignItems: "center", gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  markAllText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  closeBtn: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
 
-  /* Permission Banner */
-  permBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-    marginHorizontal: 20,
-    marginBottom: 8,
-    padding: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  permIconWrap: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
-  permTitle: { fontSize: 13, fontFamily: "Inter_600SemiBold", marginBottom: 2 },
-  permBody: { fontSize: 11, fontFamily: "Inter_400Regular", lineHeight: 16 },
+  listScroll: { maxHeight: 310 },
 
-  /* Notification card */
-  card: {
+  item: {
     flexDirection: "row",
     alignItems: "flex-start",
-    borderRadius: 16,
+    paddingHorizontal: 18,
     paddingVertical: 14,
-    paddingRight: 14,
-    paddingLeft: 16,
     gap: 12,
-    borderWidth: 1,
-    overflow: "hidden",
   },
-  cardStripe: {
-    position: "absolute",
-    left: 0, top: 0, bottom: 0,
-    width: 3,
-    borderTopLeftRadius: 16,
-    borderBottomLeftRadius: 16,
+  itemIcon: {
+    width: 38, height: 38, borderRadius: 19,
+    alignItems: "center", justifyContent: "center",
+    marginTop: 2,
   },
-  cardIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 4,
-  },
-  cardContent: { flex: 1, gap: 4 },
-  cardTopRow: { flexDirection: "row", alignItems: "center", gap: 8 },
-  cardTitle: { flex: 1, fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  unreadDot: { width: 8, height: 8, borderRadius: 4 },
-  cardBody: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 18 },
-  cardTime: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  itemContent: { flex: 1, gap: 3 },
+  itemTitleRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  itemTitle: { flex: 1, fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  unreadDot: { width: 7, height: 7, borderRadius: 3.5 },
+  itemBody: { fontSize: 12, fontFamily: "Inter_400Regular", lineHeight: 17 },
+  itemTime: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
 
-  /* Empty */
-  emptyState: { alignItems: "center", paddingTop: 40, gap: 12 },
-  emptyIcon: { width: 72, height: 72, borderRadius: 36, alignItems: "center", justifyContent: "center" },
-  emptyTitle: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
-  emptySub: { fontSize: 13, fontFamily: "Inter_400Regular", textAlign: "center", maxWidth: 260, lineHeight: 20 },
+  emptyState: { alignItems: "center", paddingVertical: 36, gap: 10 },
+  emptyIcon: { width: 56, height: 56, borderRadius: 28, alignItems: "center", justifyContent: "center" },
+  emptyTitle: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  emptySub: { fontSize: 12, fontFamily: "Inter_400Regular", textAlign: "center", maxWidth: 220 },
+
+  footer: {
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderTopWidth: 1,
+  },
+  footerText: { fontSize: 11, fontFamily: "Inter_400Regular" },
 });

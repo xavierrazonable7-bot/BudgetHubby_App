@@ -1,0 +1,95 @@
+Act as a professional senior React Native / Expo developer and mobile UI/UX designer with 20+ years of experience in building clean, modern, production-ready mobile apps.
+
+Your task is to **update and improve the notification feature of my app** and change it into a **Notification Dropdown / Popover** design instead of using a modal, full page, or any outdated layout.
+
+## Main Goal
+
+Create a **modern notification bell interaction** where:
+
+* the user taps the **bell icon**
+* a **small floating dropdown / popover panel** appears
+* the panel shows the latest notifications in a clean and modern layout
+* it should feel similar to modern apps like Facebook, GitHub, Vercel, or SaaS dashboards, but adapted properly for mobile UI
+
+## Design Requirements
+
+* Use a **clean, modern, minimal UI**
+* Make the dropdown / popover look polished and premium
+* The popover must be visually attached to the **bell icon**
+* Add proper spacing, rounded corners, soft shadow, and modern card styling
+* Make unread notifications visually distinct
+* Use a clean hierarchy for:
+
+  * title
+  * short message
+  * timestamp
+  * status (read / unread)
+
+## Notification Bell Requirements
+
+* Show a **bell icon** in the header or top navigation
+* Add a **notification badge counter** if there are unread notifications
+* When the bell is pressed:
+
+  * open the notification dropdown / popover
+  * animate it smoothly
+  * close it when the user taps outside
+* Prevent it from feeling like a modal
+* Make sure the interaction is smooth and responsive
+
+## Popover / Dropdown Requirements
+
+The dropdown / popover should include:
+
+* a header title: **Notifications**
+* a scrollable list of recent notifications
+* each notification item should have:
+
+  * optional icon or avatar on the left
+  * title
+  * short preview text
+  * timestamp
+* a visual style for unread items
+* an empty state if there are no notifications
+* a footer action like:
+
+  * **View all notifications**
+  * or **Mark all as read**
+
+## Functional Requirements
+
+* Make sure the notification feature works properly without errors or bugs
+* Preserve the existing notification data logic if already implemented
+* Only update the necessary code blocks and components
+* Do not rewrite unrelated parts of the app
+* Ensure the popover opens and closes correctly
+* Ensure touch handling works properly on mobile
+* Make sure the layout is responsive across Android and iOS
+
+## Technical Requirements
+
+* Use best practices for **React Native / Expo**
+* Use a proper popover / dropdown approach suitable for mobile
+* If needed, use a lightweight and reliable library, but only if necessary
+* Keep the code clean, reusable, and maintainable
+* Refactor messy or unnecessary code related to the old notification UI
+* Add comments only where necessary
+* Make sure state management for opening, closing, and marking notifications as read is clean and organized
+
+## UX Requirements
+
+* The notification dropdown must feel modern and easy to use
+* Prioritize clarity and readability
+* Avoid cluttered spacing
+* Keep the icon placement balanced
+* Make the unread state noticeable but elegant
+* Add smooth transitions or animations for a premium feel
+
+## Expected Output
+
+* Update the current notification feature into a **Notification Dropdown / Popover**
+* Improve both the **UI design** and **UX behavior**
+* Fix any related layout issues, positioning issues, or interaction bugs
+* Return only the **necessary updated code blocks/files**
+* Clearly indicate what was changed
+* Make sure the final implementation works properly in my Expo app without errors
