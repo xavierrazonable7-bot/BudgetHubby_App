@@ -91,12 +91,6 @@ export default function TabLayout() {
         }}
       />
 
-      {/* ── Hidden — accessible via More / deep links ─────────────────────── */}
-      <Tabs.Screen name="wallets"   options={{ href: null }} />
-      <Tabs.Screen name="debts"     options={{ href: null }} />
-      <Tabs.Screen name="assistant" options={{ href: null }} />
-      <Tabs.Screen name="insights"  options={{ href: null }} />
-      <Tabs.Screen name="tasks"     options={{ href: null }} />
     </Tabs>
   );
 }

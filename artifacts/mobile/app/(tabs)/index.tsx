@@ -239,7 +239,7 @@ export default function HomeScreen() {
         {/* Wallets */}
         {wallets.length > 0 && (
           <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-            <SectionHeader title="My Wallets" onSeeAll={() => router.push("/(tabs)/wallets")} />
+            <SectionHeader title="My Wallets" onSeeAll={() => router.push("/wallets")} />
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -248,7 +248,7 @@ export default function HomeScreen() {
             >
               {wallets.map((wallet, idx) => (
                 <Animated.View key={wallet.id} entering={FadeInUp.delay(220 + idx * 50).duration(350)}>
-                  <Pressable onPress={() => router.push("/(tabs)/wallets")} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
+                  <Pressable onPress={() => router.push("/wallets")} style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
                     <LinearGradient
                       colors={[wallet.color + "30", wallet.color + "16"]}
                       start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}

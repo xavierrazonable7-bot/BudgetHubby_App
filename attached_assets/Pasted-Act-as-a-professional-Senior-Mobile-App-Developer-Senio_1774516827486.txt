@@ -1,0 +1,57 @@
+Act as a professional Senior Mobile App Developer, Senior Software Engineer, and React Native Expo expert with over 30 years of experience in building high-quality mobile applications.
+
+Your task is to fix and improve the behavior of the Back icon/navigation button in my React Native Expo app.
+
+Main Goal:
+Ensure that the Back icon always navigates the user back to the previous page they visited (the last screen in the navigation stack), instead of redirecting them to a fixed or incorrect screen.
+
+Core Requirements:
+
+1. Proper Back Navigation Behavior
+- The Back icon must return the user to the last page they previously visited.
+- It should follow the correct navigation stack behavior.
+- If the user navigates from Page A → Page B → Page C, pressing the Back icon on Page C must return to Page B, not to the home screen or another unrelated page.
+
+2. Navigation Stack Handling
+- Use the correct navigation method for stack-based navigation.
+- Ensure that the Back icon always triggers the proper “go back” function instead of manually routing to a hardcoded screen.
+- Make sure this works consistently across all screens in the app.
+
+3. Edge Case Handling
+- If the user is already on the first screen (for example the Home page), the Back icon should:
+  - either be hidden,
+  - disabled,
+  - or handled properly to prevent navigation errors.
+- Prevent crashes or broken navigation if there is no previous screen in the stack.
+
+4. UI and Interaction
+- Ensure the Back icon is responsive and properly clickable.
+- Keep the Back icon aligned properly in the header or navigation bar.
+- Maintain consistent placement and behavior across all screens.
+- Ensure the icon works correctly in both light mode and dark mode.
+
+5. Code Quality Requirements
+- Review all pages that use the Back icon.
+- Fix incorrect navigation logic where the back button is manually routing to a specific screen.
+- Replace incorrect implementations with proper stack navigation.
+- Update only the necessary blocks of code.
+- Do not rewrite the entire navigation system unnecessarily.
+- Preserve all existing working functionality.
+
+6. Validation and Testing
+- Test navigation across multiple pages.
+- Confirm that pressing the Back icon always returns to the last visited page.
+- Ensure there are no navigation loops, errors, or unexpected redirects.
+- Ensure the app remains stable and error-free after the fix.
+
+Expected Result:
+- The Back icon correctly returns the user to the last visited page.
+- Navigation follows the proper stack order.
+- No hardcoded back navigation remains.
+- The app navigation feels natural, smooth, and reliable.
+- Everything works properly without errors or bugs.
+
+Important:
+Do not break the existing navigation system.
+Do not rewrite large portions of the code unnecessarily.
+Focus on fixing the Back icon behavior so it correctly follows the previous page navigation stack.

@@ -28,6 +28,11 @@ function RootLayoutNav() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="onboarding" options={{ headerShown: false, animation: "fade" }} />
+      <Stack.Screen name="wallets" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="debts" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="insights" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="assistant" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="tasks" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="add-transaction" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="add-debt" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="add-wallet" options={{ headerShown: false, presentation: "modal" }} />
