@@ -20,8 +20,8 @@ import { Button } from "@/components/ui/Button";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 
 const WALLET_COLORS = [
-  "#2DD4BF", "#E05A6D", "#F59E0B",
-  "#10B981", "#F472B6", "#22D3EE",
+  "#2DD4BF", "#E05A6D", "#F59E0B", "#EF4444",
+  "#10B981", "#F472B6", "#22D3EE", "#F97316",
 ];
 
 const WALLET_ICONS = [
@@ -201,7 +201,7 @@ const styles = StyleSheet.create({
   previewName: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#fff", marginBottom: 6 },
   previewBalance: { fontSize: 16, fontFamily: "Inter_500Medium", color: "rgba(255,255,255,0.85)" },
   sectionLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold", letterSpacing: 0.1 },
-  colorGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  colorGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12, justifyContent: "center" },
   colorSwatch: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },
   iconGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   iconBtn: { paddingVertical: 14, borderRadius: 14, alignItems: "center", gap: 7, minWidth: 70 },
