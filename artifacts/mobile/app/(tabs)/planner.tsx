@@ -633,11 +633,21 @@ export default function PlannerScreen() {
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
             style={[styles.statCard, { borderColor: s.color + "28" }]}
           >
-            <View style={[styles.statIconWrap, { backgroundColor: s.color + "18" }]}>
-              <Ionicons name={s.icon as any} size={16} color={s.color} />
+            <View style={[styles.statIconWrap, {
+              backgroundColor: s.color + "18",
+              borderWidth: 1,
+              borderColor: s.color + "30",
+              shadowColor: s.color,
+              shadowOffset: { width: 0, height: 0 },
+              shadowOpacity: 0.35,
+              shadowRadius: 6,
+            }]}>
+              <Ionicons name={s.icon as any} size={18} color={s.color} />
             </View>
-            <Text style={[styles.statValue, { color: s.color }]}>{s.value}</Text>
-            <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{s.label}</Text>
+            <View style={styles.statTextCol}>
+              <Text style={[styles.statValue, { color: s.color }]}>{s.value}</Text>
+              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{s.label}</Text>
+            </View>
           </LinearGradient>
         ))}
       </View>
@@ -721,13 +731,17 @@ const styles = StyleSheet.create({
 
   /* Stats */
   statsRow: { flexDirection: "row", paddingHorizontal: 20, gap: 10, marginBottom: 16 },
-  statCard: { flex: 1, borderRadius: 16, padding: 14, alignItems: "center", gap: 6, borderWidth: 1 },
-  statIconWrap: {
-    width: 36, height: 36, borderRadius: 18,
-    alignItems: "center", justifyContent: "center", marginBottom: 2,
+  statCard: {
+    flex: 1, borderRadius: 16, padding: 12,
+    flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1,
   },
-  statValue: { fontSize: 22, fontFamily: "Inter_700Bold" },
-  statLabel: { fontSize: 10, fontFamily: "Inter_500Medium", textAlign: "center" },
+  statIconWrap: {
+    width: 40, height: 40, borderRadius: 20,
+    alignItems: "center", justifyContent: "center",
+  },
+  statTextCol: { flex: 1, gap: 2 },
+  statValue: { fontSize: 20, fontFamily: "Inter_700Bold" },
+  statLabel: { fontSize: 10, fontFamily: "Inter_500Medium" },
 
   /* Tab bar */
   tabBar: {
