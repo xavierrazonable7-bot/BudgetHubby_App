@@ -78,6 +78,21 @@ export default function StudyScreen() {
     setBreakDraft(String(clamped));
   }, [breakMinutes]);
 
+  const adjustFocus = useCallback((delta: number) => {
+    const next = Math.min(120, Math.max(1, focusMinutes + delta));
+    setFocusMinutes(next);
+    setFocusDraft(String(next));
+    if (!running) setSecondsLeft(next * 60);
+    Haptics.selectionAsync();
+  }, [focusMinutes, running]);
+
+  const adjustBreak = useCallback((delta: number) => {
+    const next = Math.min(60, Math.max(1, breakMinutes + delta));
+    setBreakMinutes(next);
+    setBreakDraft(String(next));
+    Haptics.selectionAsync();
+  }, [breakMinutes]);
+
   const totalSeconds = phase === "focus" ? focusMinutes * 60 : breakMinutes * 60;
   const progress     = 1 - secondsLeft / totalSeconds;
 
@@ -187,111 +202,118 @@ export default function StudyScreen() {
               },
             ]}
           >
+            {/* Panel header */}
             <View style={styles.settingsPanelHeader}>
               <View style={[styles.settingsPanelIcon, { backgroundColor: phaseColor + "18" }]}>
                 <Ionicons name="timer-outline" size={18} color={phaseColor} />
               </View>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={[styles.settingsPanelTitle, { color: theme.text }]}>Timer Settings</Text>
-                <Text style={[styles.settingsPanelSub, { color: theme.textSecondary }]}>Customize focus & break durations</Text>
+                <Text style={[styles.settingsPanelSub, { color: theme.textSecondary }]}>Tap the number to type, or use ± to adjust</Text>
               </View>
             </View>
 
             <View style={[styles.settingsDivider, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : theme.border }]} />
 
-            <View style={styles.settingsRow}>
-              {/* Focus */}
-              <View style={[styles.settingCard, { backgroundColor: isDark ? "rgba(99,102,241,0.08)" : "#EDE9FE", borderColor: "#6366F1" + "22" }]}>
-                <View style={[styles.settingIconWrap, { backgroundColor: "#6366F1" + "20" }]}>
-                  <Ionicons name="brain-outline" size={16} color="#6366F1" />
-                </View>
-                <Text style={[styles.settingLabel, { color: theme.textSecondary }]}>Focus</Text>
-                <View style={styles.inputRow}>
-                  <TextInput
-                    value={focusDraft}
-                    onChangeText={(t) => setFocusDraft(t.replace(/[^0-9]/g, ""))}
-                    onBlur={() => applyFocusValue(focusDraft)}
-                    onSubmitEditing={() => applyFocusValue(focusDraft)}
-                    keyboardType="number-pad"
-                    maxLength={3}
-                    selectTextOnFocus
-                    style={[styles.settingInput, { color: theme.text, borderBottomColor: "#6366F1" + "60" }]}
-                    placeholderTextColor={theme.textTertiary}
-                  />
-                  <Text style={[styles.settingUnit, { color: "#6366F1" }]}>min</Text>
-                </View>
-                <Text style={[styles.settingHint, { color: theme.textTertiary }]}>1 – 120</Text>
-                <View style={styles.settingControls}>
-                  <Pressable
-                    onPress={() => {
-                      const next = Math.max(1, focusMinutes - 5);
-                      setFocusMinutes(next);
-                      setFocusDraft(String(next));
-                      if (!running) setSecondsLeft(next * 60);
-                    }}
-                    style={[styles.controlBtn, { backgroundColor: "#6366F1" + "20" }]}
-                  >
-                    <Ionicons name="remove" size={16} color="#6366F1" />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => {
-                      const next = Math.min(120, focusMinutes + 5);
-                      setFocusMinutes(next);
-                      setFocusDraft(String(next));
-                      if (!running) setSecondsLeft(next * 60);
-                    }}
-                    style={[styles.controlBtn, { backgroundColor: "#6366F1" + "20" }]}
-                  >
-                    <Ionicons name="add" size={16} color="#6366F1" />
-                  </Pressable>
-                </View>
-              </View>
+            {/* Focus row */}
+            {[
+              {
+                label: "Focus Time",
+                range: "1 – 120 min",
+                color: "#6366F1",
+                icon: "brain-outline",
+                draft: focusDraft,
+                value: focusMinutes,
+                onDraftChange: (t: string) => setFocusDraft(t.replace(/[^0-9]/g, "")),
+                onCommit: () => applyFocusValue(focusDraft),
+                onMinus: () => adjustFocus(-1),
+                onPlus: () => adjustFocus(1),
+                maxLength: 3,
+                atMin: focusMinutes <= 1,
+                atMax: focusMinutes >= 120,
+              },
+              {
+                label: "Break Time",
+                range: "1 – 60 min",
+                color: "#2DD4BF",
+                icon: "cafe-outline",
+                draft: breakDraft,
+                value: breakMinutes,
+                onDraftChange: (t: string) => setBreakDraft(t.replace(/[^0-9]/g, "")),
+                onCommit: () => applyBreakValue(breakDraft),
+                onMinus: () => adjustBreak(-1),
+                onPlus: () => adjustBreak(1),
+                maxLength: 2,
+                atMin: breakMinutes <= 1,
+                atMax: breakMinutes >= 60,
+              },
+            ].map((item, idx) => (
+              <View key={item.label}>
+                <View style={styles.settingRow}>
+                  {/* Label side */}
+                  <View style={styles.settingLabelCol}>
+                    <View style={[styles.settingIconBubble, { backgroundColor: item.color + "20" }]}>
+                      <Ionicons name={item.icon as any} size={16} color={item.color} />
+                    </View>
+                    <View>
+                      <Text style={[styles.settingLabel, { color: theme.text }]}>{item.label}</Text>
+                      <Text style={[styles.settingRange, { color: theme.textTertiary }]}>{item.range}</Text>
+                    </View>
+                  </View>
 
-              {/* Break */}
-              <View style={[styles.settingCard, { backgroundColor: isDark ? "rgba(45,212,191,0.08)" : "#D1FAE5", borderColor: "#2DD4BF" + "22" }]}>
-                <View style={[styles.settingIconWrap, { backgroundColor: "#2DD4BF" + "20" }]}>
-                  <Ionicons name="cafe-outline" size={16} color="#2DD4BF" />
+                  {/* Control side */}
+                  <View style={styles.settingControl}>
+                    <Pressable
+                      onPress={item.onMinus}
+                      disabled={item.atMin}
+                      style={({ pressed }) => [
+                        styles.adjBtn,
+                        {
+                          backgroundColor: item.atMin ? (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)") : item.color + "18",
+                          borderColor: item.atMin ? (isDark ? "rgba(255,255,255,0.08)" : theme.border) : item.color + "35",
+                          opacity: pressed ? 0.7 : 1,
+                        },
+                      ]}
+                    >
+                      <Ionicons name="remove" size={20} color={item.atMin ? theme.textTertiary : item.color} />
+                    </Pressable>
+
+                    <View style={[styles.timeDisplay, { borderColor: item.color + "35", backgroundColor: item.color + "0D" }]}>
+                      <TextInput
+                        value={item.draft}
+                        onChangeText={item.onDraftChange}
+                        onBlur={item.onCommit}
+                        onSubmitEditing={item.onCommit}
+                        keyboardType="number-pad"
+                        maxLength={item.maxLength}
+                        selectTextOnFocus
+                        style={[styles.timeInput, { color: item.color }]}
+                      />
+                      <Text style={[styles.timeUnit, { color: item.color + "AA" }]}>min</Text>
+                    </View>
+
+                    <Pressable
+                      onPress={item.onPlus}
+                      disabled={item.atMax}
+                      style={({ pressed }) => [
+                        styles.adjBtn,
+                        {
+                          backgroundColor: item.atMax ? (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)") : item.color + "18",
+                          borderColor: item.atMax ? (isDark ? "rgba(255,255,255,0.08)" : theme.border) : item.color + "35",
+                          opacity: pressed ? 0.7 : 1,
+                        },
+                      ]}
+                    >
+                      <Ionicons name="add" size={20} color={item.atMax ? theme.textTertiary : item.color} />
+                    </Pressable>
+                  </View>
                 </View>
-                <Text style={[styles.settingLabel, { color: theme.textSecondary }]}>Break</Text>
-                <View style={styles.inputRow}>
-                  <TextInput
-                    value={breakDraft}
-                    onChangeText={(t) => setBreakDraft(t.replace(/[^0-9]/g, ""))}
-                    onBlur={() => applyBreakValue(breakDraft)}
-                    onSubmitEditing={() => applyBreakValue(breakDraft)}
-                    keyboardType="number-pad"
-                    maxLength={2}
-                    selectTextOnFocus
-                    style={[styles.settingInput, { color: theme.text, borderBottomColor: "#2DD4BF" + "60" }]}
-                    placeholderTextColor={theme.textTertiary}
-                  />
-                  <Text style={[styles.settingUnit, { color: "#2DD4BF" }]}>min</Text>
-                </View>
-                <Text style={[styles.settingHint, { color: theme.textTertiary }]}>1 – 60</Text>
-                <View style={styles.settingControls}>
-                  <Pressable
-                    onPress={() => {
-                      const next = Math.max(1, breakMinutes - 1);
-                      setBreakMinutes(next);
-                      setBreakDraft(String(next));
-                    }}
-                    style={[styles.controlBtn, { backgroundColor: "#2DD4BF" + "20" }]}
-                  >
-                    <Ionicons name="remove" size={16} color="#2DD4BF" />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => {
-                      const next = Math.min(60, breakMinutes + 1);
-                      setBreakMinutes(next);
-                      setBreakDraft(String(next));
-                    }}
-                    style={[styles.controlBtn, { backgroundColor: "#2DD4BF" + "20" }]}
-                  >
-                    <Ionicons name="add" size={16} color="#2DD4BF" />
-                  </Pressable>
-                </View>
+
+                {idx === 0 && (
+                  <View style={[styles.settingsDivider, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : theme.border, marginVertical: 0 }]} />
+                )}
               </View>
-            </View>
+            ))}
           </View>
         )}
 
@@ -557,43 +579,51 @@ const styles = StyleSheet.create({
   settingsBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
 
   /* Settings panel */
-  settingsPanel: { borderRadius: 20, borderWidth: 1, padding: 18, gap: 14 },
-  settingsPanelHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  settingsPanel: { borderRadius: 20, borderWidth: 1, overflow: "hidden" },
+  settingsPanelHeader: { flexDirection: "row", alignItems: "center", gap: 12, padding: 18 },
   settingsPanelIcon: {
     width: 42, height: 42, borderRadius: 21,
     alignItems: "center", justifyContent: "center",
   },
   settingsPanelTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
-  settingsPanelSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 1 },
-  settingsDivider: { height: 1, marginHorizontal: -18 },
-  settingsRow: { flexDirection: "row", gap: 12 },
-  settingCard: {
-    flex: 1,
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 14,
+  settingsPanelSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  settingsDivider: { height: 1 },
+  settingRow: {
+    flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingVertical: 16,
   },
-  settingIconWrap: {
-    width: 36, height: 36, borderRadius: 18,
+  settingLabelCol: { flexDirection: "row", alignItems: "center", gap: 12 },
+  settingIconBubble: {
+    width: 38, height: 38, borderRadius: 19,
     alignItems: "center", justifyContent: "center",
   },
-  settingLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
-  settingUnit: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  inputRow: { flexDirection: "row", alignItems: "flex-end", gap: 4 },
-  settingInput: {
-    fontSize: 28,
-    fontFamily: "Inter_700Bold",
-    minWidth: 48,
-    textAlign: "center",
-    borderBottomWidth: 2,
-    paddingBottom: 2,
-    paddingHorizontal: 4,
+  settingLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  settingRange: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
+  settingControl: { flexDirection: "row", alignItems: "center", gap: 10 },
+  adjBtn: {
+    width: 42, height: 42, borderRadius: 21,
+    alignItems: "center", justifyContent: "center",
+    borderWidth: 1,
   },
-  settingHint: { fontSize: 10, fontFamily: "Inter_400Regular", marginTop: -4 },
-  settingControls: { flexDirection: "row", gap: 8 },
-  controlBtn: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
+  timeDisplay: {
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 14,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    minWidth: 76,
+  },
+  timeInput: {
+    fontSize: 30,
+    fontFamily: "Inter_700Bold",
+    textAlign: "center",
+    minWidth: 48,
+  },
+  timeUnit: { fontSize: 11, fontFamily: "Inter_500Medium", marginTop: -2 },
 
   /* Timer card */
   timerCard: {
