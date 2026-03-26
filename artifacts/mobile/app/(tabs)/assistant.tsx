@@ -29,7 +29,7 @@ import Animated, {
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
-import { formatCurrency, isThisMonth, isThisWeek } from "@/utils/format";
+import { isThisMonth, isThisWeek } from "@/utils/format";
 import { getCategoryLabel } from "@/utils/categories";
 import { generateId } from "@/utils/format";
 
@@ -61,7 +61,7 @@ interface AIContext {
   userName: string;
 }
 
-function aiReply(input: string, ctx: AIContext): { text: string; suggestions: string[] } {
+function aiReply(input: string, ctx: AIContext, formatAmount: (n: number) => string): { text: string; suggestions: string[] } {
   const q = input.toLowerCase().trim();
   const saved = ctx.monthlyIncome - ctx.monthlyExpenses;
   const savingsRate = ctx.monthlyIncome > 0 ? (saved / ctx.monthlyIncome) * 100 : 0;
@@ -99,9 +99,9 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
     if (ctx.wallets.length === 0) {
       return { text: `You haven't added any wallets yet. Go to Wallets in the More tab to set them up!`, suggestions: ["Budget tips", "Tell me about debts"] };
     }
-    const walletList = ctx.wallets.map((w) => `  • ${w.name}: ${formatCurrency(w.balance)}`).join("\n");
+    const walletList = ctx.wallets.map((w) => `  • ${w.name}: ${formatAmount(w.balance)}`).join("\n");
     return {
-      text: `Your total balance is **${formatCurrency(ctx.totalBalance)}**.\n\nWallet breakdown:\n${walletList}`,
+      text: `Your total balance is **${formatAmount(ctx.totalBalance)}**.\n\nWallet breakdown:\n${walletList}`,
       suggestions: ["How much did I spend?", "Any warnings?", "How much saved this month?"],
     };
   }
@@ -111,9 +111,9 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
     if (ctx.monthlyExpenses === 0) {
       return { text: `You haven't recorded any expenses this month yet. Start tracking to unlock spending insights!`, suggestions: ["Budget tips", "What's my balance?"] };
     }
-    let text = `This month you've spent **${formatCurrency(ctx.monthlyExpenses)}**.`;
+    let text = `This month you've spent **${formatAmount(ctx.monthlyExpenses)}**.`;
     if (topCats.length > 0) {
-      text += `\n\nTop categories:\n` + topCats.map((c, i) => `  ${i + 1}. ${getCategoryLabel(c[0])} — ${formatCurrency(c[1])}`).join("\n");
+      text += `\n\nTop categories:\n` + topCats.map((c, i) => `  ${i + 1}. ${getCategoryLabel(c[0])} — ${formatAmount(c[1])}`).join("\n");
     }
     if (ctx.monthlyIncome > 0) {
       text += `\n\nThat's **${((ctx.monthlyExpenses / ctx.monthlyIncome) * 100).toFixed(0)}%** of your monthly income.`;
@@ -132,13 +132,13 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
     if (saved <= 0) {
       const topCatName = topCats[0] ? getCategoryLabel(topCats[0][0]) : "expenses";
       return {
-        text: `⚠️ You're currently **overspending** by **${formatCurrency(Math.abs(saved))}** this month.\n\nYour top expense category is ${topCatName}. Consider:\n• Setting a daily spending limit\n• Reviewing recurring costs\n• Tracking every purchase\n• Meal prepping to cut food costs`,
+        text: `⚠️ You're currently **overspending** by **${formatAmount(Math.abs(saved))}** this month.\n\nYour top expense category is ${topCatName}. Consider:\n• Setting a daily spending limit\n• Reviewing recurring costs\n• Tracking every purchase\n• Meal prepping to cut food costs`,
         suggestions: ["Budget tips", "How much did I spend?", "What's my balance?"],
       };
     }
     const emoji = savingsRate >= 30 ? "🌟" : savingsRate >= 20 ? "✅" : "📈";
     return {
-      text: `${emoji} You've saved **${formatCurrency(saved)}** this month (${savingsRate.toFixed(1)}% savings rate).\n\n${savingsRate >= 20 ? "Excellent! You're hitting the 20% savings benchmark. Keep it up!" : `You're at ${savingsRate.toFixed(0)}%. Try to reach 20% — you need ₱${((ctx.monthlyIncome * 0.2) - saved).toFixed(2)} more in cuts.`}`,
+      text: `${emoji} You've saved **${formatAmount(saved)}** this month (${savingsRate.toFixed(1)}% savings rate).\n\n${savingsRate >= 20 ? "Excellent! You're hitting the 20% savings benchmark. Keep it up!" : `You're at ${savingsRate.toFixed(0)}%. Try to reach 20% — you need ₱${((ctx.monthlyIncome * 0.2) - saved).toFixed(2)} more in cuts.`}`,
       suggestions: ["Budget tips", "How much did I spend?", "Any warnings?"],
     };
   }
@@ -157,9 +157,9 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
       return { text: `🎉 You have no pending debts right now. Great job staying debt-free!`, suggestions: ["What's my balance?", "Budget tips"] };
     }
     let text = `You have **${pendingDebts.length}** pending debt(s):\n\n`;
-    text += `💚 Others owe you: **${formatCurrency(lentTotal)}**\n`;
-    text += `🔴 You owe others: **${formatCurrency(borrowedTotal)}**\n\n`;
-    text += `Net position: **${formatCurrency(lentTotal - borrowedTotal)}**\n\n`;
+    text += `💚 Others owe you: **${formatAmount(lentTotal)}**\n`;
+    text += `🔴 You owe others: **${formatAmount(borrowedTotal)}**\n\n`;
+    text += `Net position: **${formatAmount(lentTotal - borrowedTotal)}**\n\n`;
     if (borrowedTotal > 0) text += `Tip: Pay your debts as soon as possible to avoid awkwardness!`;
     return {
       text,
@@ -173,7 +173,7 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
       return { text: `No income recorded this month. Add your salary or allowance in Transactions to track your budget accurately!`, suggestions: ["Budget tips", "What's my balance?"] };
     }
     return {
-      text: `Your income this month is **${formatCurrency(ctx.monthlyIncome)}**.\n\nAfter **${formatCurrency(ctx.monthlyExpenses)}** in expenses, you have **${formatCurrency(saved)}** remaining.\n\nSavings rate: ${savingsRate.toFixed(1)}%`,
+      text: `Your income this month is **${formatAmount(ctx.monthlyIncome)}**.\n\nAfter **${formatAmount(ctx.monthlyExpenses)}** in expenses, you have **${formatAmount(saved)}** remaining.\n\nSavings rate: ${savingsRate.toFixed(1)}%`,
       suggestions: ["How much saved?", "Budget tips", "This week's spending"],
     };
   }
@@ -183,7 +183,7 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
     const weekAvg = ctx.monthlyExpenses / 4;
     const status = weekExpenses > weekAvg * 1.2 ? "⚠️ above" : weekExpenses < weekAvg * 0.8 ? "✅ below" : "✅ on track with";
     return {
-      text: `This week you've spent **${formatCurrency(weekExpenses)}**.\n\nYou're ${status} your weekly average of ${formatCurrency(weekAvg)}.\n\n${weekExpenses > weekAvg * 1.2 ? "Try to cut back for the rest of the week!" : "You're doing great this week!"}`,
+      text: `This week you've spent **${formatAmount(weekExpenses)}**.\n\nYou're ${status} your weekly average of ${formatAmount(weekAvg)}.\n\n${weekExpenses > weekAvg * 1.2 ? "Try to cut back for the rest of the week!" : "You're doing great this week!"}`,
       suggestions: ["How much this month?", "Any warnings?", "Budget tips"],
     };
   }
@@ -191,7 +191,7 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
   // ── Today ──
   if (q.match(/today|today.s spending/)) {
     return {
-      text: `Today's spending: **${formatCurrency(ctx.todayExpenses)}**.\n\n${ctx.todayExpenses > 500 ? "That's quite a bit for one day. Review your recent expenses?" : ctx.todayExpenses === 0 ? "No spending recorded today yet!" : "Looks reasonable for the day. Keep it up!"}`,
+      text: `Today's spending: **${formatAmount(ctx.todayExpenses)}**.\n\n${ctx.todayExpenses > 500 ? "That's quite a bit for one day. Review your recent expenses?" : ctx.todayExpenses === 0 ? "No spending recorded today yet!" : "Looks reasonable for the day. Keep it up!"}`,
       suggestions: ["This week's spending", "How much this month?", "What's my balance?"],
     };
   }
@@ -202,7 +202,7 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
       return { text: `You haven't added any wallets yet. Tap Wallets in the More tab to add GCash, Cash, Maya, or bank accounts!`, suggestions: ["Budget tips", "Tell me about debts"] };
     }
     return {
-      text: `Your wallet balances:\n\n${ctx.wallets.map((w) => `💳 **${w.name}**: ${formatCurrency(w.balance)}`).join("\n")}\n\nTotal: **${formatCurrency(ctx.totalBalance)}**`,
+      text: `Your wallet balances:\n\n${ctx.wallets.map((w) => `💳 **${w.name}**: ${formatAmount(w.balance)}`).join("\n")}\n\nTotal: **${formatAmount(ctx.totalBalance)}**`,
       suggestions: ["How much did I spend?", "How much saved?", "Any warnings?"],
     };
   }
@@ -210,8 +210,8 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
   // ── Warnings / overspending ──
   if (q.match(/warning|oversp|over budget|alert|problem/)) {
     const warnings: string[] = [];
-    if (saved < 0) warnings.push(`• Overspending by ${formatCurrency(Math.abs(saved))} this month`);
-    if (borrowedTotal > 0) warnings.push(`• You owe ${formatCurrency(borrowedTotal)} in pending debts`);
+    if (saved < 0) warnings.push(`• Overspending by ${formatAmount(Math.abs(saved))} this month`);
+    if (borrowedTotal > 0) warnings.push(`• You owe ${formatAmount(borrowedTotal)} in pending debts`);
     if (weekExpenses > ctx.monthlyExpenses / 4 * 1.3) warnings.push(`• Above-average spending this week`);
     if (ctx.monthlyIncome > 0 && ctx.monthlyExpenses / ctx.monthlyIncome > 0.8) warnings.push(`• Spending >80% of monthly income`);
     if (warnings.length === 0) {
@@ -250,7 +250,7 @@ function aiReply(input: string, ctx: AIContext): { text: string; suggestions: st
   // ── Overview / summary ──
   if (q.match(/summary|overview|report|everything|how am i doing/)) {
     return {
-      text: `📊 **Your Timpla Overview:**\n\n💰 Balance: ${formatCurrency(ctx.totalBalance)}\n📈 Income: ${formatCurrency(ctx.monthlyIncome)}\n📉 Expenses: ${formatCurrency(ctx.monthlyExpenses)}\n💚 Saved: ${formatCurrency(saved)}\n\n✅ Tasks done: ${doneTasks.length}/${ctx.tasks.length}\n⏱ Study sessions: ${totalSessions}\n🔴 Debts pending: ${pendingDebts.length}`,
+      text: `📊 **Your Timpla Overview:**\n\n💰 Balance: ${formatAmount(ctx.totalBalance)}\n📈 Income: ${formatAmount(ctx.monthlyIncome)}\n📉 Expenses: ${formatAmount(ctx.monthlyExpenses)}\n💚 Saved: ${formatAmount(saved)}\n\n✅ Tasks done: ${doneTasks.length}/${ctx.tasks.length}\n⏱ Study sessions: ${totalSessions}\n🔴 Debts pending: ${pendingDebts.length}`,
       suggestions: ["Budget tips", "Any warnings?", "How much saved?"],
     };
   }
@@ -406,7 +406,7 @@ export default function AssistantScreen() {
   const insets = useSafeAreaInsets();
   const {
     totalBalance, monthlyIncome, monthlyExpenses, todayExpenses,
-    transactions, debts, wallets, tasks, events, studySessions, userName,
+    transactions, debts, wallets, tasks, events, studySessions, userName, formatAmount,
   } = useApp();
 
   const [messages, setMessages] = useState<Message[]>([
@@ -441,7 +441,7 @@ export default function AssistantScreen() {
       setIsTyping(true);
       const delay = 700 + Math.random() * 500;
       setTimeout(() => {
-        const { text: replyText, suggestions } = aiReply(text, buildCtx());
+        const { text: replyText, suggestions } = aiReply(text, buildCtx(), formatAmount);
         const replyMsg: Message = { id: generateId(), role: "assistant", text: replyText, timestamp: new Date(), suggestions };
         setMessages((prev) => [replyMsg, ...prev]);
         setIsTyping(false);

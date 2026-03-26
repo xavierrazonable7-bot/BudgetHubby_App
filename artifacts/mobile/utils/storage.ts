@@ -29,4 +29,5 @@ export const STORAGE_KEYS = {
   EVENTS: "@bb_events",
   NOTES: "@bb_notes",
   STUDY_SESSIONS: "@bb_study_sessions",
+  CURRENCY: "@timpla_currency",
 };

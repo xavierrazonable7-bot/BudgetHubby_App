@@ -7,7 +7,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { PieChart } from "react-native-chart-kit";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
-import { formatCurrency, isThisWeek, isThisMonth } from "@/utils/format";
+import { isThisWeek, isThisMonth } from "@/utils/format";
 import { getCategoryLabel, getCategoryColor } from "@/utils/categories";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -38,7 +38,7 @@ const { width: screenWidth } = Dimensions.get("window");
 
 export default function InsightsScreen() {
   const { theme, isDark } = useTheme();
-  const { transactions, monthlyIncome, monthlyExpenses, studySessions, tasks } = useApp();
+  const { transactions, monthlyIncome, monthlyExpenses, studySessions, tasks, formatAmount } = useApp();
   const insets = useSafeAreaInsets();
   const [period, setPeriod] = useState<Period>("month");
 
@@ -77,9 +77,9 @@ export default function InsightsScreen() {
       list.push({ icon: "bulb-outline", text: `You spent ${top.percent.toFixed(0)}% on ${top.label} this ${period}`, color: theme.primary });
     }
     if (saved > 0) {
-      list.push({ icon: "trending-up-outline", text: `You saved ${formatCurrency(saved)} this ${period}`, color: theme.income });
+      list.push({ icon: "trending-up-outline", text: `You saved ${formatAmount(saved)} this ${period}`, color: theme.income });
     } else if (saved < 0) {
-      list.push({ icon: "warning-outline", text: `You overspent by ${formatCurrency(Math.abs(saved))} this ${period}`, color: theme.expense });
+      list.push({ icon: "warning-outline", text: `You overspent by ${formatAmount(Math.abs(saved))} this ${period}`, color: theme.expense });
     }
     if (expenseTotal > 0 && incomeTotal > 0) {
       const pct = (expenseTotal / incomeTotal) * 100;
@@ -221,7 +221,7 @@ export default function InsightsScreen() {
                 <Ionicons name={stat.icon as any} size={18} color={stat.color} />
               </View>
               <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{stat.label}</Text>
-              <Text style={[styles.statValue, { color: stat.color }]}>{formatCurrency(stat.value)}</Text>
+              <Text style={[styles.statValue, { color: stat.color }]}>{formatAmount(stat.value)}</Text>
             </LinearGradient>
           ))}
         </View>
@@ -256,7 +256,7 @@ export default function InsightsScreen() {
                       <View style={[styles.legendBarFill, { width: `${c.percent}%`, backgroundColor: c.color }]} />
                     </View>
                     <Text style={[styles.legendPct, { color: theme.text }]}>{c.percent.toFixed(0)}%</Text>
-                    <Text style={[styles.legendValue, { color: theme.textSecondary }]}>{formatCurrency(c.amount)}</Text>
+                    <Text style={[styles.legendValue, { color: theme.textSecondary }]}>{formatAmount(c.amount)}</Text>
                   </View>
                 ))}
               </View>

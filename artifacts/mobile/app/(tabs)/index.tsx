@@ -17,7 +17,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
 import { useNotifications } from "@/context/NotificationContext";
 import { NotificationsModal } from "@/components/ui/NotificationsModal";
-import { formatCurrency, isThisMonth } from "@/utils/format";
+import { isThisMonth } from "@/utils/format";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getCategoryColor, getCategoryIcon, getCategoryLabel } from "@/utils/categories";
 
@@ -38,7 +38,7 @@ const QUICK_ACTIONS = [
 
 export default function HomeScreen() {
   const { theme, isDark } = useTheme();
-  const { userName, isOnboarded, wallets, transactions, totalBalance, monthlyIncome, monthlyExpenses, todayExpenses } = useApp();
+  const { userName, isOnboarded, wallets, transactions, totalBalance, monthlyIncome, monthlyExpenses, todayExpenses, formatAmount } = useApp();
   const { unreadCount, requestPermission, permStatus } = useNotifications();
   const insets = useSafeAreaInsets();
   const [showNotifs, setShowNotifs] = useState(false);
@@ -123,7 +123,7 @@ export default function HomeScreen() {
             <View style={styles.balanceTopRow}>
               <View>
                 <Text style={styles.balanceLabel}>Total Balance</Text>
-                <Text style={styles.balanceAmount}>{formatCurrency(totalBalance)}</Text>
+                <Text style={styles.balanceAmount}>{formatAmount(totalBalance)}</Text>
               </View>
               <View style={styles.balanceBadge}>
                 <View style={styles.balanceDot} />
@@ -141,7 +141,7 @@ export default function HomeScreen() {
                 </View>
                 <View>
                   <Text style={styles.balanceStatLabel}>Income</Text>
-                  <Text style={styles.balanceStatValue}>{formatCurrency(monthlyIncome)}</Text>
+                  <Text style={styles.balanceStatValue}>{formatAmount(monthlyIncome)}</Text>
                 </View>
               </View>
               <View style={styles.balanceStatDivider} />
@@ -151,7 +151,7 @@ export default function HomeScreen() {
                 </View>
                 <View>
                   <Text style={styles.balanceStatLabel}>Spent</Text>
-                  <Text style={styles.balanceStatValue}>{formatCurrency(monthlyExpenses)}</Text>
+                  <Text style={styles.balanceStatValue}>{formatAmount(monthlyExpenses)}</Text>
                 </View>
               </View>
               <View style={styles.balanceStatDivider} />
@@ -161,7 +161,7 @@ export default function HomeScreen() {
                 </View>
                 <View>
                   <Text style={styles.balanceStatLabel}>Saved</Text>
-                  <Text style={styles.balanceStatValue}>{formatCurrency(Math.max(budgetLeft, 0))}</Text>
+                  <Text style={styles.balanceStatValue}>{formatAmount(Math.max(budgetLeft, 0))}</Text>
                 </View>
               </View>
             </View>
@@ -187,13 +187,13 @@ export default function HomeScreen() {
               </View>
               <View style={styles.todayBadge}>
                 <Text style={[styles.todayLabel, { color: theme.textTertiary }]}>Today</Text>
-                <Text style={[styles.todayValue, { color: theme.primary }]}>{formatCurrency(todayExpenses)}</Text>
+                <Text style={[styles.todayValue, { color: theme.primary }]}>{formatAmount(todayExpenses)}</Text>
               </View>
             </View>
 
             {monthlyIncome > 0 ? (
               <Text style={[styles.budgetSubtext, { color: theme.textSecondary }]}>
-                {formatCurrency(Math.abs(budgetLeft))} {budgetLeft >= 0 ? "left" : "over budget"}
+                {formatAmount(Math.abs(budgetLeft))} {budgetLeft >= 0 ? "left" : "over budget"}
               </Text>
             ) : (
               <Text style={[styles.budgetSubtext, { color: theme.textTertiary }]}>Add income to see budget</Text>
@@ -259,7 +259,7 @@ export default function HomeScreen() {
                       </View>
                       <View>
                         <Text style={[styles.walletChipName, { color: theme.textSecondary }]}>{wallet.name}</Text>
-                        <Text style={[styles.walletChipBalance, { color: theme.text }]}>{formatCurrency(wallet.balance)}</Text>
+                        <Text style={[styles.walletChipBalance, { color: theme.text }]}>{formatAmount(wallet.balance)}</Text>
                       </View>
                     </LinearGradient>
                   </Pressable>
@@ -311,7 +311,7 @@ export default function HomeScreen() {
                         </Text>
                       </View>
                       <Text style={[styles.txAmount, { color: isIncome ? theme.income : theme.expense }]}>
-                        {isIncome ? "+" : "-"}{formatCurrency(tx.amount)}
+                        {isIncome ? "+" : "-"}{formatAmount(tx.amount)}
                       </Text>
                     </Pressable>
                   </Animated.View>

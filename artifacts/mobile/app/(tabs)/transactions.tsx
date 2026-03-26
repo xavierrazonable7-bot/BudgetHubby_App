@@ -13,7 +13,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp, Transaction } from "@/context/AppContext";
-import { formatCurrency } from "@/utils/format";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { Card } from "@/components/ui/Card";
 import { getCategoryColor } from "@/utils/categories";
@@ -37,7 +36,7 @@ const EMPTY_MESSAGES: Record<FilterType, { icon: string; title: string; subtitle
 
 export default function TransactionsScreen() {
   const { theme, isDark } = useTheme();
-  const { transactions, wallets } = useApp();
+  const { transactions, wallets, formatAmount } = useApp();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<FilterType>("all");
 
@@ -137,7 +136,7 @@ export default function TransactionsScreen() {
           </View>
           <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Income</Text>
           <Text style={[styles.summaryValue, { color: theme.income }]} numberOfLines={1}>
-            {formatCurrency(totalIncome)}
+            {formatAmount(totalIncome)}
           </Text>
         </LinearGradient>
 
@@ -168,7 +167,7 @@ export default function TransactionsScreen() {
             ]}
             numberOfLines={1}
           >
-            {netBalance >= 0 ? "+" : ""}{formatCurrency(Math.abs(netBalance))}
+            {netBalance >= 0 ? "+" : ""}{formatAmount(Math.abs(netBalance))}
           </Text>
         </LinearGradient>
 
@@ -193,7 +192,7 @@ export default function TransactionsScreen() {
           </View>
           <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Expenses</Text>
           <Text style={[styles.summaryValue, { color: theme.expense }]} numberOfLines={1}>
-            {formatCurrency(totalExpense)}
+            {formatAmount(totalExpense)}
           </Text>
         </LinearGradient>
       </View>
@@ -401,7 +400,7 @@ export default function TransactionsScreen() {
                       {/* Amount + time */}
                       <View style={styles.txRight}>
                         <Text style={[styles.txAmount, { color: typeColor }]}>
-                          {isIncome ? "+" : "−"}{formatCurrency(tx.amount)}
+                          {isIncome ? "+" : "−"}{formatAmount(tx.amount)}
                         </Text>
                         <Text style={[styles.txTime, { color: theme.textTertiary }]}>
                           {new Date(tx.date).toLocaleTimeString("en-PH", {

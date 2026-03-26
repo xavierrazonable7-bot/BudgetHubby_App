@@ -16,12 +16,12 @@ import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
 import { getCategoryColor, getCategoryIcon, getCategoryLabel } from "@/utils/categories";
-import { formatCurrency, formatDate, formatTime } from "@/utils/format";
+import { formatDate, formatTime } from "@/utils/format";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 
 export default function TransactionDetailScreen() {
   const { theme, isDark } = useTheme();
-  const { transactions, wallets, deleteTransaction } = useApp();
+  const { transactions, wallets, deleteTransaction, formatAmount } = useApp();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
 
@@ -126,7 +126,7 @@ export default function TransactionDetailScreen() {
           <Text style={[styles.heroCategory, { color: theme.textSecondary }]}>{catLabel}</Text>
 
           <Text style={[styles.heroAmount, { color: amountColor }]}>
-            {isIncome ? "+" : "-"}{formatCurrency(tx.amount)}
+            {isIncome ? "+" : "-"}{formatAmount(tx.amount)}
           </Text>
 
           <View style={[styles.typePill, { backgroundColor: amountColor + "20", borderColor: amountColor + "35" }]}>

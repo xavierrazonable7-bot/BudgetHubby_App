@@ -1,8 +1,35 @@
-export function formatCurrency(amount: number): string {
-  return `₱${Math.abs(amount).toLocaleString("en-PH", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+export type CurrencyCode = "PHP" | "USD" | "EUR" | "GBP" | "JPY" | "SGD" | "AUD";
+
+export const CURRENCY_LIST: { code: CurrencyCode; label: string; symbol: string; flag: string }[] = [
+  { code: "PHP", label: "Philippine Peso", symbol: "₱", flag: "🇵🇭" },
+  { code: "USD", label: "US Dollar",       symbol: "$", flag: "🇺🇸" },
+  { code: "EUR", label: "Euro",            symbol: "€", flag: "🇪🇺" },
+  { code: "GBP", label: "British Pound",  symbol: "£", flag: "🇬🇧" },
+  { code: "JPY", label: "Japanese Yen",   symbol: "¥", flag: "🇯🇵" },
+  { code: "SGD", label: "Singapore Dollar", symbol: "S$", flag: "🇸🇬" },
+  { code: "AUD", label: "Australian Dollar", symbol: "A$", flag: "🇦🇺" },
+];
+
+const CURRENCY_CONFIG: Record<CurrencyCode, { symbol: string; locale: string; decimals: number }> = {
+  PHP: { symbol: "₱",  locale: "en-PH", decimals: 2 },
+  USD: { symbol: "$",  locale: "en-US", decimals: 2 },
+  EUR: { symbol: "€",  locale: "de-DE", decimals: 2 },
+  GBP: { symbol: "£",  locale: "en-GB", decimals: 2 },
+  JPY: { symbol: "¥",  locale: "ja-JP", decimals: 0 },
+  SGD: { symbol: "S$", locale: "en-SG", decimals: 2 },
+  AUD: { symbol: "A$", locale: "en-AU", decimals: 2 },
+};
+
+export function formatCurrencyWithCode(amount: number, code: CurrencyCode = "PHP"): string {
+  const cfg = CURRENCY_CONFIG[code] ?? CURRENCY_CONFIG.PHP;
+  return `${cfg.symbol}${Math.abs(amount).toLocaleString(cfg.locale, {
+    minimumFractionDigits: cfg.decimals,
+    maximumFractionDigits: cfg.decimals,
   })}`;
+}
+
+export function formatCurrency(amount: number): string {
+  return formatCurrencyWithCode(amount, "PHP");
 }
 
 export function formatDate(dateStr: string): string {

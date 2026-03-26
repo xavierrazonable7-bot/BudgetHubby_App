@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform, Switch,
+  View, Text, StyleSheet, ScrollView, Pressable, Platform,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,7 +9,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
-import { formatCurrency } from "@/utils/format";
 
 interface MenuItemProps {
   icon: string;
@@ -52,8 +51,8 @@ function MenuItem({ icon, label, sublabel, color, gradColors, onPress, badge }: 
 }
 
 export default function MoreScreen() {
-  const { theme, isDark, toggleTheme } = useTheme();
-  const { wallets, debts, tasks, studySessions, transactions, totalBalance } = useApp();
+  const { theme, isDark } = useTheme();
+  const { wallets, debts, tasks, studySessions, transactions, formatAmount, totalBalance } = useApp();
   const insets = useSafeAreaInsets();
 
   const pendingDebts  = debts.filter((d) => d.status === "pending").length;
@@ -67,7 +66,7 @@ export default function MoreScreen() {
         {
           icon: "wallet-outline",
           label: "Wallets",
-          sublabel: `${wallets.length} accounts · ${formatCurrency(totalBalance)}`,
+          sublabel: `${wallets.length} accounts · ${formatAmount(totalBalance)}`,
           color: "#2DD4BF",
           gradColors: ["#0D2018", "#102A1E"] as [string, string],
           route: "/(tabs)/wallets",
@@ -95,9 +94,9 @@ export default function MoreScreen() {
           route: "/(tabs)/insights",
         },
         {
-          icon: "share-social-outline",
-          label: "Export PDF",
-          sublabel: "Financial & study report",
+          icon: "download-outline",
+          label: "Export Data",
+          sublabel: "PDF · Excel · CSV report",
           color: "#A78BFA",
           gradColors: ["#1A0D2A", "#221630"] as [string, string],
           route: "/pdf-export",
@@ -114,6 +113,19 @@ export default function MoreScreen() {
           color: "#6366F1",
           gradColors: ["#0D102A", "#121630"] as [string, string],
           route: "/(tabs)/assistant",
+        },
+      ],
+    },
+    {
+      title: "Preferences",
+      items: [
+        {
+          icon: "settings-outline",
+          label: "Settings",
+          sublabel: "Theme, currency, profile & more",
+          color: "#F59E0B",
+          gradColors: ["#2A1E08", "#2A2210"] as [string, string],
+          route: "/settings",
         },
       ],
     },
@@ -166,114 +178,9 @@ export default function MoreScreen() {
           </LinearGradient>
         </Animated.View>
 
-        {/* ── Appearance Section ─────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.delay(90).duration(350)}>
-          <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>APPEARANCE</Text>
-          <View style={styles.sectionItems}>
-            <LinearGradient
-              colors={isDark ? ["#181020", "#1C1428"] : ["rgba(0,0,0,0.015)", "rgba(0,0,0,0.02)"]}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-              style={[
-                styles.themeCard,
-                {
-                  borderColor: "#A78BFA22",
-                  shadowColor: "#A78BFA",
-                  shadowOffset: { width: 0, height: 3 },
-                  shadowOpacity: isDark ? 0.2 : 0.08,
-                  shadowRadius: 8,
-                  elevation: 4,
-                },
-              ]}
-            >
-              {/* Left icon */}
-              <View style={[styles.themeIconWrap, { backgroundColor: "#A78BFA20", borderWidth: 1, borderColor: "#A78BFA30" }]}>
-                <Ionicons name={isDark ? "moon" : "sunny"} size={22} color="#A78BFA" />
-              </View>
-
-              {/* Center text */}
-              <View style={styles.themeTextWrap}>
-                <Text style={[styles.themeLabel, { color: theme.text }]}>
-                  {isDark ? "Dark Mode" : "Light Mode"}
-                </Text>
-                <Text style={[styles.themeSub, { color: theme.textSecondary }]}>
-                  {isDark ? "Switch to light theme" : "Switch to dark theme"}
-                </Text>
-              </View>
-
-              {/* Mode preview dots */}
-              <View style={styles.modePreviewRow}>
-                <View style={[styles.modePreviewDot, { backgroundColor: isDark ? "#E05A6D" : "#F0F0F5", borderWidth: isDark ? 0 : 1, borderColor: "#ccc" }]} />
-                <View style={[styles.modePreviewDot, { backgroundColor: isDark ? "#1A1A1A" : "#FFFFFF", borderWidth: 1, borderColor: isDark ? "#333" : "#ddd" }]} />
-              </View>
-
-              {/* Switch */}
-              <Switch
-                value={isDark}
-                onValueChange={toggleTheme}
-                trackColor={{ false: "#E2E8F0", true: "#A78BFA50" }}
-                thumbColor={isDark ? "#A78BFA" : "#FFFFFF"}
-                ios_backgroundColor={isDark ? "#2A2A2A" : "#E2E8F0"}
-              />
-            </LinearGradient>
-
-            {/* Light / Dark buttons row */}
-            <View style={styles.themePickerRow}>
-              <Pressable
-                onPress={() => !isDark ? null : toggleTheme()}
-                style={({ pressed }) => [
-                  styles.themePickerBtn,
-                  {
-                    backgroundColor: !isDark
-                      ? "#F59E0B18"
-                      : isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
-                    borderColor: !isDark ? "#F59E0B55" : isDark ? "rgba(255,255,255,0.08)" : theme.border,
-                    borderWidth: 1,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-              >
-                <Ionicons name="sunny" size={18} color={!isDark ? "#F59E0B" : theme.textTertiary} />
-                <Text style={[styles.themePickerLabel, { color: !isDark ? "#F59E0B" : theme.textTertiary, fontFamily: !isDark ? "Inter_700Bold" : "Inter_400Regular" }]}>
-                  Light
-                </Text>
-                {!isDark && (
-                  <View style={[styles.themePickerCheck, { backgroundColor: "#F59E0B" }]}>
-                    <Ionicons name="checkmark" size={10} color="#fff" />
-                  </View>
-                )}
-              </Pressable>
-
-              <Pressable
-                onPress={() => isDark ? null : toggleTheme()}
-                style={({ pressed }) => [
-                  styles.themePickerBtn,
-                  {
-                    backgroundColor: isDark
-                      ? "#6366F118"
-                      : "rgba(0,0,0,0.04)",
-                    borderColor: isDark ? "#6366F155" : isDark ? "rgba(255,255,255,0.08)" : theme.border,
-                    borderWidth: 1,
-                    opacity: pressed ? 0.8 : 1,
-                  },
-                ]}
-              >
-                <Ionicons name="moon" size={18} color={isDark ? "#6366F1" : theme.textTertiary} />
-                <Text style={[styles.themePickerLabel, { color: isDark ? "#6366F1" : theme.textTertiary, fontFamily: isDark ? "Inter_700Bold" : "Inter_400Regular" }]}>
-                  Dark
-                </Text>
-                {isDark && (
-                  <View style={[styles.themePickerCheck, { backgroundColor: "#6366F1" }]}>
-                    <Ionicons name="checkmark" size={10} color="#fff" />
-                  </View>
-                )}
-              </Pressable>
-            </View>
-          </View>
-        </Animated.View>
-
         {/* Feature Sections */}
         {SECTIONS.map((section, sIdx) => (
-          <Animated.View key={section.title} entering={FadeInDown.delay(130 + sIdx * 60).duration(350)}>
+          <Animated.View key={section.title} entering={FadeInDown.delay(90 + sIdx * 60).duration(350)}>
             <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{section.title.toUpperCase()}</Text>
             <View style={styles.sectionItems}>
               {section.items.map((item) => (
@@ -317,46 +224,6 @@ const styles = StyleSheet.create({
 
   sectionTitle: { fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1, paddingHorizontal: 20, marginBottom: 10 },
   sectionItems: { paddingHorizontal: 20, gap: 10, marginBottom: 24 },
-
-  /* Theme toggle card */
-  themeCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1,
-  },
-  themeIconWrap: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },
-  themeTextWrap: { flex: 1, gap: 3 },
-  themeLabel: { fontSize: 16, fontFamily: "Inter_600SemiBold" },
-  themeSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
-  modePreviewRow: { flexDirection: "row", gap: 4, marginRight: 4 },
-  modePreviewDot: { width: 14, height: 14, borderRadius: 7 },
-
-  /* Light / Dark picker buttons */
-  themePickerRow: { flexDirection: "row", gap: 10 },
-  themePickerBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingVertical: 13,
-    borderRadius: 14,
-    position: "relative",
-  },
-  themePickerLabel: { fontSize: 14 },
-  themePickerCheck: {
-    position: "absolute",
-    top: 6,
-    right: 8,
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    alignItems: "center",
-    justifyContent: "center",
-  },
 
   menuItem: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderRadius: 16, borderWidth: 1 },
   menuIcon: { width: 48, height: 48, borderRadius: 24, alignItems: "center", justifyContent: "center" },

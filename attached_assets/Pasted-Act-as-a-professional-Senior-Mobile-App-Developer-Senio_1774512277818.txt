@@ -1,0 +1,96 @@
+Act as a professional Senior Mobile App Developer, Senior Software Engineer, Senior React Native Expo Developer, and Mobile UI/UX Designer with over 30 years of experience in building polished, user-friendly, and production-ready mobile applications.
+
+Your task is to improve and reorganize my React Native Expo app by moving the appearance/theme feature into a dedicated Settings page, and expanding the Settings page to include other important user preferences and app customization options.
+
+Main Goal:
+Create a clean, organized, and fully functional Settings page where users can manage app preferences such as dark mode, light mode, currency selection, name editing, and other useful settings. Remove the old placement of the appearance/dark mode feature from where it currently is and transfer it properly into the Settings page.
+
+Core Requirements:
+
+1. Move Theme / Appearance Option into Settings
+- Remove the current appearance or dark mode feature from its existing location.
+- Transfer that functionality into the Settings page.
+- Add a dedicated section for Appearance inside Settings.
+- Allow the user to choose between:
+  - Light Mode
+  - Dark Mode
+  - System Mode (if supported)
+- Make sure theme switching works properly across the entire app.
+- Ensure the selected theme is applied consistently on all screens, components, cards, text, icons, headers, modals, and navigation areas.
+- Make sure the chosen theme is saved locally and remains applied after closing and reopening the app.
+
+2. Add More Useful Settings Options
+Expand the Settings page with other practical and user-friendly options such as:
+
+- Profile / Personalization
+  - Change user name
+  - Save preferred display name
+  - Show the saved name properly across the app where applicable
+
+- Currency Settings
+  - Allow the user to choose their preferred currency
+  - Example: PHP, USD, EUR, and other relevant currencies
+  - Make sure the selected currency is used properly in all related pages, values, summaries, and records
+
+- App Preferences
+  - Theme / appearance
+  - Currency
+  - Name / profile preferences
+
+- Other Useful Settings
+  - Add other simple and relevant settings if appropriate for the app
+  - Keep the Settings page practical, not cluttered
+
+3. Settings Page UI/UX Requirements
+- Design the Settings page with a modern, clean, and organized layout
+- Group settings into clear sections
+- Use proper spacing, labels, icons, toggles, dropdowns, input fields, or selection cards where appropriate
+- Make the page easy to understand and easy to use
+- Ensure the layout looks polished and consistent with the rest of the app
+- Make sure it works well in both light mode and dark mode
+- Use a professional mobile app design style
+- Avoid clutter and confusing arrangement
+
+4. Functionality Requirements
+- All settings must be fully functional
+- Changing theme must update the app correctly
+- Changing currency must reflect properly in all relevant displays
+- Changing the name must save correctly and display correctly where used
+- All selected settings must persist locally on the device
+- Settings must still be available after closing and reopening the app
+- Handle default values properly for first-time users
+- Handle validation for inputs like name fields
+- Ensure there are no broken states, missing updates, or inconsistent UI after changing settings
+
+5. Code Quality Requirements
+- Update only the necessary blocks of code
+- Do not rewrite the whole app unnecessarily
+- Preserve all existing working functionality unless a change is needed for the new settings flow
+- Keep the code clean, modular, and maintainable
+- Refactor only where necessary to support proper settings management
+- Remove only clearly unnecessary or replaced code related to the old appearance option
+- Follow React Native Expo best practices
+- Make sure there are no unused states, duplicate logic, or broken references
+
+6. Validation and Audit
+- Review all related screens and components affected by settings changes
+- Validate that the Settings page works properly
+- Validate that dark mode, light mode, and system mode function correctly
+- Validate that currency updates are reflected correctly
+- Validate that name changes are saved and displayed properly
+- Validate that all settings persist using local device storage
+- Check that there are no errors, warnings, or bugs after implementation
+
+Expected Result:
+- The old appearance/dark mode feature is removed from its previous location
+- A dedicated Settings page is created or improved
+- The Settings page includes theme selection, currency selection, name editing, and other useful preferences
+- All settings work properly and persist locally
+- The UI looks modern, clean, and well-organized
+- The app remains stable and fully functional without errors or bugs
+
+Important:
+Do not make unnecessary large-scale rewrites.
+Do not break existing app functionality.
+Focus on clean implementation, good user experience, reliable local persistence, and proper settings behavior.
+Only update the necessary code blocks and make sure everything works and functions properly without errors or bugs.

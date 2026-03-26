@@ -15,12 +15,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
-import { formatCurrency } from "@/utils/format";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 
 export default function WalletsScreen() {
   const { theme, isDark } = useTheme();
-  const { wallets, totalBalance, deleteWallet } = useApp();
+  const { wallets, totalBalance, deleteWallet, formatAmount } = useApp();
   const insets = useSafeAreaInsets();
 
   const handleDelete = (id: string, name: string) => {
@@ -96,7 +95,7 @@ export default function WalletsScreen() {
             <View style={styles.decCircle2} />
 
             <Text style={styles.totalLabel}>Total Balance</Text>
-            <Text style={styles.totalAmount}>{formatCurrency(totalBalance)}</Text>
+            <Text style={styles.totalAmount}>{formatAmount(totalBalance)}</Text>
             <View style={styles.totalFooter}>
               <View style={styles.totalBadge}>
                 <Ionicons name="wallet-outline" size={13} color="rgba(255,255,255,0.8)" />
@@ -163,7 +162,7 @@ export default function WalletsScreen() {
                     </View>
                     <View style={styles.walletRight}>
                       <Text style={[styles.walletBalance, { color: theme.text }]}>
-                        {formatCurrency(wallet.balance)}
+                        {formatAmount(wallet.balance)}
                       </Text>
                       {wallet.type === "custom" && (
                         <Pressable

@@ -8,7 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import { saveData, loadData, STORAGE_KEYS } from "@/utils/storage";
-import { generateId } from "@/utils/format";
+import { generateId, formatCurrencyWithCode, CurrencyCode } from "@/utils/format";
 
 // ─── Wallet ───────────────────────────────────────────────────────────────────
 export type WalletType = "cash" | "gcash" | "maya" | "bank" | "custom";
@@ -97,12 +97,17 @@ export interface StudySession {
   completedPomodoros: number;
 }
 
+export { CurrencyCode };
+
 // ─── Context Shape ────────────────────────────────────────────────────────────
 interface AppContextValue {
   userName: string;
   setUserName: (name: string) => void;
   isOnboarded: boolean;
   completeOnboarding: (name: string) => void;
+  userCurrency: CurrencyCode;
+  setUserCurrency: (code: CurrencyCode) => void;
+  formatAmount: (amount: number) => string;
   wallets: Wallet[];
   addWallet: (wallet: Omit<Wallet, "id">) => void;
   updateWallet: (id: string, updates: Partial<Wallet>) => void;
@@ -140,6 +145,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 export function AppProvider({ children }: { children: ReactNode }) {
   const [userName, setUserNameState] = useState("");
   const [isOnboarded, setIsOnboarded] = useState(false);
+  const [userCurrency, setUserCurrencyState] = useState<CurrencyCode>("PHP");
   const [wallets, setWallets] = useState<Wallet[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [debts, setDebts] = useState<Debt[]>([]);
@@ -151,9 +157,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const loadAll = async () => {
-      const [name, onboarded, savedWallets, savedTx, savedDebts, savedTasks, savedEvents, savedNotes, savedSessions] = await Promise.all([
+      const [name, onboarded, currency, savedWallets, savedTx, savedDebts, savedTasks, savedEvents, savedNotes, savedSessions] = await Promise.all([
         loadData<string>(STORAGE_KEYS.USER_NAME, ""),
         loadData<boolean>(STORAGE_KEYS.ONBOARDED, false),
+        loadData<CurrencyCode>(STORAGE_KEYS.CURRENCY, "PHP"),
         loadData<Wallet[]>(STORAGE_KEYS.WALLETS, []),
         loadData<Transaction[]>(STORAGE_KEYS.TRANSACTIONS, []),
         loadData<Debt[]>(STORAGE_KEYS.DEBTS, []),
@@ -164,6 +171,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       ]);
       setUserNameState(name);
       setIsOnboarded(onboarded);
+      setUserCurrencyState(currency);
       setWallets(savedWallets);
       setTransactions(savedTx);
       setDebts(savedDebts);
@@ -181,6 +189,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setUserNameState(name);
     saveData(STORAGE_KEYS.USER_NAME, name);
   }, []);
+
+  const setUserCurrency = useCallback((code: CurrencyCode) => {
+    setUserCurrencyState(code);
+    saveData(STORAGE_KEYS.CURRENCY, code);
+  }, []);
+
+  const formatAmount = useCallback((amount: number) => {
+    return formatCurrencyWithCode(amount, userCurrency);
+  }, [userCurrency]);
 
   const completeOnboarding = useCallback((name: string) => {
     setUserNameState(name);
@@ -395,6 +412,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(() => ({
     userName, setUserName, isOnboarded, completeOnboarding,
+    userCurrency, setUserCurrency, formatAmount,
     wallets, addWallet, updateWallet, deleteWallet,
     transactions, addTransaction, updateTransaction, deleteTransaction,
     debts, addDebt, updateDebt, deleteDebt,
@@ -404,7 +422,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     studySessions, addStudySession,
     totalBalance, monthlyIncome, monthlyExpenses, todayExpenses,
   }), [
-    userName, isOnboarded, wallets, transactions, debts,
+    userName, isOnboarded, userCurrency, formatAmount,
+    wallets, transactions, debts,
     tasks, events, notes, studySessions,
     totalBalance, monthlyIncome, monthlyExpenses, todayExpenses,
   ]);

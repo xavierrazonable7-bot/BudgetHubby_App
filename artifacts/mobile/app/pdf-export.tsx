@@ -9,7 +9,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
-import { formatCurrency } from "@/utils/format";
 
 /* ─── Section options ─────────────────────────────────────────────────────── */
 const SECTION_OPTIONS = [
@@ -111,7 +110,7 @@ async function generateAndShareCSV(rows: (string | number)[][], filename: string
 /* ─── Screen ──────────────────────────────────────────────────────────────── */
 export default function PdfExportScreen() {
   const { theme, isDark } = useTheme();
-  const { userName, transactions, tasks, studySessions, wallets, totalBalance, monthlyIncome, monthlyExpenses } = useApp();
+  const { userName, transactions, tasks, studySessions, wallets, totalBalance, monthlyIncome, monthlyExpenses, formatAmount, userCurrency } = useApp();
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<Record<string, boolean>>({ summary: true, transactions: true, tasks: true, study: false });
   const [format, setFormat] = useState<Format>("pdf");
@@ -180,9 +179,9 @@ export default function PdfExportScreen() {
 <div class="section">
   <div class="section-title">Financial Summary</div>
   <div class="stats-grid">
-    <div class="stat-box"><div class="value">${formatCurrency(totalBalance)}</div><div class="label">Total Balance</div></div>
-    <div class="stat-box"><div class="value" style="color:#2DD4BF">${formatCurrency(monthlyIncome)}</div><div class="label">Monthly Income</div></div>
-    <div class="stat-box"><div class="value" style="color:#E05A6D">${formatCurrency(monthlyExpenses)}</div><div class="label">Monthly Expenses</div></div>
+    <div class="stat-box"><div class="value">${formatAmount(totalBalance)}</div><div class="label">Total Balance</div></div>
+    <div class="stat-box"><div class="value" style="color:#2DD4BF">${formatAmount(monthlyIncome)}</div><div class="label">Monthly Income</div></div>
+    <div class="stat-box"><div class="value" style="color:#E05A6D">${formatAmount(monthlyExpenses)}</div><div class="label">Monthly Expenses</div></div>
   </div>
 </div>`;
     }
@@ -200,7 +199,7 @@ export default function PdfExportScreen() {
           <td>${t.category}</td>
           <td>${t.note || "—"}</td>
           <td><span class="badge badge-${t.type}">${t.type}</span></td>
-          <td style="font-weight:600;color:${t.type === "income" ? "#2DD4BF" : "#E05A6D"}">${t.type === "income" ? "+" : "-"}${formatCurrency(t.amount)}</td>
+          <td style="font-weight:600;color:${t.type === "income" ? "#2DD4BF" : "#E05A6D"}">${t.type === "income" ? "+" : "-"}${formatAmount(t.amount)}</td>
         </tr>`).join("")}
     </tbody>
   </table>
@@ -262,10 +261,10 @@ export default function PdfExportScreen() {
           ["Generated", new Date().toLocaleDateString("en-PH")],
           [],
           ["Metric", "Amount (PHP)"],
-          ["Total Balance", totalBalance],
-          ["Monthly Income", monthlyIncome],
-          ["Monthly Expenses", monthlyExpenses],
-          ["Net this month", monthlyIncome - monthlyExpenses],
+          ["Total Balance", formatAmount(totalBalance)],
+          ["Monthly Income", formatAmount(monthlyIncome)],
+          ["Monthly Expenses", formatAmount(monthlyExpenses)],
+          ["Net this month", formatAmount(monthlyIncome - monthlyExpenses)],
           [],
           ["Wallets", wallets.length],
           ["Total Transactions", transactions.length],

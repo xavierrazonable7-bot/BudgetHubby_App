@@ -16,7 +16,7 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp, Debt } from "@/context/AppContext";
-import { formatCurrency, formatDate } from "@/utils/format";
+import { formatDate } from "@/utils/format";
 import { ScreenWrapper } from "@/components/ScreenWrapper";
 import { EmptyState } from "@/components/ui/EmptyState";
 
@@ -24,7 +24,7 @@ type DebtFilter = "all" | "lent" | "borrowed";
 
 export default function DebtsScreen() {
   const { theme, isDark } = useTheme();
-  const { debts, updateDebt, deleteDebt } = useApp();
+  const { debts, updateDebt, deleteDebt, formatAmount } = useApp();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<DebtFilter>("all");
 
@@ -104,7 +104,7 @@ export default function DebtsScreen() {
             <Ionicons name="arrow-down" size={16} color={theme.income} />
           </View>
           <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>They owe you</Text>
-          <Text style={[styles.summaryAmount, { color: theme.income }]}>{formatCurrency(totalLent)}</Text>
+          <Text style={[styles.summaryAmount, { color: theme.income }]}>{formatAmount(totalLent)}</Text>
         </LinearGradient>
         <LinearGradient
           colors={isDark ? ["#2A1018", "#2A1820"] : ["#FFE4E8", "#FFF0F2"]}
@@ -115,7 +115,7 @@ export default function DebtsScreen() {
             <Ionicons name="arrow-up" size={16} color={theme.expense} />
           </View>
           <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>You owe</Text>
-          <Text style={[styles.summaryAmount, { color: theme.expense }]}>{formatCurrency(totalBorrowed)}</Text>
+          <Text style={[styles.summaryAmount, { color: theme.expense }]}>{formatAmount(totalBorrowed)}</Text>
         </LinearGradient>
       </View>
 
@@ -216,7 +216,7 @@ export default function DebtsScreen() {
 
                   <View style={styles.debtRight}>
                     <Text style={[styles.debtAmount, { color: accentColor }]}>
-                      {formatCurrency(debt.amount - debt.paidAmount)}
+                      {formatAmount(debt.amount - debt.paidAmount)}
                     </Text>
                     <View style={styles.debtActions}>
                       {debt.status === "pending" && (
