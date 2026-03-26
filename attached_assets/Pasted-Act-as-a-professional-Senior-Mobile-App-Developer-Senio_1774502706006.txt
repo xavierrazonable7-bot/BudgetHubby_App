@@ -1,0 +1,77 @@
+Act as a professional Senior Mobile App Developer, Senior Software Engineer, and React Native Expo expert with over 30 years of experience in building high-quality mobile applications.
+
+Your task is to update my React Native Expo app so that all user-inputted data is properly saved on the local device storage of the cellphone, and the user can also download or export their information in PDF, Excel, or CSV format.
+
+Main Goal:
+Make the app work fully offline by saving all entered data locally on the device, and add a reliable export/download feature so users can generate and save their information as PDF, Excel, and CSV files.
+
+Core Requirements:
+
+1. Local Device Storage
+- All data entered by the user in the app must be saved locally on the mobile device.
+- The data must remain available even after the app is closed and reopened.
+- Use a proper local storage solution suitable for React Native Expo.
+- Make sure saving, retrieving, updating, and deleting data all work correctly.
+- Ensure the storage implementation is stable, efficient, and does not break existing app features.
+- The app must continue to function properly even without internet connection.
+
+2. Export / Download Feature
+Add a feature that allows the user to export or download their saved information in the following formats:
+- PDF
+- Excel
+- CSV
+
+3. PDF Export Requirements
+- The exported PDF must have a clean, modern, and professional layout.
+- Add a proper header section at the top of the PDF.
+- The header should be visually organized and informative.
+- The PDF content must be easy to read, well-structured, and not cluttered.
+- Use clear labels, proper spacing, section titles if needed, and a neat layout.
+- Make sure the exported information is informative and properly formatted.
+- The PDF should feel polished and presentable, not plain raw text.
+- Ensure long content is handled properly across pages if needed.
+
+4. Excel and CSV Export Requirements
+- The exported Excel and CSV files must contain clean and properly organized data.
+- Use readable column headers.
+- Make sure the exported structure is logical and easy to understand.
+- Ensure the data is correctly mapped and no important fields are missing.
+- The file output should be valid and ready for sharing or record-keeping.
+
+5. App Behavior and UX
+- Add the export/download option in the appropriate pages or settings area.
+- Make the export flow simple and user-friendly.
+- Provide clear button labels such as Export PDF, Export Excel, and Export CSV.
+- Ensure the feature works properly without errors.
+- Handle empty data states properly. If there is no data to export, show a proper message instead of failing.
+- Make sure permissions, file generation, and file saving are handled correctly on mobile devices.
+
+6. Code Quality Requirements
+- Update only the necessary blocks of code.
+- Do not rewrite the whole project unnecessarily.
+- Preserve existing app features and logic unless changes are required for this functionality.
+- Keep the code clean, modular, and maintainable.
+- Follow React Native Expo best practices.
+- Remove only clearly unnecessary or redundant code if needed.
+- Make sure no new bugs or errors are introduced.
+
+7. Validation and Testing
+- Validate that local storage works correctly across app restarts.
+- Validate that exported PDF, Excel, and CSV files are generated correctly.
+- Validate that the PDF layout includes a proper header and clean information presentation.
+- Validate that exported files contain correct and complete data.
+- Validate that all features work properly in an Expo environment.
+
+Expected Result:
+- User-entered data is stored locally on the device.
+- Data persists even after closing and reopening the app.
+- Users can export/download their data as PDF, Excel, and CSV.
+- PDF output looks clean, informative, and professional with a proper header.
+- Excel and CSV files are organized and accurate.
+- The app remains stable, clean, and fully functional offline.
+
+Important:
+Do not make unnecessary large-scale rewrites.
+Do not break any existing working functionality.
+Focus on implementing reliable offline local storage and clean export features with proper file formatting.
+Only update the necessary code blocks and make everything work properly without errors or bugs.

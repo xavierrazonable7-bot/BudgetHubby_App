@@ -11,6 +11,7 @@ import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
 import { formatCurrency } from "@/utils/format";
 
+/* ─── Section options ─────────────────────────────────────────────────────── */
 const SECTION_OPTIONS = [
   { key: "summary",      label: "Financial Summary", icon: "stats-chart-outline", color: "#E05A6D" },
   { key: "transactions", label: "Transactions",       icon: "receipt-outline",    color: "#6366F1" },
@@ -18,6 +19,14 @@ const SECTION_OPTIONS = [
   { key: "study",        label: "Study Sessions",     icon: "timer-outline",      color: "#2DD4BF" },
 ];
 
+type Format = "pdf" | "excel" | "csv";
+const FORMAT_OPTIONS: { key: Format; label: string; icon: string; color: string; ext: string }[] = [
+  { key: "pdf",   label: "PDF",   icon: "document-text-outline", color: "#E05A6D", ext: ".pdf" },
+  { key: "excel", label: "Excel", icon: "grid-outline",          color: "#2DD4BF", ext: ".xlsx" },
+  { key: "csv",   label: "CSV",   icon: "list-outline",          color: "#F59E0B", ext: ".csv" },
+];
+
+/* ─── PDF helpers ─────────────────────────────────────────────────────────── */
 async function generateAndSharePDF(html: string) {
   if (Platform.OS === "web") {
     const w = window.open("", "_blank");
@@ -35,15 +44,82 @@ async function generateAndSharePDF(html: string) {
   }
 }
 
+/* ─── Excel helpers ───────────────────────────────────────────────────────── */
+async function generateAndShareExcel(
+  worksheets: { name: string; rows: (string | number)[][] }[]
+) {
+  if (Platform.OS === "web") {
+    Alert.alert("Excel export is not supported in the web preview. Please use a device.");
+    return;
+  }
+  const XLSX = (await import("xlsx")).default;
+  const FileSystem = await import("expo-file-system");
+  const Sharing = await import("expo-sharing");
+
+  const wb = XLSX.utils.book_new();
+  for (const ws of worksheets) {
+    const sheet = XLSX.utils.aoa_to_sheet(ws.rows);
+    XLSX.utils.book_append_sheet(wb, sheet, ws.name);
+  }
+  const wbout: string = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
+  const fileUri = (FileSystem.documentDirectory ?? "") + "Timpla_Export.xlsx";
+  await FileSystem.writeAsStringAsync(fileUri, wbout, { encoding: FileSystem.EncodingType.Base64 });
+  const canShare = await Sharing.isAvailableAsync();
+  if (canShare) {
+    await Sharing.shareAsync(fileUri, {
+      mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      UTI: "com.microsoft.excel.xlsx",
+    });
+  } else {
+    Alert.alert("Saved", `File saved to: ${fileUri}`);
+  }
+}
+
+/* ─── CSV helpers ─────────────────────────────────────────────────────────── */
+function escapeCSV(value: string | number): string {
+  const s = String(value ?? "");
+  return `"${s.replace(/"/g, '""')}"`;
+}
+
+function rowToCSV(row: (string | number)[]): string {
+  return row.map(escapeCSV).join(",");
+}
+
+async function generateAndShareCSV(rows: (string | number)[][], filename: string) {
+  if (Platform.OS === "web") {
+    const csv = rows.map(rowToCSV).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    return;
+  }
+  const FileSystem = await import("expo-file-system");
+  const Sharing = await import("expo-sharing");
+  const csv = rows.map(rowToCSV).join("\n");
+  const fileUri = (FileSystem.documentDirectory ?? "") + filename;
+  await FileSystem.writeAsStringAsync(fileUri, csv, { encoding: FileSystem.EncodingType.UTF8 });
+  const canShare = await Sharing.isAvailableAsync();
+  if (canShare) {
+    await Sharing.shareAsync(fileUri, { mimeType: "text/csv", UTI: "public.comma-separated-values-text" });
+  } else {
+    Alert.alert("Saved", `File saved to: ${fileUri}`);
+  }
+}
+
+/* ─── Screen ──────────────────────────────────────────────────────────────── */
 export default function PdfExportScreen() {
   const { theme, isDark } = useTheme();
   const { userName, transactions, tasks, studySessions, wallets, totalBalance, monthlyIncome, monthlyExpenses } = useApp();
   const insets = useSafeAreaInsets();
   const [selected, setSelected] = useState<Record<string, boolean>>({ summary: true, transactions: true, tasks: true, study: false });
+  const [format, setFormat] = useState<Format>("pdf");
   const [loading, setLoading] = useState(false);
 
   const toggleSection = (key: string) => setSelected((p) => ({ ...p, [key]: !p[key] }));
 
+  /* ── Build PDF HTML ─────────────────────────────────────────────────────── */
   const buildHTML = () => {
     const now = new Date();
     const dateStr = now.toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" });
@@ -56,9 +132,13 @@ export default function PdfExportScreen() {
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1a1a1a; background: #fff; padding: 40px; }
   .header { background: linear-gradient(135deg, #C0394D, #E05A6D); color: #fff; padding: 32px; border-radius: 16px; margin-bottom: 32px; }
+  .header-top { display: flex; align-items: center; justify-content: space-between; }
   .header h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
-  .header p { font-size: 14px; opacity: 0.8; margin-top: 4px; }
-  .header .meta { margin-top: 16px; font-size: 13px; opacity: 0.9; }
+  .header .tagline { font-size: 14px; opacity: 0.8; margin-top: 4px; }
+  .header .divider { border: 0; border-top: 1px solid rgba(255,255,255,0.3); margin: 16px 0; }
+  .header .meta-grid { display: flex; gap: 32px; font-size: 13px; opacity: 0.9; }
+  .header .meta-grid span strong { display: block; font-size: 11px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+  .header .badge-ph { background: rgba(255,255,255,0.2); border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 700; }
   .section { margin-bottom: 28px; }
   .section-title { font-size: 18px; font-weight: 700; color: #1a1a1a; border-left: 4px solid #E05A6D; padding-left: 12px; margin-bottom: 16px; }
   .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -82,11 +162,16 @@ export default function PdfExportScreen() {
 </head><body>
 
 <div class="header">
-  <h1>BudgetBuddy Report</h1>
-  <p>Philippine Peso Financial & Study Summary</p>
-  <div class="meta">
-    <strong>Name:</strong> ${userName || "Student"} &nbsp;&nbsp;
-    <strong>Generated:</strong> ${dateStr}
+  <div class="header-top">
+    <h1>Timpla</h1>
+    <span class="badge-ph">🇵🇭 Philippine Peso</span>
+  </div>
+  <div class="tagline">Financial &amp; Study Report</div>
+  <hr class="divider"/>
+  <div class="meta-grid">
+    <span><strong>Prepared for</strong>${userName || "Student"}</span>
+    <span><strong>Generated on</strong>${dateStr}</span>
+    <span><strong>Sections</strong>${Object.values(selected).filter(Boolean).length} included</span>
   </div>
 </div>`;
 
@@ -126,7 +211,7 @@ export default function PdfExportScreen() {
     if (selected.tasks && tasks.length > 0) {
       html += `
 <div class="section">
-  <div class="section-title">Tasks (${completedTasks}/${tasks.length} completed)</div>
+  <div class="section-title">Tasks (${tasks.filter((t) => t.completed).length}/${tasks.length} completed)</div>
   <table>
     <thead><tr><th>Task</th><th>Priority</th><th>Deadline</th><th>Status</th></tr></thead>
     <tbody>
@@ -153,17 +238,158 @@ export default function PdfExportScreen() {
         <tr>
           <td>${new Date(s.date).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}</td>
           <td>${s.duration} min</td>
-          <td>${s.completedPomodoros} 🍅</td>
+          <td>${s.completedPomodoros}</td>
         </tr>`).join("")}
     </tbody>
   </table>
 </div>`;
     }
 
-    html += `<div class="footer">Generated by BudgetBuddy · Your all-in-one student finance app 🇵🇭</div></body></html>`;
+    html += `<div class="footer">Generated by Timpla · Your all-in-one student finance &amp; study app 🇵🇭</div></body></html>`;
     return html;
   };
 
+  /* ── Build Excel worksheets ─────────────────────────────────────────────── */
+  const buildExcelData = () => {
+    const sheets: { name: string; rows: (string | number)[][] }[] = [];
+
+    if (selected.summary) {
+      sheets.push({
+        name: "Summary",
+        rows: [
+          ["Timpla — Financial Summary"],
+          ["Prepared for", userName || "Student"],
+          ["Generated", new Date().toLocaleDateString("en-PH")],
+          [],
+          ["Metric", "Amount (PHP)"],
+          ["Total Balance", totalBalance],
+          ["Monthly Income", monthlyIncome],
+          ["Monthly Expenses", monthlyExpenses],
+          ["Net this month", monthlyIncome - monthlyExpenses],
+          [],
+          ["Wallets", wallets.length],
+          ["Total Transactions", transactions.length],
+          ["Total Tasks", tasks.length],
+          ["Completed Tasks", tasks.filter((t) => t.completed).length],
+          ["Study Sessions", studySessions.length],
+          ["Total Study Time (min)", studySessions.reduce((s, ss) => s + ss.duration, 0)],
+        ],
+      });
+    }
+
+    if (selected.transactions && transactions.length > 0) {
+      sheets.push({
+        name: "Transactions",
+        rows: [
+          ["Date", "Category", "Note", "Type", "Amount (PHP)", "Wallet"],
+          ...transactions.map((t) => [
+            new Date(t.date).toLocaleDateString("en-PH"),
+            t.category,
+            t.note || "",
+            t.type,
+            t.type === "income" ? t.amount : -t.amount,
+            t.walletId || "",
+          ]),
+        ],
+      });
+    }
+
+    if (selected.tasks && tasks.length > 0) {
+      sheets.push({
+        name: "Tasks",
+        rows: [
+          ["Title", "Priority", "Deadline", "Status"],
+          ...tasks.map((t) => [
+            t.title,
+            t.priority,
+            t.deadline ? new Date(t.deadline).toLocaleDateString("en-PH") : "",
+            t.completed ? "Done" : "Pending",
+          ]),
+        ],
+      });
+    }
+
+    if (selected.study && studySessions.length > 0) {
+      sheets.push({
+        name: "Study Sessions",
+        rows: [
+          ["Date", "Duration (min)", "Pomodoros"],
+          ...studySessions.map((s) => [
+            new Date(s.date).toLocaleDateString("en-PH"),
+            s.duration,
+            s.completedPomodoros,
+          ]),
+        ],
+      });
+    }
+
+    return sheets;
+  };
+
+  /* ── Build CSV rows (all sections merged with section headers) ──────────── */
+  const buildCSVData = (): (string | number)[][] => {
+    const rows: (string | number)[][] = [];
+    const dateStr = new Date().toLocaleDateString("en-PH");
+
+    rows.push(["Timpla Data Export"]);
+    rows.push(["Prepared for", userName || "Student"]);
+    rows.push(["Generated", dateStr]);
+    rows.push([]);
+
+    if (selected.summary) {
+      rows.push(["FINANCIAL SUMMARY"]);
+      rows.push(["Total Balance (PHP)", totalBalance]);
+      rows.push(["Monthly Income (PHP)", monthlyIncome]);
+      rows.push(["Monthly Expenses (PHP)", monthlyExpenses]);
+      rows.push(["Net this month (PHP)", monthlyIncome - monthlyExpenses]);
+      rows.push([]);
+    }
+
+    if (selected.transactions && transactions.length > 0) {
+      rows.push(["TRANSACTIONS"]);
+      rows.push(["Date", "Category", "Note", "Type", "Amount (PHP)"]);
+      for (const t of transactions) {
+        rows.push([
+          new Date(t.date).toLocaleDateString("en-PH"),
+          t.category,
+          t.note || "",
+          t.type,
+          t.type === "income" ? t.amount : -t.amount,
+        ]);
+      }
+      rows.push([]);
+    }
+
+    if (selected.tasks && tasks.length > 0) {
+      rows.push(["TASKS"]);
+      rows.push(["Title", "Priority", "Deadline", "Status"]);
+      for (const t of tasks) {
+        rows.push([
+          t.title,
+          t.priority,
+          t.deadline ? new Date(t.deadline).toLocaleDateString("en-PH") : "",
+          t.completed ? "Done" : "Pending",
+        ]);
+      }
+      rows.push([]);
+    }
+
+    if (selected.study && studySessions.length > 0) {
+      rows.push(["STUDY SESSIONS"]);
+      rows.push(["Date", "Duration (min)", "Pomodoros"]);
+      for (const s of studySessions) {
+        rows.push([
+          new Date(s.date).toLocaleDateString("en-PH"),
+          s.duration,
+          s.completedPomodoros,
+        ]);
+      }
+    }
+
+    return rows;
+  };
+
+  /* ── Export handler ─────────────────────────────────────────────────────── */
   const handleExport = async () => {
     const anySel = Object.values(selected).some(Boolean);
     if (!anySel) {
@@ -172,13 +398,34 @@ export default function PdfExportScreen() {
     }
     setLoading(true);
     try {
-      await generateAndSharePDF(buildHTML());
+      if (format === "pdf") {
+        await generateAndSharePDF(buildHTML());
+      } else if (format === "excel") {
+        const sheets = buildExcelData();
+        if (sheets.length === 0) {
+          Alert.alert("No data", "The selected sections have no data to export.");
+          return;
+        }
+        await generateAndShareExcel(sheets);
+      } else {
+        const rows = buildCSVData();
+        if (rows.length <= 4) {
+          Alert.alert("No data", "The selected sections have no data to export.");
+          return;
+        }
+        await generateAndShareCSV(rows, "Timpla_Export.csv");
+      }
     } catch (e) {
-      Alert.alert("Export failed", "Could not generate PDF. Please try again.");
+      console.error(e);
+      Alert.alert("Export failed", "Could not generate the file. Please try again.");
     } finally {
       setLoading(false);
     }
   };
+
+  /* ── Labels & colors by format ──────────────────────────────────────────── */
+  const currentFmt = FORMAT_OPTIONS.find((f) => f.key === format)!;
+  const exportLabel = loading ? `Generating ${currentFmt.label}…` : `Export & Share ${currentFmt.label}`;
 
   return (
     <LinearGradient
@@ -189,19 +436,19 @@ export default function PdfExportScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom + 40, paddingTop: Platform.OS === "web" ? 67 : insets.top + 12 }}
       >
-        {/* Header */}
+        {/* ── Header ── */}
         <Animated.View entering={FadeInDown.duration(300)} style={styles.header}>
           <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backBtn, { opacity: pressed ? 0.6 : 1 }]}>
             <Ionicons name="arrow-back" size={22} color={theme.text} />
           </Pressable>
           <View style={{ flex: 1 }}>
             <Text style={[styles.screenLabel, { color: theme.textSecondary }]}>Share your data</Text>
-            <Text style={[styles.title, { color: theme.text }]}>Export PDF</Text>
+            <Text style={[styles.title, { color: theme.text }]}>Export Data</Text>
           </View>
         </Animated.View>
 
-        {/* Hero */}
-        <Animated.View entering={FadeInDown.delay(60).duration(350)} style={{ paddingHorizontal: 20, marginBottom: 28 }}>
+        {/* ── Hero banner ── */}
+        <Animated.View entering={FadeInDown.delay(60).duration(350)} style={{ paddingHorizontal: 20, marginBottom: 24 }}>
           <LinearGradient
             colors={["#6B1DE0", "#A78BFA", "#6366F1"]}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
@@ -209,14 +456,47 @@ export default function PdfExportScreen() {
           >
             <View style={styles.heroDecoA} />
             <View style={styles.heroDecoB} />
-            <Ionicons name="document-text" size={40} color="rgba(255,255,255,0.9)" />
-            <Text style={styles.heroTitle}>Professional Report</Text>
-            <Text style={styles.heroSub}>Export a clean, well-formatted PDF of your financial and study data to share or archive.</Text>
+            <Ionicons name="cloud-download-outline" size={40} color="rgba(255,255,255,0.9)" />
+            <Text style={styles.heroTitle}>Professional Export</Text>
+            <Text style={styles.heroSub}>Export your financial and study data as PDF, Excel, or CSV — clean, organized, and ready to share.</Text>
           </LinearGradient>
         </Animated.View>
 
-        {/* Section Picker */}
-        <Animated.View entering={FadeInDown.delay(120).duration(350)} style={{ paddingHorizontal: 20, marginBottom: 24 }}>
+        {/* ── Format selector ── */}
+        <Animated.View entering={FadeInDown.delay(100).duration(350)} style={{ paddingHorizontal: 20, marginBottom: 22 }}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Export Format</Text>
+          <Text style={[styles.sectionSub, { color: theme.textSecondary }]}>Choose the file format</Text>
+          <View style={styles.formatRow}>
+            {FORMAT_OPTIONS.map((f) => {
+              const active = format === f.key;
+              return (
+                <Pressable
+                  key={f.key}
+                  onPress={() => setFormat(f.key)}
+                  style={({ pressed }) => ({ flex: 1, opacity: pressed ? 0.85 : 1 })}
+                >
+                  <LinearGradient
+                    colors={active ? [f.color + "22", f.color + "10"] : [isDark ? "#1A1A1A" : "#FAFAFA", isDark ? "#1A1A1A" : "#FAFAFA"]}
+                    style={[styles.formatCard, { borderColor: active ? f.color + "55" : (isDark ? "rgba(255,255,255,0.07)" : theme.border), borderWidth: 1.5 }]}
+                  >
+                    <View style={[styles.formatIcon, { backgroundColor: f.color + (active ? "28" : "14") }]}>
+                      <Ionicons name={f.icon as any} size={20} color={active ? f.color : theme.textTertiary} />
+                    </View>
+                    <Text style={[styles.formatLabel, { color: active ? f.color : theme.textSecondary, fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
+                      {f.label}
+                    </Text>
+                    {active && (
+                      <View style={[styles.formatDot, { backgroundColor: f.color }]} />
+                    )}
+                  </LinearGradient>
+                </Pressable>
+              );
+            })}
+          </View>
+        </Animated.View>
+
+        {/* ── Section picker ── */}
+        <Animated.View entering={FadeInDown.delay(140).duration(350)} style={{ paddingHorizontal: 20, marginBottom: 22 }}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Choose Sections</Text>
           <Text style={[styles.sectionSub, { color: theme.textSecondary }]}>Select what to include in the export</Text>
           <View style={styles.optionsGrid}>
@@ -240,17 +520,17 @@ export default function PdfExportScreen() {
           </View>
         </Animated.View>
 
-        {/* Preview Stats */}
+        {/* ── Preview stats ── */}
         <Animated.View entering={FadeInDown.delay(180).duration(350)} style={{ paddingHorizontal: 20, marginBottom: 28 }}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Report Preview</Text>
           <View style={[styles.previewCard, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.05)" : theme.border }]}>
             {[
               { label: "Transactions", value: transactions.length, show: selected.transactions },
-              { label: "Tasks", value: tasks.length, show: selected.tasks },
+              { label: "Tasks",        value: tasks.length,        show: selected.tasks },
               { label: "Study Sessions", value: studySessions.length, show: selected.study },
-              { label: "Wallets", value: wallets.length, show: selected.summary },
-            ].map((row) => (
-              <View key={row.label} style={[styles.previewRow, { borderBottomColor: isDark ? "rgba(255,255,255,0.04)" : theme.border }]}>
+              { label: "Wallets",      value: wallets.length,      show: selected.summary },
+            ].map((row, i, arr) => (
+              <View key={row.label} style={[styles.previewRow, { borderBottomColor: isDark ? "rgba(255,255,255,0.04)" : theme.border, borderBottomWidth: i < arr.length - 1 ? 1 : 0 }]}>
                 <Text style={[styles.previewLabel, { color: theme.textSecondary }]}>{row.label}</Text>
                 <Text style={[styles.previewVal, { color: row.show ? theme.text : theme.textTertiary }]}>
                   {row.show ? row.value : "—"}
@@ -260,20 +540,20 @@ export default function PdfExportScreen() {
           </View>
         </Animated.View>
 
-        {/* Export Button */}
-        <Animated.View entering={FadeInDown.delay(240).duration(350)} style={{ paddingHorizontal: 20 }}>
+        {/* ── Export button ── */}
+        <Animated.View entering={FadeInDown.delay(220).duration(350)} style={{ paddingHorizontal: 20 }}>
           <Pressable
             onPress={handleExport}
             disabled={loading}
             style={({ pressed }) => ({ opacity: pressed || loading ? 0.85 : 1 })}
           >
             <LinearGradient
-              colors={["#6B1DE0", "#A78BFA"]}
+              colors={[currentFmt.color + "EE", currentFmt.color + "AA"]}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-              style={[styles.exportBtn, { shadowColor: "#6366F1", shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 }]}
+              style={[styles.exportBtn, { shadowColor: currentFmt.color, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.5, shadowRadius: 16, elevation: 10 }]}
             >
-              <Ionicons name={loading ? "hourglass-outline" : "share-outline"} size={22} color="#fff" />
-              <Text style={styles.exportBtnText}>{loading ? "Generating PDF…" : "Export & Share PDF"}</Text>
+              <Ionicons name={loading ? "hourglass-outline" : (currentFmt.icon as any)} size={22} color="#fff" />
+              <Text style={styles.exportBtnText}>{exportLabel}</Text>
             </LinearGradient>
           </Pressable>
         </Animated.View>
@@ -295,13 +575,18 @@ const styles = StyleSheet.create({
   heroSub: { fontSize: 13, fontFamily: "Inter_400Regular", color: "rgba(255,255,255,0.75)", textAlign: "center", lineHeight: 19 },
   sectionTitle: { fontSize: 18, fontFamily: "Inter_700Bold", marginBottom: 4 },
   sectionSub: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 14 },
+  formatRow: { flexDirection: "row", gap: 10 },
+  formatCard: { borderRadius: 16, padding: 14, alignItems: "center", gap: 8, position: "relative" },
+  formatIcon: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center" },
+  formatLabel: { fontSize: 13 },
+  formatDot: { width: 6, height: 6, borderRadius: 3 },
   optionsGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   optionCard: { borderRadius: 16, padding: 16, alignItems: "center", gap: 10, position: "relative" },
   optionIcon: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
   optionLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold", textAlign: "center" },
   checkMark: { position: "absolute", top: 10, right: 10, width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center" },
   previewCard: { borderRadius: 16, borderWidth: 1, overflow: "hidden" },
-  previewRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1 },
+  previewRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingVertical: 14 },
   previewLabel: { fontSize: 14, fontFamily: "Inter_400Regular" },
   previewVal: { fontSize: 14, fontFamily: "Inter_700Bold" },
   exportBtn: { borderRadius: 18, paddingVertical: 18, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10 },
