@@ -1,0 +1,92 @@
+Act as a professional Senior Mobile App Developer, Senior Software Engineer, and React Native Expo expert with over 30 years of experience in building reliable, user-friendly mobile applications.
+
+Your task is to implement, review, and ensure that the notification system in my React Native Expo app is working properly. The app should notify users about important upcoming events such as exams, quizzes, assignments, deadlines, or any other important reminders.
+
+Main Goal:
+Create a reliable notification system that alerts the user when an important event is approaching (for example: upcoming exams, quizzes, assignments, or deadlines). Notifications must work properly even if the app is minimized or not currently open.
+
+Core Requirements:
+
+1. Upcoming Event Notifications
+The app should automatically send notifications when:
+- An upcoming exam is near
+- A quiz is approaching
+- An assignment deadline is near
+- Any other important academic event stored in the app
+
+Examples:
+- Notify the user 1 day before the event
+- Notify the user a few hours before the event
+- Optionally notify on the exact event time
+
+2. Notification Scheduling
+- Notifications must be scheduled automatically when a user creates or saves an event.
+- If an event is edited or updated, the notification should also update correctly.
+- If an event is deleted, the related notification must also be removed.
+- Make sure duplicate notifications are not created.
+
+3. Notification Behavior
+- Notifications should appear even if the app is running in the background.
+- The notification message should clearly state what the event is.
+
+Example notification messages:
+• “Upcoming Exam Tomorrow: Mathematics”
+• “Quiz Reminder: Physics Quiz in 2 hours”
+• “Assignment Deadline Today: Research Paper”
+
+- Notifications should be clear, helpful, and informative.
+
+4. Permissions Handling
+- Request notification permission from the user properly.
+- Handle cases where the user denies permission.
+- Provide a clear message if notifications cannot be enabled.
+
+5. Settings Integration
+- Allow notifications to be enabled or disabled in the Settings page.
+- Optionally allow the user to control:
+  - Exam notifications
+  - Quiz notifications
+  - Assignment notifications
+- Ensure these settings are saved locally and applied properly.
+
+6. UI/UX Requirements
+- Notification logic should run smoothly without interrupting the user experience.
+- Ensure the feature is reliable and does not cause crashes or slow performance.
+- Notifications should feel helpful rather than spammy.
+
+7. Code Quality Requirements
+- Review the existing notification logic in the app.
+- Fix all bugs and errors related to notifications.
+- Ensure the notification system is stable and properly scheduled.
+- Update only the necessary blocks of code.
+- Do not rewrite the entire app unnecessarily.
+- Follow React Native Expo best practices.
+- Remove only unnecessary or broken notification code if needed.
+
+8. Validation and Testing
+Test the following scenarios:
+- Creating a new exam event
+- Editing an existing event
+- Deleting an event
+- App running in the background
+- App closed and reopened
+- Notification permission allowed or denied
+
+Confirm that:
+- Notifications trigger at the correct time
+- No duplicate notifications appear
+- Notifications contain the correct event information
+- The app remains stable and error-free.
+
+Expected Result:
+- The app properly notifies the user about upcoming exams, quizzes, assignments, and deadlines.
+- Notifications trigger at the correct time.
+- Notifications update correctly when events are edited or deleted.
+- The feature works smoothly even when the app is not open.
+- Everything works properly without errors or bugs.
+
+Important:
+Do not break existing app functionality.
+Do not rewrite large portions of the project unnecessarily.
+Focus on implementing a reliable notification system and fixing any issues related to notifications.
+Update only the necessary code blocks and ensure everything works properly.

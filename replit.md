@@ -116,7 +116,9 @@ Expo React Native mobile app — **BudgetBuddy**. Philippine Peso budget tracker
 - `app/add-wallet.tsx` — Create wallet modal
 - `app/transaction-detail.tsx` — Transaction detail/delete
 - `context/AppContext.tsx` — Global state (AsyncStorage)
+- `context/NotificationContext.tsx` — Notification system (in-app + device push)
 - `context/ThemeContext.tsx` — Dark/light theme (default dark)
+- `app/notifications.tsx` — Full-page notifications screen with settings
 - `constants/colors.ts` — Color palette
 - `components/ScreenWrapper.tsx` — 3-stop gradient background wrapper
 - `components/ui/` — Button (LinearGradient glow), Input (focus glow), AmountInput (accent bar + 42px display), Card, CategoryPicker, EmptyState, WalletPicker

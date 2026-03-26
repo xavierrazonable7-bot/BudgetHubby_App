@@ -4,9 +4,8 @@ import React, {
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useApp } from "./AppContext";
+import { useApp, AcademicEvent, Task } from "./AppContext";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 export type NotifType  = "task" | "event" | "budget" | "system";
 export type PermStatus = "granted" | "denied" | "undetermined";
 
@@ -21,17 +20,33 @@ export interface AppNotification {
   read:      boolean;
 }
 
-interface NotificationContextType {
-  notifications:      AppNotification[];
-  unreadCount:        number;
-  permStatus:         PermStatus;
-  requestPermission:  () => Promise<void>;
-  markAllRead:        () => void;
-  markRead:           (id: string) => void;
-  refreshNotifications: () => void;
+export interface NotifPreferences {
+  enabled:     boolean;
+  events:      boolean;
+  tasks:       boolean;
+  budget:      boolean;
+  exam:        boolean;
+  quiz:        boolean;
+  assignment:  boolean;
 }
 
-// ─── Handler (must be set at module level) ───────────────────────────────────
+const DEFAULT_PREFS: NotifPreferences = {
+  enabled: true, events: true, tasks: true, budget: true,
+  exam: true, quiz: true, assignment: true,
+};
+
+interface NotificationContextType {
+  notifications:        AppNotification[];
+  unreadCount:          number;
+  permStatus:           PermStatus;
+  preferences:          NotifPreferences;
+  requestPermission:    () => Promise<void>;
+  markAllRead:          () => void;
+  markRead:             (id: string) => void;
+  refreshNotifications: () => void;
+  updatePreferences:    (updates: Partial<NotifPreferences>) => void;
+}
+
 if (Platform.OS !== "web") {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -44,76 +59,123 @@ if (Platform.OS !== "web") {
   });
 }
 
-// ─── Storage key ─────────────────────────────────────────────────────────────
-const READ_KEY = "@timpla_notif_read_ids";
+const READ_KEY  = "@timpla_notif_read_ids";
+const PREFS_KEY = "@timpla_notif_prefs";
 
-// ─── Smart notification builder ───────────────────────────────────────────────
+const EVENT_META: Record<string, { label: string; color: string; icon: string }> = {
+  exam:       { label: "Exam",       color: "#E05A6D", icon: "school" },
+  quiz:       { label: "Quiz",       color: "#F59E0B", icon: "help-circle" },
+  assignment: { label: "Assignment", color: "#6366F1", icon: "document-text" },
+  personal:   { label: "Event",      color: "#2DD4BF", icon: "calendar" },
+};
+
+function getEventMeta(type: string) {
+  return EVENT_META[type] || EVENT_META.personal;
+}
+
+function isEventTypeEnabled(type: string, prefs: NotifPreferences): boolean {
+  if (type === "exam") return prefs.exam;
+  if (type === "quiz") return prefs.quiz;
+  if (type === "assignment") return prefs.assignment;
+  return true;
+}
+
+function formatEventTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" });
+}
+
 function buildNotifications(
-  tasks:           any[],
-  events:          any[],
-  monthlyIncome:   number,
+  tasks: Task[],
+  events: AcademicEvent[],
+  monthlyIncome: number,
   monthlyExpenses: number,
-  readIds:         Set<string>,
+  readIds: Set<string>,
+  prefs: NotifPreferences,
 ): AppNotification[] {
   const list: AppNotification[] = [];
   const now = new Date(); now.setHours(0, 0, 0, 0);
   const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+  const dayAfter = new Date(now); dayAfter.setDate(now.getDate() + 2);
 
   const add = (
     id: string, title: string, body: string,
     type: NotifType, color: string, icon: string,
   ) => list.push({ id, title, body, type, color, icon, createdAt: new Date().toISOString(), read: readIds.has(id) });
 
-  // Overdue tasks
-  const overdue = tasks.filter((t) => {
-    if (t.completed || !t.deadline) return false;
-    const d = new Date(t.deadline); d.setHours(0, 0, 0, 0);
-    return d < now;
-  });
-  if (overdue.length > 0) {
-    const sample = overdue.slice(0, 2).map((t) => `"${t.title}"`).join(", ");
-    const extra = overdue.length > 2 ? ` +${overdue.length - 2} more` : "";
-    add(
-      "overdue-tasks",
-      `${overdue.length} Overdue Task${overdue.length > 1 ? "s" : ""}`,
-      `${sample}${extra} ${overdue.length > 1 ? "are" : "is"} past deadline.`,
-      "task", "#E05A6D", "alert-circle",
+  if (prefs.tasks) {
+    const overdue = tasks.filter((t) => {
+      if (t.completed || !t.deadline) return false;
+      const d = new Date(t.deadline); d.setHours(0, 0, 0, 0);
+      return d < now;
+    });
+    if (overdue.length > 0) {
+      const sample = overdue.slice(0, 2).map((t) => `"${t.title}"`).join(", ");
+      const extra = overdue.length > 2 ? ` +${overdue.length - 2} more` : "";
+      add(
+        "overdue-tasks",
+        `${overdue.length} Overdue Task${overdue.length > 1 ? "s" : ""}`,
+        `${sample}${extra} ${overdue.length > 1 ? "are" : "is"} past deadline.`,
+        "task", "#E05A6D", "alert-circle",
+      );
+    }
+
+    tasks.filter((t) => {
+      if (t.completed || !t.deadline) return false;
+      const d = new Date(t.deadline); d.setHours(0, 0, 0, 0);
+      return d.getTime() === now.getTime();
+    }).forEach((t) =>
+      add(`task-today-${t.id}`, "Task Due Today",
+        `"${t.title}" is due today. Don't forget to complete it!`,
+        "task", "#F59E0B", "time"),
+    );
+
+    tasks.filter((t) => {
+      if (t.completed || !t.deadline) return false;
+      const d = new Date(t.deadline); d.setHours(0, 0, 0, 0);
+      return d.getTime() === tomorrow.getTime();
+    }).forEach((t) =>
+      add(`task-tomorrow-${t.id}`, "Task Due Tomorrow",
+        `"${t.title}" is due tomorrow. Plan ahead!`,
+        "task", "#F59E0B", "time-outline"),
     );
   }
 
-  // Tasks due today
-  tasks.filter((t) => {
-    if (t.completed || !t.deadline) return false;
-    const d = new Date(t.deadline); d.setHours(0, 0, 0, 0);
-    return d.getTime() === now.getTime();
-  }).forEach((t) =>
-    add(`task-today-${t.id}`, "Task Due Today",
-      `"${t.title}" is due today. Don't forget to complete it!`,
-      "task", "#F59E0B", "time"),
-  );
+  if (prefs.events) {
+    events.filter((e) => {
+      if (!isEventTypeEnabled(e.type, prefs)) return false;
+      const d = new Date(e.date); d.setHours(0, 0, 0, 0);
+      return d.getTime() === now.getTime();
+    }).forEach((e) => {
+      const meta = getEventMeta(e.type);
+      add(`event-today-${e.id}`, `${meta.label} Today`,
+        `"${e.title}" is scheduled for today at ${formatEventTime(e.date)}.`,
+        "event", meta.color, meta.icon);
+    });
 
-  // Events today
-  events.filter((e) => {
-    const d = new Date(e.date); d.setHours(0, 0, 0, 0);
-    return d.getTime() === now.getTime();
-  }).forEach((e) =>
-    add(`event-today-${e.id}`, "Event Today",
-      `"${e.title}" is scheduled for today at ${new Date(e.date).toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" })}.`,
-      "event", "#6366F1", "calendar"),
-  );
+    events.filter((e) => {
+      if (!isEventTypeEnabled(e.type, prefs)) return false;
+      const d = new Date(e.date); d.setHours(0, 0, 0, 0);
+      return d.getTime() === tomorrow.getTime();
+    }).forEach((e) => {
+      const meta = getEventMeta(e.type);
+      add(`event-tomorrow-${e.id}`, `Upcoming ${meta.label} Tomorrow`,
+        `"${e.title}" is coming up tomorrow. Be prepared!`,
+        "event", meta.color, meta.icon);
+    });
 
-  // Events tomorrow
-  events.filter((e) => {
-    const d = new Date(e.date); d.setHours(0, 0, 0, 0);
-    return d.getTime() === tomorrow.getTime();
-  }).forEach((e) =>
-    add(`event-tomorrow-${e.id}`, "Event Tomorrow",
-      `"${e.title}" is coming up tomorrow. Be prepared!`,
-      "event", "#6366F1", "calendar-outline"),
-  );
+    events.filter((e) => {
+      if (!isEventTypeEnabled(e.type, prefs)) return false;
+      const d = new Date(e.date); d.setHours(0, 0, 0, 0);
+      return d.getTime() === dayAfter.getTime();
+    }).forEach((e) => {
+      const meta = getEventMeta(e.type);
+      add(`event-soon-${e.id}`, `${meta.label} in 2 Days`,
+        `"${e.title}" is in 2 days. Start preparing!`,
+        "event", meta.color, meta.icon + "-outline");
+    });
+  }
 
-  // Budget alerts
-  if (monthlyIncome > 0) {
+  if (prefs.budget && monthlyIncome > 0) {
     const ratio = monthlyExpenses / monthlyIncome;
     if (ratio >= 1) {
       add("over-budget", "Over Budget",
@@ -126,9 +188,8 @@ function buildNotifications(
     }
   }
 
-  // Welcome (fallback)
   if (list.length === 0) {
-    add("welcome-timpla", "Welcome to Timpla!",
+    add("welcome-budgetbuddy", "Welcome to BudgetBuddy!",
       "Track your budget, plan tasks, and stay productive. You're all set!",
       "system", "#6366F1", "sparkles");
   }
@@ -136,11 +197,13 @@ function buildNotifications(
   return list;
 }
 
-// ─── Schedule device notifications ───────────────────────────────────────────
-async function scheduleDeviceNotifications(tasks: any[], events: any[]) {
+async function scheduleDeviceNotifications(
+  tasks: Task[],
+  events: AcademicEvent[],
+  prefs: NotifPreferences,
+) {
   if (Platform.OS === "web") return;
   try {
-    // Cancel app-managed notifications (prefix: "timpla-")
     const existing = await Notifications.getAllScheduledNotificationsAsync();
     for (const n of existing) {
       if ((n.content.data as any)?.timpla) {
@@ -148,117 +211,157 @@ async function scheduleDeviceNotifications(tasks: any[], events: any[]) {
       }
     }
 
+    if (!prefs.enabled) return;
+
     const now = new Date();
 
-    // Schedule notifications for upcoming events (30 min before)
-    for (const event of events) {
-      const eventDate = new Date(event.date);
-      const triggerDate = new Date(eventDate.getTime() - 30 * 60 * 1000);
-      if (triggerDate > now) {
-        await Notifications.scheduleNotificationAsync({
-          identifier: `timpla-event-${event.id}`,
-          content: {
-            title: "Event Starting Soon",
-            body: `"${event.title}" begins in 30 minutes. Get ready!`,
-            data: { timpla: true, type: "event", id: event.id },
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: triggerDate,
-          },
-        });
+    if (prefs.events) {
+      for (const event of events) {
+        const meta = getEventMeta(event.type);
+        if (!isEventTypeEnabled(event.type, prefs)) continue;
+        const eventDate = new Date(event.date);
+
+        const dayBefore = new Date(eventDate);
+        dayBefore.setDate(dayBefore.getDate() - 1);
+        dayBefore.setHours(20, 0, 0, 0);
+        if (dayBefore > now) {
+          await Notifications.scheduleNotificationAsync({
+            identifier: `timpla-event-1d-${event.id}`,
+            content: {
+              title: `Upcoming ${meta.label} Tomorrow: ${event.title}`,
+              body: `"${event.title}" is tomorrow at ${formatEventTime(event.date)}. Prepare ahead!`,
+              data: { timpla: true, type: "event", id: event.id },
+            },
+            trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: dayBefore },
+          });
+        }
+
+        const twoHrsBefore = new Date(eventDate.getTime() - 2 * 60 * 60 * 1000);
+        if (twoHrsBefore > now) {
+          await Notifications.scheduleNotificationAsync({
+            identifier: `timpla-event-2h-${event.id}`,
+            content: {
+              title: `${meta.label} Reminder: ${event.title}`,
+              body: `"${event.title}" starts in 2 hours. Get ready!`,
+              data: { timpla: true, type: "event", id: event.id },
+            },
+            trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: twoHrsBefore },
+          });
+        }
+
+        const thirtyMinBefore = new Date(eventDate.getTime() - 30 * 60 * 1000);
+        if (thirtyMinBefore > now) {
+          await Notifications.scheduleNotificationAsync({
+            identifier: `timpla-event-30m-${event.id}`,
+            content: {
+              title: `${meta.label} Starting Soon: ${event.title}`,
+              body: `"${event.title}" begins in 30 minutes!`,
+              data: { timpla: true, type: "event", id: event.id },
+            },
+            trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: thirtyMinBefore },
+          });
+        }
       }
     }
 
-    // Schedule notifications for task due dates (at 9 AM on due day)
-    for (const task of tasks) {
-      if (task.completed || !task.deadline) continue;
-      const dueDate = new Date(task.deadline);
-      dueDate.setHours(9, 0, 0, 0);
-      if (dueDate > now) {
-        await Notifications.scheduleNotificationAsync({
-          identifier: `timpla-task-${task.id}`,
-          content: {
-            title: "Task Due Today",
-            body: `"${task.title}" is due today. Get it done!`,
-            data: { timpla: true, type: "task", id: task.id },
-          },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: dueDate,
-          },
-        });
+    if (prefs.tasks) {
+      for (const task of tasks) {
+        if (task.completed || !task.deadline) continue;
+        const dueDate = new Date(task.deadline);
+
+        const eveningBefore = new Date(dueDate);
+        eveningBefore.setDate(eveningBefore.getDate() - 1);
+        eveningBefore.setHours(20, 0, 0, 0);
+        if (eveningBefore > now) {
+          await Notifications.scheduleNotificationAsync({
+            identifier: `timpla-task-1d-${task.id}`,
+            content: {
+              title: `Task Due Tomorrow: ${task.title}`,
+              body: `"${task.title}" is due tomorrow. Plan ahead!`,
+              data: { timpla: true, type: "task", id: task.id },
+            },
+            trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: eveningBefore },
+          });
+        }
+
+        const morningOf = new Date(dueDate);
+        morningOf.setHours(9, 0, 0, 0);
+        if (morningOf > now) {
+          await Notifications.scheduleNotificationAsync({
+            identifier: `timpla-task-day-${task.id}`,
+            content: {
+              title: `Task Due Today: ${task.title}`,
+              body: `"${task.title}" is due today. Get it done!`,
+              data: { timpla: true, type: "task", id: task.id },
+            },
+            trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: morningOf },
+          });
+        }
       }
     }
 
-    // Daily budget reminder at 9 AM
     await Notifications.scheduleNotificationAsync({
       identifier: "timpla-daily-reminder",
       content: {
-        title: "Timpla Daily Check-in",
+        title: "BudgetBuddy Daily Check-in",
         body: "Review your budget and tasks to stay on track today.",
         data: { timpla: true, type: "system" },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
-        hour: 9,
-        minute: 0,
+        hour: 9, minute: 0,
       },
     });
-  } catch (e) {
-    // Scheduling errors are non-fatal
-  }
+  } catch (_e) {}
 }
 
-// ─── Context ──────────────────────────────────────────────────────────────────
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { tasks, events, monthlyIncome, monthlyExpenses } = useApp();
 
-  const [permStatus, setPermStatus]     = useState<PermStatus>("undetermined");
-  const [readIds, setReadIds]           = useState<Set<string>>(new Set());
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const scheduledRef                    = useRef(false);
+  const [permStatus, setPermStatus]           = useState<PermStatus>("undetermined");
+  const [readIds, setReadIds]                 = useState<Set<string>>(new Set());
+  const [notifications, setNotifications]     = useState<AppNotification[]>([]);
+  const [preferences, setPreferences]         = useState<NotifPreferences>(DEFAULT_PREFS);
+  const initialLoadDone                       = useRef(false);
+  const lastScheduleKey                       = useRef("");
 
-  // Load saved read IDs from storage
   useEffect(() => {
-    AsyncStorage.getItem(READ_KEY).then((raw) => {
-      if (raw) {
-        try { setReadIds(new Set(JSON.parse(raw))); } catch {}
+    (async () => {
+      const [readRaw, prefsRaw] = await Promise.all([
+        AsyncStorage.getItem(READ_KEY),
+        AsyncStorage.getItem(PREFS_KEY),
+      ]);
+      if (readRaw) {
+        try { setReadIds(new Set(JSON.parse(readRaw))); } catch {}
       }
-    });
-    // Check current permission status
-    if (Platform.OS !== "web") {
-      Notifications.getPermissionsAsync().then(({ status }) =>
-        setPermStatus(status as PermStatus)
-      );
-    } else {
-      setPermStatus("granted");
-    }
+      if (prefsRaw) {
+        try { setPreferences({ ...DEFAULT_PREFS, ...JSON.parse(prefsRaw) }); } catch {}
+      }
+      if (Platform.OS !== "web") {
+        const { status } = await Notifications.getPermissionsAsync();
+        setPermStatus(status as PermStatus);
+      } else {
+        setPermStatus("granted");
+      }
+      initialLoadDone.current = true;
+    })();
   }, []);
 
-  // Re-generate in-app notifications when data or readIds change
   const refreshNotifications = useCallback(() => {
-    setNotifications(buildNotifications(tasks, events, monthlyIncome, monthlyExpenses, readIds));
-  }, [tasks, events, monthlyIncome, monthlyExpenses, readIds]);
+    setNotifications(buildNotifications(tasks, events, monthlyIncome, monthlyExpenses, readIds, preferences));
+  }, [tasks, events, monthlyIncome, monthlyExpenses, readIds, preferences]);
 
   useEffect(() => { refreshNotifications(); }, [refreshNotifications]);
 
-  // Schedule device notifications once permission is granted and data is loaded
   useEffect(() => {
-    if (permStatus === "granted" && !scheduledRef.current) {
-      scheduledRef.current = true;
-      scheduleDeviceNotifications(tasks, events);
-    }
-  }, [permStatus, tasks, events]);
-
-  // Re-schedule when tasks/events change
-  useEffect(() => {
-    if (permStatus === "granted" && scheduledRef.current) {
-      scheduleDeviceNotifications(tasks, events);
-    }
-  }, [tasks, events]);
+    if (!initialLoadDone.current || permStatus !== "granted") return;
+    const key = JSON.stringify({ tIds: tasks.map(t => t.id + t.title + t.completed + t.deadline), eIds: events.map(e => e.id + e.title + e.type + e.date), prefs: preferences });
+    if (key === lastScheduleKey.current) return;
+    lastScheduleKey.current = key;
+    scheduleDeviceNotifications(tasks, events, preferences);
+  }, [permStatus, tasks, events, preferences]);
 
   const requestPermission = useCallback(async () => {
     if (Platform.OS === "web") { setPermStatus("granted"); return; }
@@ -266,10 +369,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const { status } = await Notifications.requestPermissionsAsync();
       setPermStatus(status as PermStatus);
       if (status === "granted") {
-        scheduleDeviceNotifications(tasks, events);
+        scheduleDeviceNotifications(tasks, events, preferences);
       }
     } catch {}
-  }, [tasks, events]);
+  }, [tasks, events, preferences]);
 
   const saveReadIds = useCallback((ids: Set<string>) => {
     setReadIds(ids);
@@ -286,12 +389,20 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     saveReadIds(newIds);
   }, [readIds, saveReadIds]);
 
+  const updatePreferences = useCallback((updates: Partial<NotifPreferences>) => {
+    setPreferences((prev) => {
+      const next = { ...prev, ...updates };
+      AsyncStorage.setItem(PREFS_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <NotificationContext.Provider value={{
-      notifications, unreadCount, permStatus,
-      requestPermission, markAllRead, markRead, refreshNotifications,
+      notifications, unreadCount, permStatus, preferences,
+      requestPermission, markAllRead, markRead, refreshNotifications, updatePreferences,
     }}>
       {children}
     </NotificationContext.Provider>

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import {
-  View, Text, StyleSheet, Pressable, ScrollView, Platform,
+  View, Text, StyleSheet, Pressable, ScrollView, Platform, Switch,
 } from "react-native";
 import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -8,7 +8,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
-import { useNotifications, AppNotification } from "@/context/NotificationContext";
+import { useNotifications, AppNotification, NotifPreferences } from "@/context/NotificationContext";
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -77,14 +77,51 @@ function NotifCard({ item, index }: { item: AppNotification; index: number }) {
   );
 }
 
+interface ToggleRowProps {
+  icon: string;
+  label: string;
+  sublabel: string;
+  color: string;
+  value: boolean;
+  onToggle: (v: boolean) => void;
+  disabled?: boolean;
+}
+
+function ToggleRow({ icon, label, sublabel, color, value, onToggle, disabled }: ToggleRowProps) {
+  const { theme, isDark } = useTheme();
+  return (
+    <View style={[styles.toggleRow, { borderBottomColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", opacity: disabled ? 0.45 : 1 }]}>
+      <View style={[styles.toggleIcon, { backgroundColor: color + "18" }]}>
+        <Ionicons name={icon as any} size={18} color={color} />
+      </View>
+      <View style={styles.toggleText}>
+        <Text style={[styles.toggleLabel, { color: theme.text }]}>{label}</Text>
+        <Text style={[styles.toggleSub, { color: theme.textTertiary }]}>{sublabel}</Text>
+      </View>
+      <Switch
+        value={value}
+        onValueChange={onToggle}
+        disabled={disabled}
+        trackColor={{ false: isDark ? "#333" : "#D1D5DB", true: color + "60" }}
+        thumbColor={value ? color : isDark ? "#666" : "#9CA3AF"}
+      />
+    </View>
+  );
+}
+
 export default function NotificationsScreen() {
   const { theme, isDark } = useTheme();
   const insets = useSafeAreaInsets();
-  const { notifications, unreadCount, markAllRead, permStatus, requestPermission } = useNotifications();
+  const { notifications, unreadCount, markAllRead, permStatus, requestPermission, preferences, updatePreferences } = useNotifications();
+  const [showSettings, setShowSettings] = useState(false);
 
   const bgGradient: [string, string, string] = isDark
     ? ["#0E0E0E", "#140810", "#0E0E0E"]
     : ["#F0F0F5", "#EDE8F5", "#F0F0F5"];
+
+  const handleToggle = (key: keyof NotifPreferences) => (val: boolean) => {
+    updatePreferences({ [key]: val });
+  };
 
   return (
     <LinearGradient colors={bgGradient} style={styles.container}>
@@ -109,19 +146,19 @@ export default function NotificationsScreen() {
             )}
           </View>
 
-          {unreadCount > 0 ? (
-            <Pressable
-              onPress={markAllRead}
-              style={({ pressed }) => [
-                styles.markAllBtn,
-                { backgroundColor: theme.primary + "14", borderColor: theme.primary + "30", opacity: pressed ? 0.7 : 1 },
-              ]}
-            >
-              <Ionicons name="checkmark-done" size={16} color={theme.primary} />
-            </Pressable>
-          ) : (
-            <View style={{ width: 40 }} />
-          )}
+          <Pressable
+            onPress={() => setShowSettings(!showSettings)}
+            style={({ pressed }) => [
+              styles.settingsBtn,
+              {
+                backgroundColor: showSettings ? (theme.primary + "18") : (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"),
+                borderColor: showSettings ? theme.primary + "30" : "transparent",
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+          >
+            <Ionicons name="settings-outline" size={18} color={showSettings ? theme.primary : theme.textSecondary} />
+          </Pressable>
         </View>
       </View>
 
@@ -152,10 +189,84 @@ export default function NotificationsScreen() {
           </Animated.View>
         )}
 
-        {unreadCount > 0 && (
-          <Animated.View entering={FadeInDown.delay(50).duration(300)}>
-            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>UNREAD</Text>
+        {showSettings && (
+          <Animated.View entering={FadeInDown.duration(300)}>
+            <View style={[styles.settingsPanel, { backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)", borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }]}>
+              <Text style={[styles.settingsPanelTitle, { color: theme.textSecondary }]}>NOTIFICATION SETTINGS</Text>
+
+              <ToggleRow
+                icon="notifications"
+                label="All Notifications"
+                sublabel="Master toggle for all alerts"
+                color={theme.primary}
+                value={preferences.enabled}
+                onToggle={handleToggle("enabled")}
+              />
+              <ToggleRow
+                icon="school"
+                label="Exam Reminders"
+                sublabel="1 day, 2 hours & 30 min before"
+                color="#E05A6D"
+                value={preferences.exam}
+                onToggle={handleToggle("exam")}
+                disabled={!preferences.enabled}
+              />
+              <ToggleRow
+                icon="help-circle"
+                label="Quiz Reminders"
+                sublabel="Get alerted before quizzes"
+                color="#F59E0B"
+                value={preferences.quiz}
+                onToggle={handleToggle("quiz")}
+                disabled={!preferences.enabled}
+              />
+              <ToggleRow
+                icon="document-text"
+                label="Assignment Deadlines"
+                sublabel="Never miss a submission"
+                color="#6366F1"
+                value={preferences.assignment}
+                onToggle={handleToggle("assignment")}
+                disabled={!preferences.enabled}
+              />
+              <ToggleRow
+                icon="calendar"
+                label="Event Reminders"
+                sublabel="All academic events"
+                color="#2DD4BF"
+                value={preferences.events}
+                onToggle={handleToggle("events")}
+                disabled={!preferences.enabled}
+              />
+              <ToggleRow
+                icon="checkmark-circle"
+                label="Task Deadlines"
+                sublabel="Overdue & upcoming tasks"
+                color="#F59E0B"
+                value={preferences.tasks}
+                onToggle={handleToggle("tasks")}
+                disabled={!preferences.enabled}
+              />
+              <ToggleRow
+                icon="wallet"
+                label="Budget Alerts"
+                sublabel="Spending warnings"
+                color="#E05A6D"
+                value={preferences.budget}
+                onToggle={handleToggle("budget")}
+                disabled={!preferences.enabled}
+              />
+            </View>
           </Animated.View>
+        )}
+
+        {unreadCount > 0 && (
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>UNREAD</Text>
+            <Pressable onPress={markAllRead} style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}>
+              <Text style={[styles.markAllText, { color: theme.primary }]}>Mark all read</Text>
+            </Pressable>
+          </View>
         )}
         {notifications.filter((n) => !n.read).map((item, idx) => (
           <NotifCard key={item.id} item={item} index={idx} />
@@ -163,11 +274,9 @@ export default function NotificationsScreen() {
 
         {notifications.some((n) => n.read) && (
           <>
-            <Animated.View entering={FadeInDown.delay(100).duration(300)}>
-              <Text style={[styles.sectionLabel, { color: theme.textTertiary, marginTop: unreadCount > 0 ? 20 : 0 }]}>
-                {unreadCount > 0 ? "EARLIER" : "ALL NOTIFICATIONS"}
-              </Text>
-            </Animated.View>
+            <Text style={[styles.sectionLabel, { color: theme.textTertiary, marginTop: unreadCount > 0 ? 20 : 0 }]}>
+              {unreadCount > 0 ? "EARLIER" : "ALL NOTIFICATIONS"}
+            </Text>
             {notifications.filter((n) => n.read).map((item, idx) => (
               <NotifCard key={item.id} item={item} index={idx + unreadCount} />
             ))}
@@ -212,7 +321,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   headerBadgeText: { fontSize: 12, fontFamily: "Inter_700Bold" },
-  markAllBtn: {
+  settingsBtn: {
     width: 40, height: 40, borderRadius: 20,
     alignItems: "center", justifyContent: "center",
     borderWidth: 1,
@@ -220,10 +329,43 @@ const styles = StyleSheet.create({
 
   listContent: { paddingHorizontal: 20, gap: 10 },
 
+  sectionHeader: {
+    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+    marginBottom: 6, marginTop: 4,
+  },
   sectionLabel: {
     fontSize: 12, fontFamily: "Inter_600SemiBold",
     letterSpacing: 1, marginBottom: 6, marginTop: 4,
   },
+  markAllText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+
+  settingsPanel: {
+    borderRadius: 18,
+    borderWidth: 1,
+    paddingTop: 16,
+    paddingBottom: 6,
+    marginBottom: 16,
+  },
+  settingsPanelTitle: {
+    fontSize: 11, fontFamily: "Inter_700Bold",
+    letterSpacing: 1, paddingHorizontal: 18, marginBottom: 10,
+  },
+
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingHorizontal: 18,
+    paddingVertical: 13,
+    borderBottomWidth: 1,
+  },
+  toggleIcon: {
+    width: 36, height: 36, borderRadius: 18,
+    alignItems: "center", justifyContent: "center",
+  },
+  toggleText: { flex: 1, gap: 2 },
+  toggleLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  toggleSub: { fontSize: 11, fontFamily: "Inter_400Regular" },
 
   card: {
     flexDirection: "row",
