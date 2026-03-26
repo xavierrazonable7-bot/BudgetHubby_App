@@ -23,7 +23,7 @@ function SectionLabel({ label, delay = 0 }: { label: string; delay?: number }) {
   return (
     <Animated.Text
       entering={FadeInDown.delay(delay).duration(300)}
-      style={[styles.sectionLabel, { color: theme.textTertiary }]}
+      style={[styles.sectionLabel, { color: theme.textSecondary }]}
     >
       {label}
     </Animated.Text>
@@ -279,7 +279,7 @@ export default function SettingsScreen() {
                           <Text style={[styles.themeCardLabel, { color: active ? t.accentColor : theme.text, fontFamily: active ? "Inter_700Bold" : "Inter_600SemiBold" }]}>
                             {t.label}
                           </Text>
-                          <Text style={[styles.themeCardDesc, { color: theme.textTertiary }]}>{t.desc}</Text>
+                          <Text style={[styles.themeCardDesc, { color: theme.textSecondary }]}>{t.desc}</Text>
                         </View>
                         {active && (
                           <View style={[styles.themeActiveCheck, { backgroundColor: t.accentColor }]}>
@@ -343,7 +343,7 @@ export default function SettingsScreen() {
                       <Text style={[styles.currencyRowName, { color: active ? "#E05A6D" : theme.text, fontFamily: active ? "Inter_600SemiBold" : "Inter_400Regular" }]}>
                         {c.label}
                       </Text>
-                      <Text style={[styles.currencyRowCode, { color: theme.textTertiary }]}>
+                      <Text style={[styles.currencyRowCode, { color: theme.textSecondary }]}>
                         {c.code}  ·  {c.symbol}
                       </Text>
                     </View>
@@ -391,7 +391,7 @@ export default function SettingsScreen() {
             <Divider />
 
             {[
-              { icon: "flag-outline",        color: "#F59E0B", label: "Made for",  value: "Filipino students & teachers 🇵🇭" },
+              { icon: "flag-outline",        color: "#F59E0B", label: "Made for",  value: "Students & teachers everywhere 🇵🇭" },
               { icon: "lock-closed-outline", color: "#A78BFA", label: "Storage",   value: "Stored locally on your device only" },
               { icon: "wifi-outline",        color: "#2DD4BF", label: "Works",     value: "Fully offline — no internet needed" },
               { icon: "heart-outline",       color: "#E05A6D", label: "Made with", value: "Love & dedication 💙" },
@@ -402,7 +402,7 @@ export default function SettingsScreen() {
                     <Ionicons name={row.icon as any} size={16} color={row.color} />
                   </View>
                   <View style={styles.aboutRowText}>
-                    <Text style={[styles.aboutRowLabel, { color: theme.textTertiary }]}>{row.label}</Text>
+                    <Text style={[styles.aboutRowLabel, { color: theme.textSecondary }]}>{row.label}</Text>
                     <Text style={[styles.aboutRowValue, { color: theme.text }]}>{row.value}</Text>
                   </View>
                 </View>
@@ -414,7 +414,7 @@ export default function SettingsScreen() {
           {/* Footer tagline */}
           <Animated.Text
             entering={FadeInDown.delay(280).duration(300)}
-            style={[styles.footerText, { color: theme.textTertiary }]}
+            style={[styles.footerText, { color: theme.textSecondary }]}
           >
             All your data lives safely on your device only.
           </Animated.Text>
