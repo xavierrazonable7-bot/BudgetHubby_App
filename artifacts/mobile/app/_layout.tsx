@@ -33,6 +33,7 @@ function RootLayoutNav() {
       <Stack.Screen name="insights" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="assistant" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="tasks" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="notifications" options={{ headerShown: false, animation: "slide_from_right" }} />
       <Stack.Screen name="add-transaction" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="add-debt" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="add-wallet" options={{ headerShown: false, presentation: "modal" }} />

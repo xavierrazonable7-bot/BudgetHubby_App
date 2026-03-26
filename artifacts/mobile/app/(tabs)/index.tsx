@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -16,7 +16,6 @@ import Animated, { FadeInDown, FadeInUp } from "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp } from "@/context/AppContext";
 import { useNotifications } from "@/context/NotificationContext";
-import { NotificationsModal } from "@/components/ui/NotificationsModal";
 import { isThisMonth } from "@/utils/format";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { getCategoryColor, getCategoryIcon, getCategoryLabel } from "@/utils/categories";
@@ -54,13 +53,12 @@ export default function HomeScreen() {
   const { userName, isOnboarded, wallets, transactions, totalBalance, monthlyIncome, monthlyExpenses, todayExpenses, formatAmount } = useApp();
   const { unreadCount, requestPermission, permStatus } = useNotifications();
   const insets = useSafeAreaInsets();
-  const [showNotifs, setShowNotifs] = useState(false);
 
   if (!isOnboarded) { router.replace("/onboarding"); return null; }
 
   const handleBellPress = async () => {
     if (permStatus === "undetermined") await requestPermission();
-    setShowNotifs(true);
+    router.push("/notifications");
   };
 
   const monthlyTransactionCount = useMemo(() => transactions.filter((t) => isThisMonth(t.date)).length, [transactions]);
@@ -124,9 +122,6 @@ export default function HomeScreen() {
             )}
           </Pressable>
         </Animated.View>
-
-        {/* Notifications Modal */}
-        <NotificationsModal visible={showNotifs} onClose={() => setShowNotifs(false)} />
 
         {/* Total Balance Hero */}
         <Animated.View entering={FadeInDown.delay(60).duration(400)} style={{ paddingHorizontal: 20, marginBottom: 16 }}>
