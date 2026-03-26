@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform,
+  View, Text, StyleSheet, ScrollView, Pressable, Platform, TextInput,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -50,6 +50,8 @@ export default function StudyScreen() {
 
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(5);
+  const [focusDraft, setFocusDraft]     = useState("25");
+  const [breakDraft, setBreakDraft]     = useState("5");
   const [phase, setPhase]               = useState<Phase>("focus");
   const [secondsLeft, setSecondsLeft]   = useState(focusMinutes * 60);
   const [running, setRunning]           = useState(false);
@@ -58,6 +60,23 @@ export default function StudyScreen() {
   const [showSettings, setShowSettings] = useState(false);
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const applyFocusValue = useCallback((val: string) => {
+    const n = parseInt(val, 10);
+    if (isNaN(n) || n < 1) { setFocusDraft(String(focusMinutes)); return; }
+    const clamped = Math.min(120, Math.max(1, n));
+    setFocusMinutes(clamped);
+    setFocusDraft(String(clamped));
+    if (!running) setSecondsLeft(clamped * 60);
+  }, [focusMinutes, running]);
+
+  const applyBreakValue = useCallback((val: string) => {
+    const n = parseInt(val, 10);
+    if (isNaN(n) || n < 1) { setBreakDraft(String(breakMinutes)); return; }
+    const clamped = Math.min(60, Math.max(1, n));
+    setBreakMinutes(clamped);
+    setBreakDraft(String(clamped));
+  }, [breakMinutes]);
 
   const totalSeconds = phase === "focus" ? focusMinutes * 60 : breakMinutes * 60;
   const progress     = 1 - secondsLeft / totalSeconds;
@@ -187,16 +206,40 @@ export default function StudyScreen() {
                   <Ionicons name="brain-outline" size={16} color="#6366F1" />
                 </View>
                 <Text style={[styles.settingLabel, { color: theme.textSecondary }]}>Focus</Text>
-                <Text style={[styles.settingValue, { color: theme.text }]}>{focusMinutes}<Text style={[styles.settingUnit, { color: theme.textTertiary }]}>m</Text></Text>
+                <View style={styles.inputRow}>
+                  <TextInput
+                    value={focusDraft}
+                    onChangeText={(t) => setFocusDraft(t.replace(/[^0-9]/g, ""))}
+                    onBlur={() => applyFocusValue(focusDraft)}
+                    onSubmitEditing={() => applyFocusValue(focusDraft)}
+                    keyboardType="number-pad"
+                    maxLength={3}
+                    selectTextOnFocus
+                    style={[styles.settingInput, { color: theme.text, borderBottomColor: "#6366F1" + "60" }]}
+                    placeholderTextColor={theme.textTertiary}
+                  />
+                  <Text style={[styles.settingUnit, { color: "#6366F1" }]}>min</Text>
+                </View>
+                <Text style={[styles.settingHint, { color: theme.textTertiary }]}>1 – 120</Text>
                 <View style={styles.settingControls}>
                   <Pressable
-                    onPress={() => { setFocusMinutes((p) => Math.max(1, p - 5)); if (!running) setSecondsLeft(Math.max(1, focusMinutes - 5) * 60); }}
+                    onPress={() => {
+                      const next = Math.max(1, focusMinutes - 5);
+                      setFocusMinutes(next);
+                      setFocusDraft(String(next));
+                      if (!running) setSecondsLeft(next * 60);
+                    }}
                     style={[styles.controlBtn, { backgroundColor: "#6366F1" + "20" }]}
                   >
                     <Ionicons name="remove" size={16} color="#6366F1" />
                   </Pressable>
                   <Pressable
-                    onPress={() => { setFocusMinutes((p) => Math.min(60, p + 5)); if (!running) setSecondsLeft(Math.min(60, focusMinutes + 5) * 60); }}
+                    onPress={() => {
+                      const next = Math.min(120, focusMinutes + 5);
+                      setFocusMinutes(next);
+                      setFocusDraft(String(next));
+                      if (!running) setSecondsLeft(next * 60);
+                    }}
                     style={[styles.controlBtn, { backgroundColor: "#6366F1" + "20" }]}
                   >
                     <Ionicons name="add" size={16} color="#6366F1" />
@@ -210,16 +253,38 @@ export default function StudyScreen() {
                   <Ionicons name="cafe-outline" size={16} color="#2DD4BF" />
                 </View>
                 <Text style={[styles.settingLabel, { color: theme.textSecondary }]}>Break</Text>
-                <Text style={[styles.settingValue, { color: theme.text }]}>{breakMinutes}<Text style={[styles.settingUnit, { color: theme.textTertiary }]}>m</Text></Text>
+                <View style={styles.inputRow}>
+                  <TextInput
+                    value={breakDraft}
+                    onChangeText={(t) => setBreakDraft(t.replace(/[^0-9]/g, ""))}
+                    onBlur={() => applyBreakValue(breakDraft)}
+                    onSubmitEditing={() => applyBreakValue(breakDraft)}
+                    keyboardType="number-pad"
+                    maxLength={2}
+                    selectTextOnFocus
+                    style={[styles.settingInput, { color: theme.text, borderBottomColor: "#2DD4BF" + "60" }]}
+                    placeholderTextColor={theme.textTertiary}
+                  />
+                  <Text style={[styles.settingUnit, { color: "#2DD4BF" }]}>min</Text>
+                </View>
+                <Text style={[styles.settingHint, { color: theme.textTertiary }]}>1 – 60</Text>
                 <View style={styles.settingControls}>
                   <Pressable
-                    onPress={() => setBreakMinutes((p) => Math.max(1, p - 1))}
+                    onPress={() => {
+                      const next = Math.max(1, breakMinutes - 1);
+                      setBreakMinutes(next);
+                      setBreakDraft(String(next));
+                    }}
                     style={[styles.controlBtn, { backgroundColor: "#2DD4BF" + "20" }]}
                   >
                     <Ionicons name="remove" size={16} color="#2DD4BF" />
                   </Pressable>
                   <Pressable
-                    onPress={() => setBreakMinutes((p) => Math.min(30, p + 1))}
+                    onPress={() => {
+                      const next = Math.min(60, breakMinutes + 1);
+                      setBreakMinutes(next);
+                      setBreakDraft(String(next));
+                    }}
                     style={[styles.controlBtn, { backgroundColor: "#2DD4BF" + "20" }]}
                   >
                     <Ionicons name="add" size={16} color="#2DD4BF" />
@@ -515,8 +580,18 @@ const styles = StyleSheet.create({
     alignItems: "center", justifyContent: "center",
   },
   settingLabel: { fontSize: 11, fontFamily: "Inter_500Medium" },
-  settingValue: { fontSize: 24, fontFamily: "Inter_700Bold" },
-  settingUnit: { fontSize: 14, fontFamily: "Inter_400Regular" },
+  settingUnit: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+  inputRow: { flexDirection: "row", alignItems: "flex-end", gap: 4 },
+  settingInput: {
+    fontSize: 28,
+    fontFamily: "Inter_700Bold",
+    minWidth: 48,
+    textAlign: "center",
+    borderBottomWidth: 2,
+    paddingBottom: 2,
+    paddingHorizontal: 4,
+  },
+  settingHint: { fontSize: 10, fontFamily: "Inter_400Regular", marginTop: -4 },
   settingControls: { flexDirection: "row", gap: 8 },
   controlBtn: { width: 32, height: 32, borderRadius: 16, alignItems: "center", justifyContent: "center" },
 

@@ -1,0 +1,75 @@
+Act as a professional Senior Mobile App Developer, Senior Software Engineer, Senior React Native Expo Developer, and Mobile UI/UX Designer with over 30 years of experience in building polished, user-friendly, and production-ready mobile applications.
+
+Your task is to improve the time-setting feature in my React Native Expo app.
+
+Main Goal:
+Allow the user to manually type and enter the exact time value they want, instead of only relying on plus and minus buttons. The user should be able to decide how many minutes or hours they want by direct input, while still keeping the UI clean, simple, and easy to use.
+
+Core Requirements:
+
+1. Replace or Enhance the Current Time Input
+- The current time-setting system should no longer depend only on plus and minus buttons.
+- Add a text input or numeric input field where the user can manually type the desired time value.
+- The user must be able to enter the exact number they want directly.
+- If needed, you may keep the plus and minus buttons as optional quick-adjust controls, but manual typing must be supported and should work properly.
+
+2. Input Behavior
+- The input must accept only valid numeric values.
+- Prevent letters, symbols, and invalid characters from being entered.
+- Validate the value properly before saving or applying it.
+- Do not allow negative numbers.
+- Do not allow invalid empty states when a valid number is required.
+- Handle very large values properly by setting a reasonable limit if necessary.
+- If the app uses minutes, clearly indicate that the input is in minutes.
+- If the app uses hours and minutes, structure the input properly and clearly.
+
+3. User Experience and UI Design
+- Make the time input area look modern, clean, and professional.
+- The input field should be easy to see, easy to tap, and easy to understand.
+- Add a proper label, placeholder, or helper text so the user knows what to enter.
+- Improve spacing, alignment, and overall layout of the time setting section.
+- Make sure the input looks good in both light mode and dark mode.
+- Ensure the feature is mobile-friendly and works smoothly on smaller screens.
+
+4. Functional Requirements
+- When the user enters a value manually, it must update the timer correctly.
+- The typed value must be saved and applied properly in the app.
+- The timer should function correctly using the manually entered value.
+- If the app stores timer settings locally, make sure the custom time input is also saved correctly and remains after closing and reopening the app.
+- Ensure the feature works properly across all related pages or settings where time is configured.
+
+5. Validation and Error Handling
+- Add proper validation for the input field.
+- Show a clean and user-friendly message if the entered value is invalid.
+- Prevent crashes, broken states, or incorrect timer behavior due to invalid input.
+- Make sure the app handles edge cases properly, such as blank input, zero input if not allowed, or excessively high values.
+
+6. Code Quality Requirements
+- Update only the necessary blocks of code.
+- Do not rewrite the whole app unnecessarily.
+- Preserve all existing working features unless changes are required for this improvement.
+- Keep the code clean, modular, and maintainable.
+- Follow React Native Expo best practices.
+- Remove only clearly unnecessary old logic if it is no longer needed.
+- Make sure there are no unused variables, duplicate logic, or broken references after the update.
+
+7. Final Validation
+- Test the feature thoroughly.
+- Confirm that the user can type a custom time value successfully.
+- Confirm that the timer uses the entered value correctly.
+- Confirm that the UI remains clean and responsive.
+- Confirm that everything works properly without errors or bugs.
+
+Expected Result:
+- The user can manually type the desired time value.
+- The time-setting feature is no longer limited to plus and minus only.
+- The layout looks clean, modern, and user-friendly.
+- The input is validated properly.
+- The timer works correctly using the user’s typed value.
+- The app remains stable and fully functional without errors or bugs.
+
+Important:
+Do not make unnecessary large-scale rewrites.
+Do not break existing functionality.
+Focus on adding a proper manual time input, clean UI, reliable validation, and smooth functionality.
+Only update the necessary code blocks and make sure everything works properly.
