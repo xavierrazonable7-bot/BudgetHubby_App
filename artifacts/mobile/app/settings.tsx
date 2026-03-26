@@ -7,58 +7,46 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, {
+  FadeInDown, FadeIn, useSharedValue, useAnimatedStyle, withSpring,
+} from "react-native-reanimated";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp, CurrencyCode } from "@/context/AppContext";
 import { CURRENCY_LIST } from "@/utils/format";
 
-/* ─── Section wrapper ─────────────────────────────────────────────────────── */
-function Section({ title, delay = 0, children }: { title: string; delay?: number; children: React.ReactNode }) {
+/* ═══════════════════════════════════════════════════════════════════════════
+   Sub-components
+═══════════════════════════════════════════════════════════════════════════ */
+
+function SectionLabel({ label, delay = 0 }: { label: string; delay?: number }) {
   const { theme } = useTheme();
   return (
-    <Animated.View entering={FadeInDown.delay(delay).duration(350)} style={styles.section}>
-      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{title.toUpperCase()}</Text>
-      <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-        {children}
-      </View>
-    </Animated.View>
+    <Animated.Text
+      entering={FadeInDown.delay(delay).duration(300)}
+      style={[styles.sectionLabel, { color: theme.textTertiary }]}
+    >
+      {label}
+    </Animated.Text>
   );
 }
 
-/* ─── Row separator ───────────────────────────────────────────────────────── */
 function Divider() {
-  const { theme } = useTheme();
-  return <View style={[styles.divider, { backgroundColor: theme.border }]} />;
-}
-
-/* ─── Settings row ────────────────────────────────────────────────────────── */
-function SettingRow({
-  icon, iconColor, label, sublabel, children,
-}: {
-  icon: string; iconColor: string; label: string; sublabel?: string; children?: React.ReactNode;
-}) {
-  const { theme } = useTheme();
+  const { theme, isDark } = useTheme();
   return (
-    <View style={styles.settingRow}>
-      <View style={[styles.settingIcon, { backgroundColor: iconColor + "18", borderColor: iconColor + "30" }]}>
-        <Ionicons name={icon as any} size={18} color={iconColor} />
-      </View>
-      <View style={styles.settingText}>
-        <Text style={[styles.settingLabel, { color: theme.text }]}>{label}</Text>
-        {sublabel ? <Text style={[styles.settingSubLabel, { color: theme.textSecondary }]}>{sublabel}</Text> : null}
-      </View>
-      {children}
-    </View>
+    <View style={[styles.divider, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }]} />
   );
 }
 
-/* ─── Main Screen ─────────────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════════════════════
+   Main Screen
+═══════════════════════════════════════════════════════════════════════════ */
 export default function SettingsScreen() {
   const { theme, isDark, colorScheme, setTheme } = useTheme();
   const { userName, setUserName, userCurrency, setUserCurrency, formatAmount, totalBalance } = useApp();
   const insets = useSafeAreaInsets();
 
   const [nameInput, setNameInput] = useState(userName);
+  const [editingName, setEditingName] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
 
   const handleSaveName = () => {
@@ -68,15 +56,31 @@ export default function SettingsScreen() {
       return;
     }
     setUserName(trimmed);
+    setEditingName(false);
     setNameSaved(true);
-    setTimeout(() => setNameSaved(false), 2000);
+    setTimeout(() => setNameSaved(false), 2500);
+  };
+
+  const handleCancelEdit = () => {
+    setNameInput(userName);
+    setEditingName(false);
   };
 
   const initials = (userName || "?").split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  const selectedCurrency = CURRENCY_LIST.find((c) => c.code === userCurrency)!;
 
-  const THEMES: { key: "light" | "dark"; label: string; icon: string; color: string }[] = [
-    { key: "light", label: "Light",  icon: "sunny",  color: "#F59E0B" },
-    { key: "dark",  label: "Dark",   icon: "moon",   color: "#6366F1" },
+  /* ── Theme options ── */
+  const THEMES: { key: "light" | "dark"; label: string; desc: string; icon: string; accentColor: string; bgTop: string; bgBot: string }[] = [
+    {
+      key: "dark",  label: "Dark",  desc: "Easy on the eyes",
+      icon: "moon",   accentColor: "#6366F1",
+      bgTop: "#111", bgBot: "#1A1A2E",
+    },
+    {
+      key: "light", label: "Light", desc: "Bright & clear",
+      icon: "sunny",  accentColor: "#F59E0B",
+      bgTop: "#F5F5F5", bgBot: "#E8E4F0",
+    },
   ];
 
   return (
@@ -88,13 +92,22 @@ export default function SettingsScreen() {
         <ScrollView
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: insets.bottom + 60, paddingTop: Platform.OS === "web" ? 67 : insets.top + 12 }}
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + 60,
+            paddingTop: Platform.OS === "web" ? 67 : insets.top + 12,
+          }}
         >
-          {/* ── Header ── */}
-          <Animated.View entering={FadeInDown.duration(300)} style={styles.header}>
+
+          {/* ════════════════════════════════════════
+              HEADER
+          ════════════════════════════════════════ */}
+          <Animated.View entering={FadeInDown.duration(280)} style={styles.header}>
             <Pressable
               onPress={() => router.back()}
-              style={({ pressed }) => [styles.backBtn, { backgroundColor: theme.surface, opacity: pressed ? 0.6 : 1 }]}
+              style={({ pressed }) => [
+                styles.backBtn,
+                { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", opacity: pressed ? 0.6 : 1 },
+              ]}
             >
               <Ionicons name="arrow-back" size={20} color={theme.text} />
             </Pressable>
@@ -104,153 +117,307 @@ export default function SettingsScreen() {
             </View>
           </Animated.View>
 
-          {/* ── Profile ── */}
-          <Section title="Profile" delay={60}>
-            {/* Avatar row */}
-            <View style={[styles.avatarRow, { borderBottomColor: theme.border }]}>
-              <LinearGradient
-                colors={["#C0394D", "#E05A6D"]}
-                style={styles.avatar}
-              >
-                <Text style={styles.avatarText}>{initials}</Text>
-              </LinearGradient>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={[styles.avatarName, { color: theme.text }]}>{userName || "Set your name"}</Text>
-                <Text style={[styles.avatarSub, { color: theme.textSecondary }]}>
-                  Balance: {formatAmount(totalBalance)}
-                </Text>
-              </View>
-            </View>
-            <Divider />
-            {/* Name edit */}
-            <View style={styles.nameRow}>
-              <View style={[styles.settingIcon, { backgroundColor: "#E05A6D18", borderColor: "#E05A6D30" }]}>
-                <Ionicons name="person-outline" size={18} color="#E05A6D" />
-              </View>
-              <View style={styles.nameInputWrap}>
-                <Text style={[styles.settingLabel, { color: theme.text }]}>Display Name</Text>
-                <TextInput
-                  value={nameInput}
-                  onChangeText={setNameInput}
-                  placeholder="Enter your name"
-                  placeholderTextColor={theme.textTertiary}
-                  style={[styles.nameInput, { color: theme.text, borderColor: isDark ? "rgba(255,255,255,0.1)" : theme.border }]}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSaveName}
-                  maxLength={40}
-                />
-              </View>
-              <Pressable
-                onPress={handleSaveName}
-                style={({ pressed }) => [
-                  styles.saveBtn,
-                  { backgroundColor: nameSaved ? "#22C55E" : "#E05A6D", opacity: pressed ? 0.8 : 1 },
-                ]}
-              >
-                <Ionicons name={nameSaved ? "checkmark" : "save-outline"} size={16} color="#fff" />
-              </Pressable>
-            </View>
-          </Section>
+          {/* ════════════════════════════════════════
+              PROFILE HERO CARD
+          ════════════════════════════════════════ */}
+          <Animated.View entering={FadeInDown.delay(50).duration(380)} style={styles.profileHeroWrap}>
+            <LinearGradient
+              colors={isDark ? ["#2A0D18", "#1A0A22", "#0E0E0E"] : ["#FFF0F2", "#F3EEFE", "#EDE8F5"]}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+              style={[styles.profileHero, {
+                borderColor: isDark ? "rgba(224,90,109,0.18)" : "rgba(224,90,109,0.15)",
+                shadowColor: "#E05A6D",
+                shadowOffset: { width: 0, height: 8 },
+                shadowOpacity: isDark ? 0.3 : 0.12,
+                shadowRadius: 20,
+                elevation: 8,
+              }]}
+            >
+              {/* Decorative blobs */}
+              <View style={[styles.heroDeco1, { backgroundColor: "#E05A6D" }]} />
+              <View style={[styles.heroDeco2, { backgroundColor: "#A78BFA" }]} />
 
-          {/* ── Appearance ── */}
-          <Section title="Appearance" delay={100}>
-            <View style={styles.themePickerRow}>
-              {THEMES.map((t, i) => {
+              {/* Top row: avatar + name + edit button */}
+              <View style={styles.heroTopRow}>
+                <LinearGradient colors={["#C0394D", "#E05A6D", "#B03060"]} style={styles.heroAvatar}>
+                  <Text style={styles.heroAvatarText}>{initials}</Text>
+                </LinearGradient>
+
+                <View style={styles.heroNameCol}>
+                  <Text style={[styles.heroName, { color: theme.text }]} numberOfLines={1}>
+                    {userName || "Set your name"}
+                  </Text>
+                  <View style={styles.heroBalanceChip}>
+                    <Ionicons name="wallet-outline" size={12} color="#E05A6D" />
+                    <Text style={[styles.heroBalance, { color: "#E05A6D" }]}>
+                      {formatAmount(totalBalance)}
+                    </Text>
+                  </View>
+                </View>
+
+                <Pressable
+                  onPress={() => setEditingName((v) => !v)}
+                  style={({ pressed }) => [
+                    styles.heroEditBtn,
+                    {
+                      backgroundColor: editingName ? "#E05A6D" : (isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)"),
+                      opacity: pressed ? 0.7 : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name={editingName ? "close" : "pencil"}
+                    size={15}
+                    color={editingName ? "#fff" : theme.textSecondary}
+                  />
+                </Pressable>
+              </View>
+
+              {/* Inline name editor */}
+              {editingName && (
+                <Animated.View entering={FadeIn.duration(200)} style={styles.nameEditorWrap}>
+                  <View style={[styles.nameEditorBox, {
+                    backgroundColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+                    borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)",
+                  }]}>
+                    <Ionicons name="person-outline" size={16} color={theme.textTertiary} />
+                    <TextInput
+                      value={nameInput}
+                      onChangeText={setNameInput}
+                      placeholder="Enter display name"
+                      placeholderTextColor={theme.textTertiary}
+                      style={[styles.nameEditorInput, { color: theme.text }]}
+                      returnKeyType="done"
+                      onSubmitEditing={handleSaveName}
+                      maxLength={40}
+                      autoFocus
+                    />
+                  </View>
+                  <View style={styles.nameEditorActions}>
+                    <Pressable
+                      onPress={handleCancelEdit}
+                      style={({ pressed }) => [styles.nameEditorActionBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", opacity: pressed ? 0.7 : 1 }]}
+                    >
+                      <Text style={[styles.nameEditorActionLabel, { color: theme.textSecondary }]}>Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={handleSaveName}
+                      style={({ pressed }) => [styles.nameEditorActionBtn, { backgroundColor: "#E05A6D", opacity: pressed ? 0.8 : 1, flex: 1.4 }]}
+                    >
+                      <Ionicons name="checkmark" size={15} color="#fff" />
+                      <Text style={[styles.nameEditorActionLabel, { color: "#fff" }]}>Save Name</Text>
+                    </Pressable>
+                  </View>
+                </Animated.View>
+              )}
+
+              {/* Success toast */}
+              {nameSaved && !editingName && (
+                <Animated.View entering={FadeIn.duration(200)} style={styles.savedToast}>
+                  <Ionicons name="checkmark-circle" size={15} color="#22C55E" />
+                  <Text style={[styles.savedToastText, { color: "#22C55E" }]}>Name saved!</Text>
+                </Animated.View>
+              )}
+            </LinearGradient>
+          </Animated.View>
+
+          {/* ════════════════════════════════════════
+              APPEARANCE
+          ════════════════════════════════════════ */}
+          <SectionLabel label="APPEARANCE" delay={100} />
+          <Animated.View entering={FadeInDown.delay(120).duration(350)} style={[styles.card, {
+            backgroundColor: theme.surface,
+            borderColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+          }]}>
+            <View style={styles.themeCardsRow}>
+              {THEMES.map((t) => {
                 const active = colorScheme === t.key;
                 return (
-                  <React.Fragment key={t.key}>
-                    <Pressable
-                      onPress={() => setTheme(t.key)}
-                      style={({ pressed }) => [
-                        styles.themePickerBtn,
-                        {
-                          backgroundColor: active ? t.color + "15" : "transparent",
-                          borderColor: active ? t.color + "55" : "transparent",
-                          borderWidth: 1.5,
-                          opacity: pressed ? 0.75 : 1,
-                        },
-                      ]}
-                    >
-                      <View style={[styles.themeIconWrap, { backgroundColor: active ? t.color + "20" : (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)") }]}>
-                        <Ionicons name={t.icon as any} size={22} color={active ? t.color : theme.textTertiary} />
-                      </View>
-                      <Text style={[styles.themeBtnLabel, { color: active ? t.color : theme.textSecondary, fontFamily: active ? "Inter_700Bold" : "Inter_400Regular" }]}>
-                        {t.label}
-                      </Text>
-                      {active && (
-                        <View style={[styles.themeCheck, { backgroundColor: t.color }]}>
-                          <Ionicons name="checkmark" size={10} color="#fff" />
-                        </View>
-                      )}
-                    </Pressable>
-                    {i < THEMES.length - 1 && <View style={{ width: 10 }} />}
-                  </React.Fragment>
-                );
-              })}
-            </View>
-            <View style={[styles.themeTip, { backgroundColor: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)" }]}>
-              <Ionicons name="information-circle-outline" size={14} color={theme.textTertiary} />
-              <Text style={[styles.themeTipText, { color: theme.textTertiary }]}>
-                Theme is applied throughout the entire app and saved locally.
-              </Text>
-            </View>
-          </Section>
-
-          {/* ── Currency ── */}
-          <Section title="Currency" delay={140}>
-            <View style={styles.currencyGrid}>
-              {CURRENCY_LIST.map((c) => {
-                const active = userCurrency === c.code;
-                return (
                   <Pressable
-                    key={c.code}
-                    onPress={() => setUserCurrency(c.code)}
-                    style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1, flex: 1, minWidth: "30%" })}
+                    key={t.key}
+                    onPress={() => setTheme(t.key)}
+                    style={({ pressed }) => [styles.themeCard, { opacity: pressed ? 0.88 : 1 }]}
                   >
-                    <View
-                      style={[
-                        styles.currencyCard,
-                        {
-                          backgroundColor: active ? "#E05A6D12" : (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"),
-                          borderColor: active ? "#E05A6D55" : "transparent",
-                          borderWidth: 1.5,
-                        },
-                      ]}
+                    <LinearGradient
+                      colors={active
+                        ? (t.key === "dark" ? ["#1A1245", "#0E0E2A"] : ["#FFF9E6", "#FEF3C7"])
+                        : [isDark ? "#1A1A1A" : "#F5F5F5", isDark ? "#141414" : "#EEEEEE"]
+                      }
+                      style={[styles.themeCardInner, {
+                        borderColor: active ? t.accentColor + "60" : (isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"),
+                        borderWidth: active ? 1.5 : 1,
+                        shadowColor: active ? t.accentColor : "transparent",
+                        shadowOffset: { width: 0, height: 4 },
+                        shadowOpacity: active ? 0.4 : 0,
+                        shadowRadius: 12,
+                        elevation: active ? 6 : 0,
+                      }]}
                     >
-                      <Text style={styles.currencyFlag}>{c.flag}</Text>
-                      <Text style={[styles.currencySymbol, { color: active ? "#E05A6D" : theme.text }]}>{c.symbol}</Text>
-                      <Text style={[styles.currencyCode, { color: active ? "#E05A6D" : theme.textSecondary, fontFamily: active ? "Inter_700Bold" : "Inter_400Regular" }]}>
-                        {c.code}
-                      </Text>
-                      {active && (
-                        <View style={[styles.currencyCheck, { backgroundColor: "#E05A6D" }]}>
-                          <Ionicons name="checkmark" size={8} color="#fff" />
+                      {/* Mini UI preview */}
+                      <View style={[styles.themeMiniScreen, { backgroundColor: t.bgTop }]}>
+                        <View style={[styles.themeMiniBar, { backgroundColor: t.key === "dark" ? "#222" : "#fff" }]}>
+                          <View style={[styles.themeMiniDot, { backgroundColor: t.accentColor }]} />
+                          <View style={[styles.themeMiniLine, { backgroundColor: t.key === "dark" ? "#444" : "#ccc", width: 28 }]} />
                         </View>
-                      )}
-                    </View>
+                        <View style={[styles.themeMiniCard, { backgroundColor: t.key === "dark" ? "#1A1A1A" : "#fff" }]}>
+                          <View style={[styles.themeMiniLine, { backgroundColor: t.accentColor, width: 22 }]} />
+                          <View style={[styles.themeMiniLine, { backgroundColor: t.key === "dark" ? "#333" : "#ddd", width: 36, height: 4, marginTop: 3 }]} />
+                        </View>
+                        <View style={{ flexDirection: "row", gap: 4 }}>
+                          {[t.accentColor + "90", t.key === "dark" ? "#2A2A2A" : "#e8e8e8"].map((bg, i) => (
+                            <View key={i} style={[styles.themeMiniPill, { backgroundColor: bg }]} />
+                          ))}
+                        </View>
+                      </View>
+
+                      {/* Label row */}
+                      <View style={styles.themeCardLabelRow}>
+                        <View style={[styles.themeCardIconWrap, { backgroundColor: active ? t.accentColor + "20" : (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)") }]}>
+                          <Ionicons name={t.icon as any} size={16} color={active ? t.accentColor : theme.textTertiary} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <Text style={[styles.themeCardLabel, { color: active ? t.accentColor : theme.text, fontFamily: active ? "Inter_700Bold" : "Inter_600SemiBold" }]}>
+                            {t.label}
+                          </Text>
+                          <Text style={[styles.themeCardDesc, { color: theme.textTertiary }]}>{t.desc}</Text>
+                        </View>
+                        {active && (
+                          <View style={[styles.themeActiveCheck, { backgroundColor: t.accentColor }]}>
+                            <Ionicons name="checkmark" size={11} color="#fff" />
+                          </View>
+                        )}
+                      </View>
+                    </LinearGradient>
                   </Pressable>
                 );
               })}
             </View>
-            <View style={[styles.currencyNote, { borderTopColor: theme.border }]}>
-              <Ionicons name="swap-horizontal-outline" size={14} color={theme.textTertiary} />
-              <Text style={[styles.currencyNoteText, { color: theme.textTertiary }]}>
-                Selected: {CURRENCY_LIST.find(c => c.code === userCurrency)?.label} ({CURRENCY_LIST.find(c => c.code === userCurrency)?.symbol})
-                {" — "}All balances and amounts shown in this currency.
-              </Text>
-            </View>
-          </Section>
+          </Animated.View>
 
-          {/* ── About ── */}
-          <Section title="About" delay={180}>
-            <SettingRow icon="apps-outline" iconColor="#6366F1" label="Timpla" sublabel="Your all-in-one student finance app" />
+          {/* ════════════════════════════════════════
+              CURRENCY
+          ════════════════════════════════════════ */}
+          <SectionLabel label="CURRENCY" delay={160} />
+          <Animated.View entering={FadeInDown.delay(180).duration(350)} style={[styles.card, {
+            backgroundColor: theme.surface,
+            borderColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+          }]}>
+            {/* Active currency hero */}
+            <View style={[styles.activeCurrencyBanner, {
+              backgroundColor: isDark ? "rgba(224,90,109,0.1)" : "rgba(224,90,109,0.06)",
+              borderBottomColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+            }]}>
+              <Text style={styles.activeCurrencyFlag}>{selectedCurrency.flag}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.activeCurrencyLabel, { color: theme.text }]}>
+                  {selectedCurrency.label}
+                </Text>
+                <Text style={[styles.activeCurrencyCode, { color: theme.textSecondary }]}>
+                  Symbol: {selectedCurrency.symbol} · Code: {selectedCurrency.code}
+                </Text>
+              </View>
+              <View style={[styles.activeCurrencyBadge, { backgroundColor: "#E05A6D" }]}>
+                <Text style={styles.activeCurrencyBadgeText}>Active</Text>
+              </View>
+            </View>
+
+            {/* Currency rows */}
+            {CURRENCY_LIST.map((c, i) => {
+              const active = userCurrency === c.code;
+              return (
+                <React.Fragment key={c.code}>
+                  <Pressable
+                    onPress={() => setUserCurrency(c.code)}
+                    style={({ pressed }) => [
+                      styles.currencyRow,
+                      {
+                        backgroundColor: active
+                          ? (isDark ? "rgba(224,90,109,0.08)" : "rgba(224,90,109,0.05)")
+                          : "transparent",
+                        opacity: pressed ? 0.75 : 1,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.currencyRowFlag}>{c.flag}</Text>
+                    <View style={styles.currencyRowText}>
+                      <Text style={[styles.currencyRowName, { color: active ? "#E05A6D" : theme.text, fontFamily: active ? "Inter_600SemiBold" : "Inter_400Regular" }]}>
+                        {c.label}
+                      </Text>
+                      <Text style={[styles.currencyRowCode, { color: theme.textTertiary }]}>
+                        {c.code}  ·  {c.symbol}
+                      </Text>
+                    </View>
+                    <Text style={[styles.currencyRowSymbol, { color: active ? "#E05A6D" : theme.textSecondary, fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
+                      {c.symbol}
+                    </Text>
+                    <View style={[styles.currencyRadio, {
+                      borderColor: active ? "#E05A6D" : (isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"),
+                      backgroundColor: active ? "#E05A6D" : "transparent",
+                    }]}>
+                      {active && <View style={styles.currencyRadioDot} />}
+                    </View>
+                  </Pressable>
+                  {i < CURRENCY_LIST.length - 1 && <Divider />}
+                </React.Fragment>
+              );
+            })}
+          </Animated.View>
+
+          {/* ════════════════════════════════════════
+              ABOUT
+          ════════════════════════════════════════ */}
+          <SectionLabel label="ABOUT TIMPLA" delay={220} />
+          <Animated.View entering={FadeInDown.delay(240).duration(350)} style={[styles.card, {
+            backgroundColor: theme.surface,
+            borderColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+            overflow: "hidden",
+          }]}>
+            {/* App name row with gradient pill */}
+            <View style={styles.aboutAppRow}>
+              <LinearGradient colors={["#C0394D", "#E05A6D"]} style={styles.aboutAppIcon}>
+                <Ionicons name="apps" size={20} color="#fff" />
+              </LinearGradient>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.aboutAppName, { color: theme.text }]}>Timpla</Text>
+                <Text style={[styles.aboutAppTagline, { color: theme.textSecondary }]}>
+                  All-in-one student finance & study app
+                </Text>
+              </View>
+              <View style={[styles.aboutVersionPill, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" }]}>
+                <Text style={[styles.aboutVersionText, { color: theme.textSecondary }]}>v1.0.0</Text>
+              </View>
+            </View>
+
             <Divider />
-            <SettingRow icon="code-slash-outline" iconColor="#2DD4BF" label="Version" sublabel="v1.0.0" />
-            <Divider />
-            <SettingRow icon="flag-outline" iconColor="#F59E0B" label="Made for" sublabel="Filipino students & teachers 🇵🇭" />
-            <Divider />
-            <SettingRow icon="lock-closed-outline" iconColor="#A78BFA" label="Privacy" sublabel="All data stored locally on your device only" />
-          </Section>
+
+            {[
+              { icon: "flag-outline",        color: "#F59E0B", label: "Made for",  value: "Filipino students & teachers 🇵🇭" },
+              { icon: "lock-closed-outline", color: "#A78BFA", label: "Storage",   value: "Stored locally on your device only" },
+              { icon: "wifi-outline",        color: "#2DD4BF", label: "Works",     value: "Fully offline — no internet needed" },
+              { icon: "heart-outline",       color: "#E05A6D", label: "Made with", value: "Love & dedication 💙" },
+            ].map((row, i, arr) => (
+              <React.Fragment key={row.label}>
+                <View style={styles.aboutRow}>
+                  <View style={[styles.aboutRowIcon, { backgroundColor: row.color + "18", borderColor: row.color + "30" }]}>
+                    <Ionicons name={row.icon as any} size={16} color={row.color} />
+                  </View>
+                  <View style={styles.aboutRowText}>
+                    <Text style={[styles.aboutRowLabel, { color: theme.textTertiary }]}>{row.label}</Text>
+                    <Text style={[styles.aboutRowValue, { color: theme.text }]}>{row.value}</Text>
+                  </View>
+                </View>
+                {i < arr.length - 1 && <Divider />}
+              </React.Fragment>
+            ))}
+          </Animated.View>
+
+          {/* Footer tagline */}
+          <Animated.Text
+            entering={FadeInDown.delay(280).duration(300)}
+            style={[styles.footerText, { color: theme.textTertiary }]}
+          >
+            All your data lives safely on your device only.
+          </Animated.Text>
 
         </ScrollView>
       </KeyboardAvoidingView>
@@ -258,71 +425,138 @@ export default function SettingsScreen() {
   );
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   Styles
+═══════════════════════════════════════════════════════════════════════════ */
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
+  /* Header */
   header: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 20, paddingBottom: 16 },
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-  screenLabel: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 2 },
-  title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
+  screenLabel: { fontSize: 12, fontFamily: "Inter_500Medium", marginBottom: 1, letterSpacing: 0.3 },
+  title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.5 },
 
-  section: { marginBottom: 8, paddingHorizontal: 20 },
-  sectionTitle: { fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1, marginBottom: 8, marginTop: 16 },
-  sectionCard: { borderRadius: 18, borderWidth: 1, overflow: "hidden" },
-  divider: { height: 1, marginHorizontal: 16 },
-
-  /* Avatar */
-  avatarRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16, borderBottomWidth: 1 },
-  avatar: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
-  avatarText: { fontSize: 20, fontFamily: "Inter_700Bold", color: "#fff" },
-  avatarName: { fontSize: 17, fontFamily: "Inter_700Bold" },
-  avatarSub: { fontSize: 13, fontFamily: "Inter_400Regular" },
-
-  /* Name row */
-  nameRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, paddingHorizontal: 16 },
-  settingIcon: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1 },
-  nameInputWrap: { flex: 1, gap: 4 },
-  settingLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  nameInput: {
-    fontSize: 14, fontFamily: "Inter_400Regular", borderWidth: 1, borderRadius: 10,
-    paddingHorizontal: 10, paddingVertical: 7,
+  /* Section label */
+  sectionLabel: {
+    fontSize: 11, fontFamily: "Inter_700Bold", letterSpacing: 1.2,
+    paddingHorizontal: 20, marginTop: 20, marginBottom: 10,
   },
-  saveBtn: { width: 36, height: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
 
-  /* Generic setting row */
-  settingRow: { flexDirection: "row", alignItems: "center", gap: 12, padding: 14, paddingHorizontal: 16 },
-  settingText: { flex: 1, gap: 3 },
-  settingSubLabel: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  /* Generic card */
+  card: { marginHorizontal: 20, borderRadius: 20, borderWidth: 1, overflow: "hidden" },
 
-  /* Theme picker */
-  themePickerRow: { flexDirection: "row", padding: 14, paddingHorizontal: 16, paddingBottom: 10 },
-  themePickerBtn: {
-    flex: 1,
-    alignItems: "center",
-    gap: 10,
-    paddingVertical: 16,
-    borderRadius: 16,
-    position: "relative",
+  /* Divider */
+  divider: { height: StyleSheet.hairlineWidth, marginHorizontal: 0 },
+
+  /* ─── Profile Hero ─────────────────────────────────────────────────────── */
+  profileHeroWrap: { paddingHorizontal: 20, marginBottom: 4 },
+  profileHero: {
+    borderRadius: 22, borderWidth: 1, padding: 20,
+    overflow: "hidden", position: "relative",
   },
-  themeIconWrap: { width: 52, height: 52, borderRadius: 26, alignItems: "center", justifyContent: "center" },
-  themeBtnLabel: { fontSize: 14 },
-  themeCheck: { position: "absolute", top: 8, right: 8, width: 18, height: 18, borderRadius: 9, alignItems: "center", justifyContent: "center" },
-  themeTip: { flexDirection: "row", alignItems: "flex-start", gap: 6, marginHorizontal: 14, marginBottom: 14, padding: 10, borderRadius: 10 },
-  themeTipText: { fontSize: 12, fontFamily: "Inter_400Regular", flex: 1, lineHeight: 17 },
-
-  /* Currency grid */
-  currencyGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8, padding: 14, paddingBottom: 8 },
-  currencyCard: {
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 14,
-    position: "relative",
+  heroDeco1: {
+    position: "absolute", width: 120, height: 120, borderRadius: 60,
+    opacity: 0.06, top: -30, right: -20,
   },
-  currencyFlag: { fontSize: 22 },
-  currencySymbol: { fontSize: 16, fontFamily: "Inter_700Bold" },
-  currencyCode: { fontSize: 11 },
-  currencyCheck: { position: "absolute", top: 6, right: 6, width: 16, height: 16, borderRadius: 8, alignItems: "center", justifyContent: "center" },
-  currencyNote: { flexDirection: "row", alignItems: "flex-start", gap: 6, paddingHorizontal: 14, paddingVertical: 12, borderTopWidth: 1 },
-  currencyNoteText: { fontSize: 12, fontFamily: "Inter_400Regular", flex: 1, lineHeight: 17 },
+  heroDeco2: {
+    position: "absolute", width: 70, height: 70, borderRadius: 35,
+    opacity: 0.05, bottom: -20, left: 10,
+  },
+  heroTopRow: { flexDirection: "row", alignItems: "center", gap: 14 },
+  heroAvatar: {
+    width: 58, height: 58, borderRadius: 29,
+    alignItems: "center", justifyContent: "center",
+    shadowColor: "#E05A6D", shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4, shadowRadius: 10, elevation: 8,
+  },
+  heroAvatarText: { fontSize: 22, fontFamily: "Inter_700Bold", color: "#fff" },
+  heroNameCol: { flex: 1, gap: 6 },
+  heroName: { fontSize: 19, fontFamily: "Inter_700Bold", letterSpacing: -0.3 },
+  heroBalanceChip: {
+    flexDirection: "row", alignItems: "center", gap: 5,
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(224,90,109,0.12)", borderRadius: 20,
+    paddingHorizontal: 10, paddingVertical: 4,
+  },
+  heroBalance: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+  heroEditBtn: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
+
+  /* Name editor */
+  nameEditorWrap: { marginTop: 16, gap: 10 },
+  nameEditorBox: {
+    flexDirection: "row", alignItems: "center", gap: 10,
+    borderWidth: 1, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12,
+  },
+  nameEditorInput: { flex: 1, fontSize: 15, fontFamily: "Inter_400Regular" },
+  nameEditorActions: { flexDirection: "row", gap: 8 },
+  nameEditorActionBtn: {
+    flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center",
+    gap: 6, paddingVertical: 12, borderRadius: 13,
+  },
+  nameEditorActionLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
+  savedToast: {
+    flexDirection: "row", alignItems: "center", gap: 6,
+    marginTop: 12, alignSelf: "center",
+  },
+  savedToastText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
+
+  /* ─── Appearance ───────────────────────────────────────────────────────── */
+  themeCardsRow: { flexDirection: "row", gap: 12, padding: 14 },
+  themeCard: { flex: 1 },
+  themeCardInner: { borderRadius: 16, overflow: "hidden" },
+
+  /* Mini UI preview */
+  themeMiniScreen: { padding: 10, gap: 6, height: 90, justifyContent: "flex-start" },
+  themeMiniBar: { flexDirection: "row", alignItems: "center", gap: 5, borderRadius: 6, padding: 6 },
+  themeMiniDot: { width: 8, height: 8, borderRadius: 4 },
+  themeMiniCard: { borderRadius: 8, padding: 8, gap: 2 },
+  themeMiniLine: { height: 5, borderRadius: 3 },
+  themeMiniPill: { flex: 1, height: 18, borderRadius: 9 },
+
+  themeCardLabelRow: { flexDirection: "row", alignItems: "center", gap: 8, padding: 12 },
+  themeCardIconWrap: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
+  themeCardLabel: { fontSize: 13 },
+  themeCardDesc: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 1 },
+  themeActiveCheck: { width: 20, height: 20, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+
+  /* ─── Currency ─────────────────────────────────────────────────────────── */
+  activeCurrencyBanner: {
+    flexDirection: "row", alignItems: "center", gap: 12,
+    paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1,
+  },
+  activeCurrencyFlag: { fontSize: 28 },
+  activeCurrencyLabel: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
+  activeCurrencyCode: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  activeCurrencyBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },
+  activeCurrencyBadgeText: { fontSize: 11, fontFamily: "Inter_700Bold", color: "#fff" },
+
+  currencyRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
+  currencyRowFlag: { fontSize: 22 },
+  currencyRowText: { flex: 1, gap: 2 },
+  currencyRowName: { fontSize: 14 },
+  currencyRowCode: { fontSize: 11, fontFamily: "Inter_400Regular" },
+  currencyRowSymbol: { fontSize: 16 },
+  currencyRadio: {
+    width: 20, height: 20, borderRadius: 10, borderWidth: 2,
+    alignItems: "center", justifyContent: "center",
+  },
+  currencyRadioDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#fff" },
+
+  /* ─── About ────────────────────────────────────────────────────────────── */
+  aboutAppRow: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
+  aboutAppIcon: { width: 46, height: 46, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  aboutAppName: { fontSize: 17, fontFamily: "Inter_700Bold", letterSpacing: -0.2 },
+  aboutAppTagline: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
+  aboutVersionPill: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  aboutVersionText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
+
+  aboutRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 16, paddingVertical: 13 },
+  aboutRowIcon: { width: 34, height: 34, borderRadius: 10, alignItems: "center", justifyContent: "center", borderWidth: 1 },
+  aboutRowText: { flex: 1, gap: 2 },
+  aboutRowLabel: { fontSize: 11, fontFamily: "Inter_500Medium", letterSpacing: 0.3 },
+  aboutRowValue: { fontSize: 13, fontFamily: "Inter_500Medium" },
+
+  /* Footer */
+  footerText: { textAlign: "center", fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 24, marginBottom: 4, paddingHorizontal: 40 },
 });
