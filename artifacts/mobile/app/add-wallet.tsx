@@ -21,7 +21,7 @@ import { ScreenWrapper } from "@/components/ScreenWrapper";
 
 const WALLET_COLORS = [
   "#2DD4BF", "#E05A6D", "#F59E0B", "#EF4444",
-  "#10B981", "#F472B6", "#22D3EE", "#F97316",
+  "#10B981", "#F472B6", "#22D3EE",
 ];
 
 const WALLET_ICONS = [
