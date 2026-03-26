@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, Pressable, Platform, TextInput,
+  View, Text, StyleSheet, ScrollView, Pressable, Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -50,8 +50,6 @@ export default function StudyScreen() {
 
   const [focusMinutes, setFocusMinutes] = useState(25);
   const [breakMinutes, setBreakMinutes] = useState(5);
-  const [focusDraft, setFocusDraft]     = useState("25");
-  const [breakDraft, setBreakDraft]     = useState("5");
   const [phase, setPhase]               = useState<Phase>("focus");
   const [secondsLeft, setSecondsLeft]   = useState(focusMinutes * 60);
   const [running, setRunning]           = useState(false);
@@ -61,27 +59,9 @@ export default function StudyScreen() {
 
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const applyFocusValue = useCallback((val: string) => {
-    const n = parseInt(val, 10);
-    if (isNaN(n) || n < 1) { setFocusDraft(String(focusMinutes)); return; }
-    const clamped = Math.min(120, Math.max(1, n));
-    setFocusMinutes(clamped);
-    setFocusDraft(String(clamped));
-    if (!running) setSecondsLeft(clamped * 60);
-  }, [focusMinutes, running]);
-
-  const applyBreakValue = useCallback((val: string) => {
-    const n = parseInt(val, 10);
-    if (isNaN(n) || n < 1) { setBreakDraft(String(breakMinutes)); return; }
-    const clamped = Math.min(60, Math.max(1, n));
-    setBreakMinutes(clamped);
-    setBreakDraft(String(clamped));
-  }, [breakMinutes]);
-
   const adjustFocus = useCallback((delta: number) => {
     const next = Math.min(120, Math.max(1, focusMinutes + delta));
     setFocusMinutes(next);
-    setFocusDraft(String(next));
     if (!running) setSecondsLeft(next * 60);
     Haptics.selectionAsync();
   }, [focusMinutes, running]);
@@ -89,7 +69,6 @@ export default function StudyScreen() {
   const adjustBreak = useCallback((delta: number) => {
     const next = Math.min(60, Math.max(1, breakMinutes + delta));
     setBreakMinutes(next);
-    setBreakDraft(String(next));
     Haptics.selectionAsync();
   }, [breakMinutes]);
 
@@ -191,128 +170,100 @@ export default function StudyScreen() {
 
         {/* ── Settings Panel ── */}
         {showSettings && (
-          <View
-            style={[
-              styles.settingsPanel,
-              {
-                backgroundColor: theme.surface,
-                borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border,
-                marginHorizontal: 20,
-                marginBottom: 16,
-              },
-            ]}
-          >
-            {/* Panel header */}
-            <View style={styles.settingsPanelHeader}>
-              <View style={[styles.settingsPanelIcon, { backgroundColor: phaseColor + "18" }]}>
-                <Ionicons name="timer-outline" size={18} color={phaseColor} />
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.settingsPanelTitle, { color: theme.text }]}>Timer Settings</Text>
-                <Text style={[styles.settingsPanelSub, { color: theme.textSecondary }]}>Tap the number to type, or use ± to adjust</Text>
-              </View>
-            </View>
-
-            <View style={[styles.settingsDivider, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : theme.border }]} />
-
-            {/* Focus row */}
+          <View style={{ marginHorizontal: 20, marginBottom: 16, gap: 12 }}>
             {[
               {
-                label: "Focus Time",
-                range: "1 – 120 min",
+                label: "Focus",
+                sub: "Concentration period",
                 color: "#6366F1",
-                icon: "brain-outline",
-                draft: focusDraft,
+                icon: "bulb-outline" as const,
                 value: focusMinutes,
-                onDraftChange: (t: string) => setFocusDraft(t.replace(/[^0-9]/g, "")),
-                onCommit: () => applyFocusValue(focusDraft),
+                unit: "min",
                 onMinus: () => adjustFocus(-1),
                 onPlus: () => adjustFocus(1),
-                maxLength: 3,
                 atMin: focusMinutes <= 1,
                 atMax: focusMinutes >= 120,
+                gradient: isDark ? ["#0D102A", "#121630"] as [string, string] : ["#EDE9FE", "#F5F0FF"] as [string, string],
               },
               {
-                label: "Break Time",
-                range: "1 – 60 min",
+                label: "Break",
+                sub: "Rest period",
                 color: "#2DD4BF",
-                icon: "cafe-outline",
-                draft: breakDraft,
+                icon: "cafe-outline" as const,
                 value: breakMinutes,
-                onDraftChange: (t: string) => setBreakDraft(t.replace(/[^0-9]/g, "")),
-                onCommit: () => applyBreakValue(breakDraft),
+                unit: "min",
                 onMinus: () => adjustBreak(-1),
                 onPlus: () => adjustBreak(1),
-                maxLength: 2,
                 atMin: breakMinutes <= 1,
                 atMax: breakMinutes >= 60,
+                gradient: isDark ? ["#0D2018", "#102A1E"] as [string, string] : ["#D1FAE5", "#E8FFF5"] as [string, string],
               },
-            ].map((item, idx) => (
-              <View key={item.label}>
-                <View style={styles.settingRow}>
-                  {/* Label side */}
-                  <View style={styles.settingLabelCol}>
-                    <View style={[styles.settingIconBubble, { backgroundColor: item.color + "20" }]}>
-                      <Ionicons name={item.icon as any} size={16} color={item.color} />
-                    </View>
-                    <View>
-                      <Text style={[styles.settingLabel, { color: theme.text }]}>{item.label}</Text>
-                      <Text style={[styles.settingRange, { color: theme.textTertiary }]}>{item.range}</Text>
-                    </View>
+            ].map((item) => (
+              <LinearGradient
+                key={item.label}
+                colors={item.gradient}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
+                style={[
+                  styles.settingCard,
+                  {
+                    borderColor: item.color + "25",
+                    shadowColor: item.color,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: isDark ? 0.2 : 0.08,
+                    shadowRadius: 12,
+                    elevation: 4,
+                  },
+                ]}
+              >
+                {/* Label row */}
+                <View style={styles.settingLabelRow}>
+                  <View style={[styles.settingIconBubble, { backgroundColor: item.color + "20" }]}>
+                    <Ionicons name={item.icon} size={16} color={item.color} />
                   </View>
-
-                  {/* Control side */}
-                  <View style={styles.settingControl}>
-                    <Pressable
-                      onPress={item.onMinus}
-                      disabled={item.atMin}
-                      style={({ pressed }) => [
-                        styles.adjBtn,
-                        {
-                          backgroundColor: item.atMin ? (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)") : item.color + "18",
-                          borderColor: item.atMin ? (isDark ? "rgba(255,255,255,0.08)" : theme.border) : item.color + "35",
-                          opacity: pressed ? 0.7 : 1,
-                        },
-                      ]}
-                    >
-                      <Ionicons name="remove" size={20} color={item.atMin ? theme.textTertiary : item.color} />
-                    </Pressable>
-
-                    <View style={[styles.timeDisplay, { borderColor: item.color + "35", backgroundColor: item.color + "0D" }]}>
-                      <TextInput
-                        value={item.draft}
-                        onChangeText={item.onDraftChange}
-                        onBlur={item.onCommit}
-                        onSubmitEditing={item.onCommit}
-                        keyboardType="number-pad"
-                        maxLength={item.maxLength}
-                        selectTextOnFocus
-                        style={[styles.timeInput, { color: item.color }]}
-                      />
-                      <Text style={[styles.timeUnit, { color: item.color + "AA" }]}>min</Text>
-                    </View>
-
-                    <Pressable
-                      onPress={item.onPlus}
-                      disabled={item.atMax}
-                      style={({ pressed }) => [
-                        styles.adjBtn,
-                        {
-                          backgroundColor: item.atMax ? (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)") : item.color + "18",
-                          borderColor: item.atMax ? (isDark ? "rgba(255,255,255,0.08)" : theme.border) : item.color + "35",
-                          opacity: pressed ? 0.7 : 1,
-                        },
-                      ]}
-                    >
-                      <Ionicons name="add" size={20} color={item.atMax ? theme.textTertiary : item.color} />
-                    </Pressable>
+                  <View>
+                    <Text style={[styles.settingLabel, { color: theme.text }]}>{item.label}</Text>
+                    <Text style={[styles.settingSub, { color: theme.textSecondary }]}>{item.sub}</Text>
                   </View>
                 </View>
 
-                {idx === 0 && (
-                  <View style={[styles.settingsDivider, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : theme.border, marginVertical: 0 }]} />
-                )}
-              </View>
+                {/* Controls: − value + */}
+                <View style={styles.settingControlRow}>
+                  <Pressable
+                    onPress={item.onMinus}
+                    disabled={item.atMin}
+                    style={({ pressed }) => [
+                      styles.adjBtn,
+                      {
+                        backgroundColor: item.atMin ? (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)") : item.color + "18",
+                        borderColor: item.atMin ? "transparent" : item.color + "30",
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
+                  >
+                    <Ionicons name="remove" size={22} color={item.atMin ? theme.textTertiary : item.color} />
+                  </Pressable>
+
+                  <View style={styles.settingValueWrap}>
+                    <Text style={[styles.settingValue, { color: item.color }]}>{item.value}</Text>
+                    <Text style={[styles.settingUnit, { color: item.color + "99" }]}>{item.unit}</Text>
+                  </View>
+
+                  <Pressable
+                    onPress={item.onPlus}
+                    disabled={item.atMax}
+                    style={({ pressed }) => [
+                      styles.adjBtn,
+                      {
+                        backgroundColor: item.atMax ? (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)") : item.color + "18",
+                        borderColor: item.atMax ? "transparent" : item.color + "30",
+                        opacity: pressed ? 0.7 : 1,
+                      },
+                    ]}
+                  >
+                    <Ionicons name="add" size={22} color={item.atMax ? theme.textTertiary : item.color} />
+                  </Pressable>
+                </View>
+              </LinearGradient>
             ))}
           </View>
         )}
@@ -336,7 +287,7 @@ export default function StudyScreen() {
           >
             {/* Phase badge */}
             <View style={[styles.phaseBadge, { backgroundColor: phaseColor + "20", borderColor: phaseColor + "40" }]}>
-              <Ionicons name={isFocus ? "brain-outline" as any : "cafe-outline"} size={14} color={phaseColor} />
+              <Ionicons name={isFocus ? "bulb-outline" : "cafe-outline"} size={14} color={phaseColor} />
               <Text style={[styles.phaseText, { color: phaseColor }]}>
                 {isFocus ? "Focus Time" : "Break Time"}
               </Text>
@@ -578,52 +529,34 @@ const styles = StyleSheet.create({
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
   settingsBtn: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
 
-  /* Settings panel */
-  settingsPanel: { borderRadius: 20, borderWidth: 1, overflow: "hidden" },
-  settingsPanelHeader: { flexDirection: "row", alignItems: "center", gap: 12, padding: 18 },
-  settingsPanelIcon: {
-    width: 42, height: 42, borderRadius: 21,
+  /* Settings cards */
+  settingCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 20,
+    gap: 18,
+  },
+  settingLabelRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  settingIconBubble: {
+    width: 40, height: 40, borderRadius: 20,
     alignItems: "center", justifyContent: "center",
   },
-  settingsPanelTitle: { fontSize: 15, fontFamily: "Inter_700Bold" },
-  settingsPanelSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 2 },
-  settingsDivider: { height: 1 },
-  settingRow: {
+  settingLabel: { fontSize: 16, fontFamily: "Inter_700Bold" },
+  settingSub: { fontSize: 12, fontFamily: "Inter_400Regular", marginTop: 1 },
+  settingControlRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 18,
-    paddingVertical: 16,
-  },
-  settingLabelCol: { flexDirection: "row", alignItems: "center", gap: 12 },
-  settingIconBubble: {
-    width: 38, height: 38, borderRadius: 19,
-    alignItems: "center", justifyContent: "center",
-  },
-  settingLabel: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  settingRange: { fontSize: 11, fontFamily: "Inter_400Regular", marginTop: 2 },
-  settingControl: { flexDirection: "row", alignItems: "center", gap: 10 },
-  adjBtn: {
-    width: 42, height: 42, borderRadius: 21,
-    alignItems: "center", justifyContent: "center",
-    borderWidth: 1,
-  },
-  timeDisplay: {
-    alignItems: "center",
     justifyContent: "center",
-    borderRadius: 14,
+    gap: 20,
+  },
+  adjBtn: {
+    width: 48, height: 48, borderRadius: 24,
+    alignItems: "center", justifyContent: "center",
     borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    minWidth: 76,
   },
-  timeInput: {
-    fontSize: 30,
-    fontFamily: "Inter_700Bold",
-    textAlign: "center",
-    minWidth: 48,
-  },
-  timeUnit: { fontSize: 11, fontFamily: "Inter_500Medium", marginTop: -2 },
+  settingValueWrap: { alignItems: "center", minWidth: 80 },
+  settingValue: { fontSize: 40, fontFamily: "Inter_700Bold", lineHeight: 46 },
+  settingUnit: { fontSize: 13, fontFamily: "Inter_500Medium", marginTop: 2 },
 
   /* Timer card */
   timerCard: {
