@@ -19,11 +19,12 @@ import { CURRENCY_LIST } from "@/utils/format";
 ═══════════════════════════════════════════════════════════════════════════ */
 
 function SectionLabel({ label, delay = 0 }: { label: string; delay?: number }) {
-  const { theme } = useTheme();
+  const { isDark } = useTheme();
+  const color = isDark ? "#C8C8C8" : "#475569";
   return (
     <Animated.Text
       entering={FadeInDown.delay(delay).duration(300)}
-      style={[styles.sectionLabel, { color: theme.textSecondary }]}
+      style={[styles.sectionLabel, { color }]}
     >
       {label}
     </Animated.Text>
@@ -48,6 +49,10 @@ export default function SettingsScreen() {
   const [nameInput, setNameInput] = useState(userName);
   const [editingName, setEditingName] = useState(false);
   const [nameSaved, setNameSaved] = useState(false);
+
+  /* Brighter sub-text that passes contrast on dark surfaces */
+  const subText = isDark ? "#C8C8C8" : "#475569";
+  const labelText = isDark ? "#E0E0E0" : "#1E293B";
 
   const handleSaveName = () => {
     const trimmed = nameInput.trim();
@@ -112,7 +117,7 @@ export default function SettingsScreen() {
               <Ionicons name="arrow-back" size={20} color={theme.text} />
             </Pressable>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.screenLabel, { color: theme.textSecondary }]}>Preferences</Text>
+              <Text style={[styles.screenLabel, { color: subText }]}>Preferences</Text>
               <Text style={[styles.title, { color: theme.text }]}>Settings</Text>
             </View>
           </Animated.View>
@@ -168,7 +173,7 @@ export default function SettingsScreen() {
                   <Ionicons
                     name={editingName ? "close" : "pencil"}
                     size={15}
-                    color={editingName ? "#fff" : theme.textSecondary}
+                    color={editingName ? "#fff" : subText}
                   />
                 </Pressable>
               </View>
@@ -273,13 +278,13 @@ export default function SettingsScreen() {
                       {/* Label row */}
                       <View style={styles.themeCardLabelRow}>
                         <View style={[styles.themeCardIconWrap, { backgroundColor: active ? t.accentColor + "20" : (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)") }]}>
-                          <Ionicons name={t.icon as any} size={16} color={active ? t.accentColor : theme.textTertiary} />
+                          <Ionicons name={t.icon as any} size={16} color={active ? t.accentColor : subText} />
                         </View>
                         <View style={{ flex: 1 }}>
                           <Text style={[styles.themeCardLabel, { color: active ? t.accentColor : theme.text, fontFamily: active ? "Inter_700Bold" : "Inter_600SemiBold" }]}>
                             {t.label}
                           </Text>
-                          <Text style={[styles.themeCardDesc, { color: theme.textSecondary }]}>{t.desc}</Text>
+                          <Text style={[styles.themeCardDesc, { color: subText }]}>{t.desc}</Text>
                         </View>
                         {active && (
                           <View style={[styles.themeActiveCheck, { backgroundColor: t.accentColor }]}>
@@ -312,7 +317,7 @@ export default function SettingsScreen() {
                 <Text style={[styles.activeCurrencyLabel, { color: theme.text }]}>
                   {selectedCurrency.label}
                 </Text>
-                <Text style={[styles.activeCurrencyCode, { color: theme.textSecondary }]}>
+                <Text style={[styles.activeCurrencyCode, { color: subText }]}>
                   Symbol: {selectedCurrency.symbol} · Code: {selectedCurrency.code}
                 </Text>
               </View>
@@ -343,15 +348,15 @@ export default function SettingsScreen() {
                       <Text style={[styles.currencyRowName, { color: active ? "#E05A6D" : theme.text, fontFamily: active ? "Inter_600SemiBold" : "Inter_400Regular" }]}>
                         {c.label}
                       </Text>
-                      <Text style={[styles.currencyRowCode, { color: theme.textSecondary }]}>
+                      <Text style={[styles.currencyRowCode, { color: subText }]}>
                         {c.code}  ·  {c.symbol}
                       </Text>
                     </View>
-                    <Text style={[styles.currencyRowSymbol, { color: active ? "#E05A6D" : theme.textSecondary, fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
+                    <Text style={[styles.currencyRowSymbol, { color: active ? "#E05A6D" : subText, fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
                       {c.symbol}
                     </Text>
                     <View style={[styles.currencyRadio, {
-                      borderColor: active ? "#E05A6D" : (isDark ? "rgba(255,255,255,0.2)" : "rgba(0,0,0,0.2)"),
+                      borderColor: active ? "#E05A6D" : (isDark ? "rgba(255,255,255,0.45)" : "rgba(0,0,0,0.35)"),
                       backgroundColor: active ? "#E05A6D" : "transparent",
                     }]}>
                       {active && <View style={styles.currencyRadioDot} />}
@@ -379,12 +384,12 @@ export default function SettingsScreen() {
               </LinearGradient>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.aboutAppName, { color: theme.text }]}>Timpla</Text>
-                <Text style={[styles.aboutAppTagline, { color: theme.textSecondary }]}>
+                <Text style={[styles.aboutAppTagline, { color: subText }]}>
                   All-in-one student finance & study app
                 </Text>
               </View>
               <View style={[styles.aboutVersionPill, { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" }]}>
-                <Text style={[styles.aboutVersionText, { color: theme.textSecondary }]}>v1.0.0</Text>
+                <Text style={[styles.aboutVersionText, { color: subText }]}>v1.0.0</Text>
               </View>
             </View>
 
@@ -402,8 +407,8 @@ export default function SettingsScreen() {
                     <Ionicons name={row.icon as any} size={16} color={row.color} />
                   </View>
                   <View style={styles.aboutRowText}>
-                    <Text style={[styles.aboutRowLabel, { color: theme.textSecondary }]}>{row.label}</Text>
-                    <Text style={[styles.aboutRowValue, { color: theme.text }]}>{row.value}</Text>
+                    <Text style={[styles.aboutRowLabel, { color: subText }]}>{row.label}</Text>
+                    <Text style={[styles.aboutRowValue, { color: labelText }]}>{row.value}</Text>
                   </View>
                 </View>
                 {i < arr.length - 1 && <Divider />}
@@ -414,7 +419,7 @@ export default function SettingsScreen() {
           {/* Footer tagline */}
           <Animated.Text
             entering={FadeInDown.delay(280).duration(300)}
-            style={[styles.footerText, { color: theme.textSecondary }]}
+            style={[styles.footerText, { color: subText }]}
           >
             All your data lives safely on your device only.
           </Animated.Text>
