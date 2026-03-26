@@ -102,9 +102,9 @@ export default function AddTransactionScreen() {
                   <Text style={[styles.typeText, { color }]}>{t === "income" ? "Income" : "Expense"}</Text>
                 </LinearGradient>
               ) : (
-                <View style={[styles.typeBtn, { backgroundColor: "transparent" }]}>
-                  <Ionicons name={t === "income" ? "arrow-down" : "arrow-up"} size={14} color={theme.textTertiary} />
-                  <Text style={[styles.typeText, { color: theme.textTertiary }]}>{t === "income" ? "Income" : "Expense"}</Text>
+                <View style={[styles.typeBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }]}>
+                  <Ionicons name={t === "income" ? "arrow-down" : "arrow-up"} size={14} color={isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary} />
+                  <Text style={[styles.typeText, { color: isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary }]}>{t === "income" ? "Income" : "Expense"}</Text>
                 </View>
               )}
             </Pressable>

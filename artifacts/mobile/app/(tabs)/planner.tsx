@@ -102,13 +102,13 @@ function TasksPane() {
                 { opacity: pressed ? 0.8 : 1 },
               ]}
             >
-              <Ionicons name={f.icon as any} size={13} color={active ? theme.primary : theme.textTertiary} />
-              <Text style={[styles.segmentLabel, { color: active ? theme.primary : theme.textSecondary, fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
+              <Ionicons name={f.icon as any} size={13} color={active ? theme.primary : (isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary)} />
+              <Text style={[styles.segmentLabel, { color: active ? theme.primary : (isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary), fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
                 {f.label}
               </Text>
               {f.count > 0 && (
                 <View style={[styles.segmentBadge, { backgroundColor: active ? theme.primary : (isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") }]}>
-                  <Text style={[styles.segmentBadgeText, { color: active ? "#fff" : theme.textTertiary }]}>{f.count}</Text>
+                  <Text style={[styles.segmentBadgeText, { color: active ? "#fff" : (isDark ? "rgba(255,255,255,0.7)" : theme.textSecondary) }]}>{f.count}</Text>
                 </View>
               )}
             </Pressable>
@@ -686,12 +686,12 @@ export default function PlannerScreen() {
                   )}
                 </LinearGradient>
               ) : (
-                <View style={[styles.tabBtn, { backgroundColor: "transparent" }]}>
-                  <Ionicons name={tab.icon as any} size={15} color={theme.textTertiary} />
-                  <Text style={[styles.tabLabel, { color: theme.textTertiary }]}>{tab.label}</Text>
+                <View style={[styles.tabBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }]}>
+                  <Ionicons name={tab.icon as any} size={15} color={isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary} />
+                  <Text style={[styles.tabLabel, { color: isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary }]}>{tab.label}</Text>
                   {count > 0 && (
                     <View style={[styles.tabBadge, { backgroundColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)" }]}>
-                      <Text style={[styles.tabBadgeText, { color: theme.textSecondary }]}>
+                      <Text style={[styles.tabBadgeText, { color: isDark ? "rgba(255,255,255,0.7)" : theme.textSecondary }]}>
                         {count > 99 ? "99+" : count}
                       </Text>
                     </View>

@@ -148,9 +148,9 @@ export default function TasksScreen() {
                 <Text style={[styles.tabText, { color: theme.primary }]}>{t === "tasks" ? "Tasks" : "Events"}</Text>
               </LinearGradient>
             ) : (
-              <View style={[styles.tabBtn, { backgroundColor: "transparent" }]}>
-                <Ionicons name={t === "tasks" ? "checkbox-outline" : "calendar-outline"} size={14} color={theme.textTertiary} />
-                <Text style={[styles.tabText, { color: theme.textTertiary }]}>{t === "tasks" ? "Tasks" : "Events"}</Text>
+              <View style={[styles.tabBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }]}>
+                <Ionicons name={t === "tasks" ? "checkbox-outline" : "calendar-outline"} size={14} color={isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary} />
+                <Text style={[styles.tabText, { color: isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary }]}>{t === "tasks" ? "Tasks" : "Events"}</Text>
               </View>
             )}
           </Pressable>

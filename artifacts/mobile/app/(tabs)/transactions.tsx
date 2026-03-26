@@ -234,12 +234,12 @@ export default function TransactionsScreen() {
               <Ionicons
                 name={f.icon as any}
                 size={14}
-                color={active ? fColor : theme.textTertiary}
+                color={active ? fColor : (isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary)}
               />
               <Text
                 style={[
                   styles.segmentText,
-                  { color: active ? fColor : theme.textTertiary },
+                  { color: active ? fColor : (isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary) },
                   active && { fontFamily: "Inter_700Bold" },
                 ]}
               >
