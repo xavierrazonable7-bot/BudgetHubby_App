@@ -1,0 +1,89 @@
+Act as a professional Senior Mobile App Developer, Senior Software Engineer, Senior React Native Expo Developer, and Mobile UI/UX Auditor with over 30 years of experience in building, reviewing, validating, debugging, and polishing high-quality mobile applications.
+
+Your task is to thoroughly check, review, validate, and audit my entire React Native Expo app across all pages, screens, components, navigation flows, reusable UI elements, and related logic.
+
+Main Goal:
+Perform a full app audit and improvement pass. Identify and fix all errors, bugs, UI inconsistencies, layout issues, styling problems, spacing problems, responsiveness issues, and code quality issues. Improve the overall layout and UI design to make the app look modern, clean, polished, and production-ready.
+
+Core Instructions:
+1. Review every page/screen of the app carefully.
+2. Validate each screen’s layout, structure, and UI consistency.
+3. Audit the use of colors across the entire app:
+   - Check if colors are consistent with the design system/theme.
+   - Fix color conflicts, poor contrast, unreadable text, harsh combinations, and inconsistent usage.
+   - Make sure the app looks clean and professional in both light mode and dark mode if supported.
+4. Validate spacing, padding, margins, alignment, and visual hierarchy.
+5. Check typography consistency:
+   - font sizes
+   - font weights
+   - line heights
+   - readability
+6. Check every card-based layout and improve it.
+7. For cards that contain icons:
+   - reposition the icon to the LEFT side of the card
+   - ensure the icon is properly aligned vertically
+   - improve spacing between the icon and the text/content
+   - make the card composition balanced, modern, and clean
+8. Improve the layout and UI design without unnecessarily rewriting working code.
+9. Only update the necessary blocks of code.
+10. Preserve all existing working features, app logic, navigation, and business functionality unless a change is required to fix a bug or improve the UI.
+11. Fix all errors and bugs you find.
+12. Remove only clearly unnecessary, redundant, unused, or duplicate code that is safe to remove.
+13. Keep the codebase clean, maintainable, and consistent with React Native Expo best practices.
+
+Detailed Audit Scope:
+- Review all screens/pages one by one
+- Review shared components
+- Review cards, buttons, inputs, modals, tabs, headers, lists, empty states, and settings pages
+- Review icon usage, icon placement, icon sizing, and icon alignment
+- Review responsiveness on different screen sizes
+- Review scrolling behavior and overflow issues
+- Review touch target sizes and usability
+- Review loading states, error states, and empty states
+- Review navigation issues and broken screen transitions
+- Review form validation and state handling
+- Review theme consistency and reusable style patterns
+
+UI/UX Improvement Requirements:
+- Make the interface look modern, minimal, and clean
+- Improve visual balance and consistency across all pages
+- Make sure cards feel well-structured and polished
+- Improve the positioning of elements inside cards
+- Icons inside cards must be placed on the left side, not floating awkwardly or misaligned
+- Use proper spacing and alignment so the card content is easier to scan
+- Improve the overall composition without overdesigning
+- Avoid cluttered layouts
+- Maintain a professional mobile-app look
+
+Code Quality Requirements:
+- Do not rewrite the whole app unnecessarily
+- Do not change files that do not need changes
+- Update only the necessary blocks of code
+- Refactor only where needed for clarity, consistency, bug fixing, or UI improvement
+- Keep the code modular and maintainable
+- Follow React Native Expo best practices
+- Avoid introducing new bugs
+- Make sure all imports, components, hooks, and styles remain valid
+- Make sure there are no unused variables, dead code, duplicate styles, or broken references after changes
+
+Expected Workflow:
+1. Audit the app page by page
+2. Identify all issues
+3. Fix errors and bugs
+4. Improve the layout and UI design
+5. Reposition icons inside cards to the left side
+6. Clean up only the necessary code
+7. Validate that the app still works properly after all updates
+
+Output Requirements:
+- Apply the fixes directly to the existing codebase
+- Clearly update only the necessary code blocks
+- Keep the app functional and stable
+- Ensure the final result is visually improved, modern, clean, and consistent
+- Make sure the app builds and runs properly in React Native Expo without errors
+
+Important:
+Do not make unnecessary large-scale rewrites.
+Do not break existing functionality.
+Focus on auditing, validating, fixing, and polishing.
+Prioritize stability, clean UI, proper alignment, consistent colors, and better card/icon layout.
