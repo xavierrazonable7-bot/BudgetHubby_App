@@ -120,22 +120,16 @@ export default function DebtsScreen() {
       </View>
 
       {/* Filter Tabs */}
-      <View style={styles.filterRow}>
+      <View style={[styles.filterRow, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border }]}>
         {FILTERS.map((f) => {
           const active = filter === f.key;
           return (
             <Pressable
               key={f.key}
               onPress={() => setFilter(f.key)}
-              style={[
-                styles.filterTab,
-                active
-                  ? { backgroundColor: theme.primary + "20", borderColor: theme.primary + "50" }
-                  : { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.06)" : theme.border },
-              ]}
+              style={[styles.filterTab, { backgroundColor: active ? theme.primary : "transparent" }]}
             >
-              {active && <View style={[styles.filterDot, { backgroundColor: theme.primary }]} />}
-              <Text style={[styles.filterText, { color: active ? theme.primary : theme.textSecondary }]}>
+              <Text style={[styles.filterText, { color: active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary }]}>
                 {f.label}
               </Text>
             </Pressable>
@@ -288,20 +282,19 @@ const styles = StyleSheet.create({
   summaryAmount: { fontSize: 18, fontFamily: "Inter_700Bold" },
   filterRow: {
     flexDirection: "row",
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    gap: 8,
+    marginHorizontal: 20,
+    marginBottom: 14,
+    borderRadius: 100,
+    padding: 4,
+    borderWidth: 1,
   },
   filterTab: {
-    flexDirection: "row",
+    flex: 1,
     alignItems: "center",
-    paddingHorizontal: 16,
+    justifyContent: "center",
     paddingVertical: 9,
-    borderRadius: 22,
-    borderWidth: 1,
-    gap: 6,
+    borderRadius: 100,
   },
-  filterDot: { width: 6, height: 6, borderRadius: 3 },
   filterText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   debtCard: { borderRadius: 18, padding: 16, borderWidth: 1 },
   debtRow: { flexDirection: "row", alignItems: "flex-start", gap: 12 },

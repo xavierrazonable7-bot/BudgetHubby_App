@@ -202,8 +202,8 @@ export default function TransactionsScreen() {
         style={[
           styles.segmentWrap,
           {
-            backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
-            borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
+            backgroundColor: theme.surface,
+            borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border,
           },
         ]}
       >
@@ -217,37 +217,23 @@ export default function TransactionsScreen() {
               onPress={() => setFilter(f.key)}
               style={({ pressed }) => [
                 styles.segmentBtn,
-                active
-                  ? {
-                      backgroundColor: fColor + "18",
-                      borderColor: fColor + "50",
-                      shadowColor: fColor,
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.3,
-                      shadowRadius: 6,
-                      elevation: 3,
-                    }
-                  : { borderColor: "transparent" },
-                { opacity: pressed ? 0.8 : 1 },
+                { backgroundColor: active ? fColor : "transparent", opacity: pressed ? 0.85 : 1 },
               ]}
             >
               <Ionicons
                 name={f.icon as any}
                 size={14}
-                color={active ? fColor : (isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary)}
+                color={active ? "#fff" : (isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary)}
               />
               <Text
                 style={[
                   styles.segmentText,
-                  { color: active ? fColor : (isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary) },
+                  { color: active ? "#fff" : (isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary) },
                   active && { fontFamily: "Inter_700Bold" },
                 ]}
               >
                 {f.label}
               </Text>
-              {active && (
-                <View style={[styles.segmentDot, { backgroundColor: fColor }]} />
-              )}
             </Pressable>
           );
         })}
@@ -468,10 +454,9 @@ const styles = StyleSheet.create({
   segmentWrap: {
     flexDirection: "row",
     marginHorizontal: 20,
-    borderRadius: 14,
+    borderRadius: 100,
     borderWidth: 1,
     padding: 4,
-    gap: 4,
     marginBottom: 12,
   },
   segmentBtn: {
@@ -480,19 +465,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
-    borderRadius: 11,
-    borderWidth: 1,
+    borderRadius: 100,
     gap: 5,
   },
   segmentText: {
     fontSize: 13,
     fontFamily: "Inter_600SemiBold",
-  },
-  segmentDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
-    marginLeft: 1,
   },
 
   /* Count row */

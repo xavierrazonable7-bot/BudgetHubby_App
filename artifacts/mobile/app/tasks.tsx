@@ -136,42 +136,28 @@ export default function TasksScreen() {
       </View>
 
       {/* Tab Toggle */}
-      <View style={[styles.tabRow, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border, marginHorizontal: 20 }]}>
-        {(["tasks", "events"] as Tab[]).map((t) => (
-          <Pressable key={t} onPress={() => setTab(t)} style={{ flex: 1 }}>
-            {tab === t ? (
-              <LinearGradient
-                colors={isDark ? ["#2A1018", "#2A1820"] : ["#FFE4E8", "#FFF0F2"]}
-                style={[styles.tabBtn, { borderWidth: 1, borderColor: theme.primary + "40" }]}
-              >
-                <Ionicons name={t === "tasks" ? "checkbox" : "calendar"} size={14} color={theme.primary} />
-                <Text style={[styles.tabText, { color: theme.primary }]}>{t === "tasks" ? "Tasks" : "Events"}</Text>
-              </LinearGradient>
-            ) : (
-              <View style={[styles.tabBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }]}>
-                <Ionicons name={t === "tasks" ? "checkbox-outline" : "calendar-outline"} size={14} color={isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary} />
-                <Text style={[styles.tabText, { color: isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary }]}>{t === "tasks" ? "Tasks" : "Events"}</Text>
-              </View>
-            )}
-          </Pressable>
-        ))}
+      <View style={[styles.tabRow, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border, marginHorizontal: 20 }]}>
+        {(["tasks", "events"] as Tab[]).map((t) => {
+          const active = tab === t;
+          return (
+            <Pressable key={t} onPress={() => setTab(t)} style={[styles.tabBtn, { backgroundColor: active ? theme.primary : "transparent" }]}>
+              <Ionicons name={t === "tasks" ? (active ? "checkbox" : "checkbox-outline") : (active ? "calendar" : "calendar-outline")} size={14} color={active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary} />
+              <Text style={[styles.tabText, { color: active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary }]}>{t === "tasks" ? "Tasks" : "Events"}</Text>
+            </Pressable>
+          );
+        })}
       </View>
 
       {/* Task Filters */}
       {tab === "tasks" && (
-        <View style={styles.filterRow}>
+        <View style={[styles.filterRow, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border }]}>
           {(["all", "pending", "completed"] as TaskFilter[]).map((f) => (
             <Pressable
               key={f}
               onPress={() => setTaskFilter(f)}
-              style={[
-                styles.filterChip,
-                taskFilter === f
-                  ? { backgroundColor: theme.primary + "20", borderColor: theme.primary + "50" }
-                  : { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border },
-              ]}
+              style={[styles.filterChip, { backgroundColor: taskFilter === f ? theme.primary : "transparent" }]}
             >
-              <Text style={[styles.filterText, { color: taskFilter === f ? theme.primary : theme.textSecondary }]}>
+              <Text style={[styles.filterText, { color: taskFilter === f ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary }]}>
                 {f.charAt(0).toUpperCase() + f.slice(1)}
               </Text>
             </Pressable>
@@ -309,11 +295,11 @@ const styles = StyleSheet.create({
   statCard: { flex: 1, borderRadius: 14, padding: 14, alignItems: "center", gap: 4, borderWidth: 1 },
   statValue: { fontSize: 22, fontFamily: "Inter_700Bold" },
   statLabel: { fontSize: 11, fontFamily: "Inter_400Regular" },
-  tabRow: { flexDirection: "row", borderRadius: 14, padding: 4, marginBottom: 14, borderWidth: 1 },
-  tabBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 10, borderRadius: 10, gap: 6 },
+  tabRow: { flexDirection: "row", borderRadius: 100, padding: 4, marginBottom: 14, borderWidth: 1 },
+  tabBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 10, borderRadius: 100, gap: 6 },
   tabText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
-  filterRow: { flexDirection: "row", paddingHorizontal: 20, paddingBottom: 12, gap: 8 },
-  filterChip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1 },
+  filterRow: { flexDirection: "row", marginHorizontal: 20, marginBottom: 12, borderRadius: 100, padding: 4, borderWidth: 1 },
+  filterChip: { flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 8, borderRadius: 100 },
   filterText: { fontSize: 12, fontFamily: "Inter_600SemiBold" },
   taskCard: { flexDirection: "row", alignItems: "center", borderRadius: 16, padding: 14, gap: 12, borderWidth: 1 },
   checkbox: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, alignItems: "center", justifyContent: "center" },

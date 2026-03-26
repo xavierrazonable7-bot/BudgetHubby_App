@@ -185,21 +185,16 @@ export default function InsightsScreen() {
             <Text style={[styles.screenLabel, { color: theme.textSecondary }]}>Analytics</Text>
             <Text style={[styles.title, { color: theme.text }]}>Insights</Text>
           </View>
-          <View style={styles.periodRow}>
+          <View style={[styles.periodRow, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border }]}>
             {(["week", "month"] as Period[]).map((p) => {
               const active = period === p;
               return (
                 <Pressable
                   key={p}
                   onPress={() => setPeriod(p)}
-                  style={[
-                    styles.periodTab,
-                    active
-                      ? { backgroundColor: theme.primary + "20", borderColor: theme.primary + "50" }
-                      : { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.06)" : theme.border },
-                  ]}
+                  style={[styles.periodTab, { backgroundColor: active ? theme.primary : "transparent" }]}
                 >
-                  <Text style={[styles.periodText, { color: active ? theme.primary : theme.textSecondary }]}>
+                  <Text style={[styles.periodText, { color: active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary }]}>
                     {p === "week" ? "Week" : "Month"}
                   </Text>
                 </Pressable>
@@ -360,12 +355,11 @@ const styles = StyleSheet.create({
   backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   screenLabel: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 2 },
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
-  periodRow: { flexDirection: "row", gap: 6, alignItems: "center" },
+  periodRow: { flexDirection: "row", borderRadius: 100, padding: 4, borderWidth: 1 },
   periodTab: {
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
+    borderRadius: 100,
   },
   periodText: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   statsRow: { flexDirection: "row", paddingHorizontal: 20, gap: 10, marginBottom: 24 },

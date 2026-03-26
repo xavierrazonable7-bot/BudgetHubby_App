@@ -86,7 +86,7 @@ function TasksPane() {
       {/* Full-width segmented filter */}
       <View style={[
         styles.segmentWrap,
-        { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)" },
+        { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border },
       ]}>
         {TASK_FILTERS.map((f) => {
           const active = filter === f.key;
@@ -96,18 +96,15 @@ function TasksPane() {
               onPress={() => setFilter(f.key)}
               style={({ pressed }) => [
                 styles.segmentBtn,
-                active
-                  ? { backgroundColor: theme.primary + "1C", borderColor: theme.primary + "55" }
-                  : { borderColor: "transparent" },
-                { opacity: pressed ? 0.8 : 1 },
+                { backgroundColor: active ? theme.primary : "transparent", opacity: pressed ? 0.85 : 1 },
               ]}
             >
-              <Ionicons name={f.icon as any} size={13} color={active ? theme.primary : (isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary)} />
-              <Text style={[styles.segmentLabel, { color: active ? theme.primary : (isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary), fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
+              <Ionicons name={f.icon as any} size={13} color={active ? "#fff" : (isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary)} />
+              <Text style={[styles.segmentLabel, { color: active ? "#fff" : (isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary), fontFamily: active ? "Inter_700Bold" : "Inter_500Medium" }]}>
                 {f.label}
               </Text>
               {f.count > 0 && (
-                <View style={[styles.segmentBadge, { backgroundColor: active ? theme.primary : (isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") }]}>
+                <View style={[styles.segmentBadge, { backgroundColor: active ? "rgba(255,255,255,0.25)" : (isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") }]}>
                   <Text style={[styles.segmentBadgeText, { color: active ? "#fff" : (isDark ? "rgba(255,255,255,0.7)" : theme.textSecondary) }]}>{f.count}</Text>
                 </View>
               )}
@@ -670,32 +667,15 @@ export default function PlannerScreen() {
             <Pressable
               key={tab.key}
               onPress={() => setActiveTab(tab.key)}
-              style={{ flex: 1 }}
+              style={[styles.tabBtn, { flex: 1, backgroundColor: isActive ? theme.primary : "transparent" }]}
             >
-              {isActive ? (
-                <LinearGradient
-                  colors={isDark ? ["#2A1018", "#1E1028"] : ["#FFE4E8", "#F0E8FF"]}
-                  style={[styles.tabBtn, { borderWidth: 1, borderColor: theme.primary + "45" }]}
-                >
-                  <Ionicons name={tab.activeIcon as any} size={15} color={theme.primary} />
-                  <Text style={[styles.tabLabel, { color: theme.primary }]}>{tab.label}</Text>
-                  {count > 0 && (
-                    <View style={[styles.tabBadge, { backgroundColor: theme.primary }]}>
-                      <Text style={styles.tabBadgeText}>{count > 99 ? "99+" : count}</Text>
-                    </View>
-                  )}
-                </LinearGradient>
-              ) : (
-                <View style={[styles.tabBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }]}>
-                  <Ionicons name={tab.icon as any} size={15} color={isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary} />
-                  <Text style={[styles.tabLabel, { color: isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary }]}>{tab.label}</Text>
-                  {count > 0 && (
-                    <View style={[styles.tabBadge, { backgroundColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)" }]}>
-                      <Text style={[styles.tabBadgeText, { color: isDark ? "rgba(255,255,255,0.7)" : theme.textSecondary }]}>
-                        {count > 99 ? "99+" : count}
-                      </Text>
-                    </View>
-                  )}
+              <Ionicons name={(isActive ? tab.activeIcon : tab.icon) as any} size={15} color={isActive ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary} />
+              <Text style={[styles.tabLabel, { color: isActive ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary }]}>{tab.label}</Text>
+              {count > 0 && (
+                <View style={[styles.tabBadge, { backgroundColor: isActive ? "rgba(255,255,255,0.25)" : isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)" }]}>
+                  <Text style={[styles.tabBadgeText, { color: isActive ? "#fff" : isDark ? "rgba(255,255,255,0.7)" : theme.textSecondary }]}>
+                    {count > 99 ? "99+" : count}
+                  </Text>
                 </View>
               )}
             </Pressable>
@@ -746,7 +726,7 @@ const styles = StyleSheet.create({
   /* Tab bar */
   tabBar: {
     flexDirection: "row",
-    borderRadius: 14,
+    borderRadius: 100,
     padding: 4,
     marginBottom: 4,
     borderWidth: 1,
@@ -757,7 +737,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 10,
-    borderRadius: 11,
+    borderRadius: 100,
     gap: 5,
   },
   tabLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
@@ -769,7 +749,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginHorizontal: 20,
     marginBottom: 10,
-    borderRadius: 14,
+    borderRadius: 100,
     padding: 4,
     borderWidth: 1,
   },
@@ -780,8 +760,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 5,
     paddingVertical: 9,
-    borderRadius: 11,
-    borderWidth: 1,
+    borderRadius: 100,
   },
   segmentLabel: { fontSize: 13 },
   segmentBadge: {

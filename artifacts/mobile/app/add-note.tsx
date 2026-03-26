@@ -114,25 +114,16 @@ export default function AddNoteScreen() {
           {/* Type Toggle */}
           <View style={styles.section}>
             <Text style={[styles.sectionLabel, { color: theme.textSecondary }]}>Note Type</Text>
-            <View style={[styles.typeToggle, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.06)" : theme.border }]}>
-              {(["text", "checklist"] as NoteType[]).map((t) => (
-                <Pressable key={t} onPress={() => setType(t)} style={{ flex: 1 }}>
-                  {type === t ? (
-                    <LinearGradient
-                      colors={[color + "28", color + "14"]}
-                      style={[styles.typeBtn, { borderWidth: 1, borderColor: color + "40" }]}
-                    >
-                      <Ionicons name={t === "text" ? "document-text" : "checkmark-circle"} size={16} color={color} />
-                      <Text style={[styles.typeBtnLabel, { color }]}>{t === "text" ? "Text Note" : "Checklist"}</Text>
-                    </LinearGradient>
-                  ) : (
-                    <View style={[styles.typeBtn, { backgroundColor: "transparent" }]}>
-                      <Ionicons name={t === "text" ? "document-text-outline" : "checkmark-circle-outline"} size={16} color={theme.textTertiary} />
-                      <Text style={[styles.typeBtnLabel, { color: theme.textTertiary }]}>{t === "text" ? "Text Note" : "Checklist"}</Text>
-                    </View>
-                  )}
-                </Pressable>
-              ))}
+            <View style={[styles.typeToggle, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border }]}>
+              {(["text", "checklist"] as NoteType[]).map((t) => {
+                const active = type === t;
+                return (
+                  <Pressable key={t} onPress={() => setType(t)} style={[styles.typeBtn, { backgroundColor: active ? theme.primary : "transparent" }]}>
+                    <Ionicons name={t === "text" ? (active ? "document-text" : "document-text-outline") : (active ? "checkmark-circle" : "checkmark-circle-outline")} size={16} color={active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textTertiary} />
+                    <Text style={[styles.typeBtnLabel, { color: active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textTertiary }]}>{t === "text" ? "Text Note" : "Checklist"}</Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
 
@@ -222,8 +213,8 @@ const styles = StyleSheet.create({
   titleInput: { fontSize: 20, fontFamily: "Inter_700Bold" },
   section: { gap: 10 },
   sectionLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
-  typeToggle: { flexDirection: "row", borderRadius: 14, padding: 4, borderWidth: 1 },
-  typeBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 10, borderRadius: 10, gap: 6 },
+  typeToggle: { flexDirection: "row", borderRadius: 100, padding: 4, borderWidth: 1 },
+  typeBtn: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: 10, borderRadius: 100, gap: 6 },
   typeBtnLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold" },
   colorRow: { flexDirection: "row", gap: 12 },
   colorSwatch: { width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center" },

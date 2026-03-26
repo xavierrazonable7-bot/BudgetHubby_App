@@ -11,7 +11,6 @@ import {
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { useTheme } from "@/context/ThemeContext";
 import { useApp, TransactionType, RecurringType } from "@/context/AppContext";
@@ -84,29 +83,14 @@ export default function AddTransactionScreen() {
       </View>
 
       {/* Type Toggle */}
-      <View style={[styles.typeToggle, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border, marginHorizontal: 20 }]}>
+      <View style={[styles.typeToggle, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border, marginHorizontal: 20 }]}>
         {(["expense", "income"] as TransactionType[]).map((t) => {
           const active = type === t;
           const color = t === "income" ? theme.income : theme.expense;
           return (
-            <Pressable key={t} onPress={() => handleTypeChange(t)} style={{ flex: 1 }}>
-              {active ? (
-                <LinearGradient
-                  colors={t === "income" ? ["#0D2018", "#102A1E"] : ["#2A1018", "#2A1820"]}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={[styles.typeBtn, { borderWidth: 1, borderColor: color + "40", shadowColor: color, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 8 }]}
-                >
-                  <View style={[styles.typeIconWrap, { backgroundColor: color + "25" }]}>
-                    <Ionicons name={t === "income" ? "arrow-down" : "arrow-up"} size={14} color={color} />
-                  </View>
-                  <Text style={[styles.typeText, { color }]}>{t === "income" ? "Income" : "Expense"}</Text>
-                </LinearGradient>
-              ) : (
-                <View style={[styles.typeBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }]}>
-                  <Ionicons name={t === "income" ? "arrow-down" : "arrow-up"} size={14} color={isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary} />
-                  <Text style={[styles.typeText, { color: isDark ? "rgba(255,255,255,0.6)" : theme.textSecondary }]}>{t === "income" ? "Income" : "Expense"}</Text>
-                </View>
-              )}
+            <Pressable key={t} onPress={() => handleTypeChange(t)} style={[styles.typeBtn, { backgroundColor: active ? color : "transparent" }]}>
+              <Ionicons name={t === "income" ? "arrow-down" : "arrow-up"} size={14} color={active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary} />
+              <Text style={[styles.typeText, { color: active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary }]}>{t === "income" ? "Income" : "Expense"}</Text>
             </Pressable>
           );
         })}
@@ -210,8 +194,8 @@ const styles = StyleSheet.create({
   headerDot: { width: 20, height: 3, borderRadius: 2 },
   typeToggle: {
     flexDirection: "row",
-    borderRadius: 16,
-    padding: 5,
+    borderRadius: 100,
+    padding: 4,
     marginBottom: 8,
     borderWidth: 1,
   },
@@ -221,15 +205,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 11,
-    borderRadius: 12,
+    borderRadius: 100,
     gap: 7,
-  },
-  typeIconWrap: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
   },
   typeText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   sectionLabel: { fontSize: 13, fontFamily: "Inter_600SemiBold", letterSpacing: 0.1 },

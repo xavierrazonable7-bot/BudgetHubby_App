@@ -66,31 +66,16 @@ export default function AddDebtScreen() {
       </View>
 
       {/* Type Toggle */}
-      <View style={[styles.typeToggle, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.07)" : theme.border, marginHorizontal: 20 }]}>
+      <View style={[styles.typeToggle, { backgroundColor: theme.surface, borderColor: isDark ? "rgba(255,255,255,0.08)" : theme.border, marginHorizontal: 20 }]}>
         {([
-          { t: "lent" as DebtType, label: "I Lent", icon: "arrow-down", color: theme.income, grad: ["#0D2018", "#102A1E"] as [string, string] },
-          { t: "borrowed" as DebtType, label: "I Borrowed", icon: "arrow-up", color: theme.expense, grad: ["#2A1018", "#2A1820"] as [string, string] },
+          { t: "lent" as DebtType, label: "I Lent", icon: "arrow-down", color: theme.income },
+          { t: "borrowed" as DebtType, label: "I Borrowed", icon: "arrow-up", color: theme.expense },
         ]).map((item) => {
           const active = type === item.t;
           return (
-            <Pressable key={item.t} onPress={() => { setType(item.t); Haptics.selectionAsync(); }} style={{ flex: 1 }}>
-              {active ? (
-                <LinearGradient
-                  colors={item.grad}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}
-                  style={[styles.typeBtn, { borderWidth: 1, borderColor: item.color + "40", shadowColor: item.color, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 8 }]}
-                >
-                  <View style={[styles.typeIconWrap, { backgroundColor: item.color + "25" }]}>
-                    <Ionicons name={item.icon as any} size={14} color={item.color} />
-                  </View>
-                  <Text style={[styles.typeText, { color: item.color }]}>{item.label}</Text>
-                </LinearGradient>
-              ) : (
-                <View style={[styles.typeBtn, { backgroundColor: "transparent" }]}>
-                  <Ionicons name={item.icon as any} size={14} color={theme.textTertiary} />
-                  <Text style={[styles.typeText, { color: theme.textTertiary }]}>{item.label}</Text>
-                </View>
-              )}
+            <Pressable key={item.t} onPress={() => { setType(item.t); Haptics.selectionAsync(); }} style={[styles.typeBtn, { backgroundColor: active ? item.color : "transparent" }]}>
+              <Ionicons name={item.icon as any} size={14} color={active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary} />
+              <Text style={[styles.typeText, { color: active ? "#fff" : isDark ? "rgba(255,255,255,0.55)" : theme.textSecondary }]}>{item.label}</Text>
             </Pressable>
           );
         })}
@@ -168,8 +153,8 @@ const styles = StyleSheet.create({
   headerDot: { width: 20, height: 3, borderRadius: 2 },
   typeToggle: {
     flexDirection: "row",
-    borderRadius: 16,
-    padding: 5,
+    borderRadius: 100,
+    padding: 4,
     marginBottom: 8,
     borderWidth: 1,
   },
@@ -179,10 +164,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 11,
-    borderRadius: 12,
+    borderRadius: 100,
     gap: 7,
   },
-  typeIconWrap: { width: 22, height: 22, borderRadius: 11, alignItems: "center", justifyContent: "center" },
   typeText: { fontSize: 14, fontFamily: "Inter_600SemiBold" },
   contextBanner: {
     flexDirection: "row",
