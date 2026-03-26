@@ -343,11 +343,21 @@ export default function StudyScreen() {
                 },
               ]}
             >
-              <View style={[styles.statIconWrap, { backgroundColor: s.color + "20" }]}>
+              <View style={[styles.statIconWrap, {
+                backgroundColor: s.color + "18",
+                borderWidth: 1,
+                borderColor: s.color + "30",
+                shadowColor: s.color,
+                shadowOffset: { width: 0, height: 0 },
+                shadowOpacity: 0.35,
+                shadowRadius: 6,
+              }]}>
                 <Ionicons name={s.icon as any} size={18} color={s.color} />
               </View>
-              <Text style={[styles.statValue, { color: theme.text }]}>{s.value}</Text>
-              <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{s.label}</Text>
+              <View style={styles.statTextCol}>
+                <Text style={[styles.statValue, { color: theme.text }]}>{s.value}</Text>
+                <Text style={[styles.statLabel, { color: theme.textSecondary }]}>{s.label}</Text>
+              </View>
             </LinearGradient>
           ))}
         </View>
@@ -566,14 +576,14 @@ const styles = StyleSheet.create({
 
   /* Stats row */
   statsRow: { flexDirection: "row", paddingHorizontal: 20, gap: 10, marginBottom: 28 },
-  statCard: { flex: 1, borderRadius: 18, padding: 14, alignItems: "center", gap: 7, borderWidth: 1 },
+  statCard: { flex: 1, borderRadius: 18, padding: 12, flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1 },
+  statTextCol: { flex: 1, gap: 2 },
   statIconWrap: {
     width: 40, height: 40, borderRadius: 20,
     alignItems: "center", justifyContent: "center",
-    marginBottom: 2,
   },
   statValue: { fontSize: 14, fontFamily: "Inter_700Bold" },
-  statLabel: { fontSize: 10, fontFamily: "Inter_500Medium", textAlign: "center" },
+  statLabel: { fontSize: 10, fontFamily: "Inter_500Medium" },
 
   /* Section */
   section: { paddingHorizontal: 20, marginBottom: 24 },
