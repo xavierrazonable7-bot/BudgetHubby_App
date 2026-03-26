@@ -159,9 +159,13 @@ function TasksPane() {
                   style={[
                     styles.taskIconBlock,
                     {
-                      backgroundColor: iconColor + "1C",
-                      borderWidth: 1.5,
-                      borderColor: iconColor + "38",
+                      backgroundColor: iconColor + "18",
+                      borderWidth: 1,
+                      borderColor: iconColor + "30",
+                      shadowColor: iconColor,
+                      shadowOffset: { width: 0, height: 0 },
+                      shadowOpacity: isDark ? 0.45 : 0.15,
+                      shadowRadius: 8,
                     },
                   ]}
                 >
@@ -297,13 +301,17 @@ function EventsPane() {
                 style={[
                   styles.eventIconBlock,
                   {
-                    backgroundColor: ec.color + "20",
-                    borderWidth: 1.5,
-                    borderColor: ec.color + "35",
+                    backgroundColor: ec.color + "18",
+                    borderWidth: 1,
+                    borderColor: ec.color + "30",
+                    shadowColor: ec.color,
+                    shadowOffset: { width: 0, height: 0 },
+                    shadowOpacity: isDark ? 0.45 : 0.15,
+                    shadowRadius: 8,
                   },
                 ]}
               >
-                <Ionicons name={ec.icon as any} size={22} color={ec.color} />
+                <Ionicons name={ec.icon as any} size={20} color={ec.color} />
               </View>
 
               {/* Info */}
@@ -434,9 +442,13 @@ function NotesPane() {
                   style={[
                     styles.noteIconWrap,
                     {
-                      backgroundColor: note.color + "22",
+                      backgroundColor: note.color + "18",
                       borderWidth: 1,
-                      borderColor: note.color + "35",
+                      borderColor: note.color + "30",
+                      shadowColor: note.color,
+                      shadowOffset: { width: 0, height: 0 },
+                      shadowOpacity: isDark ? 0.45 : 0.15,
+                      shadowRadius: 8,
                     },
                   ]}
                 >
@@ -446,7 +458,7 @@ function NotesPane() {
                         ? "checkmark-circle-outline"
                         : "document-text-outline"
                     }
-                    size={18}
+                    size={20}
                     color={note.color}
                   />
                 </View>
@@ -787,7 +799,7 @@ const styles = StyleSheet.create({
   taskIconBlock: {
     width: 46, height: 46, borderRadius: 23,
     alignItems: "center", justifyContent: "center",
-    marginLeft: 6,
+    marginLeft: 8,
   },
   taskRightCol: {
     alignItems: "center",
@@ -837,9 +849,9 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 18,
   },
   eventIconBlock: {
-    width: 48, height: 48, borderRadius: 24,
+    width: 46, height: 46, borderRadius: 23,
     alignItems: "center", justifyContent: "center",
-    marginLeft: 6,
+    marginLeft: 8,
   },
   eventContent: { flex: 1, gap: 5 },
   eventTopRow: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -871,7 +883,7 @@ const styles = StyleSheet.create({
   },
   noteHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
   noteIconWrap: {
-    width: 38, height: 38, borderRadius: 19,
+    width: 46, height: 46, borderRadius: 23,
     alignItems: "center", justifyContent: "center",
   },
   noteTitleWrap: { flex: 1, gap: 2 },
