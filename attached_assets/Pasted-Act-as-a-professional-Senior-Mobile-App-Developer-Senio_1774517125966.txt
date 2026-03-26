@@ -1,0 +1,64 @@
+Act as a professional Senior Mobile App Developer, Senior Software Engineer, and React Native Expo expert with over 30 years of experience in building high-quality mobile applications and designing clean, user-friendly dashboards.
+
+Your task is to improve and optimize the "Recent Activity" section on the Home page of my React Native Expo app.
+
+Main Goal:
+Ensure that the Recent Activity section only displays the most recent or latest activities, limited to around 5–10 items. The Home page should show only the newest activities to keep the interface clean, organized, and easy to read.
+
+Core Requirements:
+
+1. Limit the Number of Activities
+- The Recent Activity section should display only a limited number of entries.
+- Show only the latest 5 to 10 activities.
+- Do not display the full activity history on the Home page.
+- This helps keep the Home dashboard clean and not overcrowded.
+
+2. Show Only the Latest Activities
+- Activities must be sorted by date or timestamp.
+- The newest or most recent activity must appear at the top.
+- Older activities should not appear in the Recent Activity preview if they exceed the limit.
+
+Example behavior:
+If there are 50 activities recorded in the app, the Home page should only show the latest 5–10 most recent ones.
+
+3. Data Handling
+- Ensure that activities are properly sorted by their timestamp before displaying them.
+- Only extract the newest items for the Recent Activity section.
+- The full activity history should remain stored in the app, but only a preview is shown on the Home page.
+
+4. UI / UX Improvements
+- The Recent Activity section should look clean and organized.
+- Each activity item should be easy to read and properly spaced.
+- Improve alignment, spacing, and layout if necessary.
+- Ensure the design looks modern and consistent with the rest of the app.
+- Make sure it works properly in both light mode and dark mode.
+
+5. Performance Considerations
+- Avoid loading the entire activity history on the Home page.
+- Only render the latest activities needed for the preview.
+- Ensure the section loads quickly and efficiently.
+
+6. Code Quality Requirements
+- Update only the necessary blocks of code.
+- Do not rewrite the entire Home page unnecessarily.
+- Preserve all existing working features.
+- Keep the code clean, modular, and maintainable.
+- Follow React Native Expo best practices.
+- Remove only clearly unnecessary or redundant code if needed.
+
+7. Validation and Testing
+- Confirm that the Recent Activity section shows only the newest 5–10 activities.
+- Confirm that the activities are sorted correctly with the newest at the top.
+- Confirm that older activities remain saved in the system but are not shown on the Home preview.
+- Ensure there are no errors or bugs after the changes.
+
+Expected Result:
+- The Home page shows only the most recent activities.
+- The Recent Activity section is limited to 5–10 latest entries.
+- The interface looks cleaner and less cluttered.
+- The app remains stable and fully functional without errors or bugs.
+
+Important:
+Do not break existing activity tracking functionality.
+Do not rewrite large portions of the app unnecessarily.
+Focus on limiting the displayed activities to the latest entries and improving the Home page preview behavior.

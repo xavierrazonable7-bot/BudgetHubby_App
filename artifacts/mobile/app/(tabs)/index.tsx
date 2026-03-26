@@ -23,6 +23,19 @@ import { getCategoryColor, getCategoryIcon, getCategoryLabel } from "@/utils/cat
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
+const RECENT_LIMIT = 8;
+
+function formatTxDate(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const txStart = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+  const diffDays = Math.round((todayStart - txStart) / 86400000);
+  if (diffDays === 0) return `Today, ${date.toLocaleTimeString("en-PH", { hour: "2-digit", minute: "2-digit" })}`;
+  if (diffDays === 1) return `Yesterday`;
+  return date.toLocaleDateString("en-PH", { month: "short", day: "numeric" });
+}
+
 function getCurrentDate(): string {
   return new Date().toLocaleDateString("en-US", {
     weekday: "long", month: "long", day: "numeric",
@@ -53,7 +66,12 @@ export default function HomeScreen() {
   const monthlyTransactionCount = useMemo(() => transactions.filter((t) => isThisMonth(t.date)).length, [transactions]);
   const budgetLeft = monthlyIncome - monthlyExpenses;
   const budgetProgress = monthlyIncome > 0 ? Math.min(monthlyExpenses / monthlyIncome, 1) : 0;
-  const recentTransactions = transactions.slice(0, 5);
+  const recentTransactions = useMemo(() =>
+    [...transactions]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, RECENT_LIMIT),
+    [transactions]
+  );
 
   const bgGradient: [string, string, string] = isDark
     ? ["#0E0E0E", "#140810", "#0E0E0E"]
@@ -271,7 +289,11 @@ export default function HomeScreen() {
 
         {/* Recent Activity */}
         <Animated.View entering={FadeInDown.delay(260).duration(400)}>
-          <SectionHeader title="Recent Activity" onSeeAll={() => router.push("/(tabs)/transactions")} />
+          <SectionHeader
+            title="Recent Activity"
+            count={transactions.length > RECENT_LIMIT ? `${recentTransactions.length} of ${transactions.length}` : undefined}
+            onSeeAll={() => router.push("/(tabs)/transactions")}
+          />
           <View style={{ paddingHorizontal: 20, gap: 10 }}>
             {recentTransactions.length === 0 ? (
               <EmptyState icon="receipt-outline" title="No transactions yet" subtitle="Add your first expense or income to get started" />
@@ -283,7 +305,7 @@ export default function HomeScreen() {
                 const wallet = wallets.find((w) => w.id === tx.walletId);
                 const isIncome = tx.type === "income";
                 return (
-                  <Animated.View key={tx.id} entering={FadeInDown.delay(idx * 40).duration(280)}>
+                  <Animated.View key={tx.id} entering={FadeInDown.delay(idx * 35).duration(260)}>
                     <Pressable
                       onPress={() => router.push({ pathname: "/transaction-detail", params: { id: tx.id } })}
                       style={({ pressed }) => [
@@ -305,10 +327,15 @@ export default function HomeScreen() {
                         <Ionicons name={catIcon as any} size={19} color={catColor} />
                       </View>
                       <View style={styles.txInfo}>
-                        <Text style={[styles.txCategory, { color: theme.text }]}>{catLabel}</Text>
-                        <Text style={[styles.txSub, { color: theme.textTertiary }]}>
-                          {wallet?.name ?? "Wallet"} · {new Date(tx.date).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}
+                        <Text style={[styles.txCategory, { color: theme.text }]} numberOfLines={1}>{catLabel}</Text>
+                        <Text style={[styles.txSub, { color: theme.textTertiary }]} numberOfLines={1}>
+                          {wallet?.name ?? "Wallet"} · {formatTxDate(tx.date)}
                         </Text>
+                        {tx.note ? (
+                          <Text style={[styles.txNote, { color: isDark ? "rgba(255,255,255,0.4)" : theme.textTertiary }]} numberOfLines={1}>
+                            {tx.note}
+                          </Text>
+                        ) : null}
                       </View>
                       <Text style={[styles.txAmount, { color: isIncome ? theme.income : theme.expense }]}>
                         {isIncome ? "+" : "-"}{formatAmount(tx.amount)}
@@ -325,11 +352,18 @@ export default function HomeScreen() {
   );
 }
 
-function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => void }) {
+function SectionHeader({ title, count, onSeeAll }: { title: string; count?: string; onSeeAll: () => void }) {
   const { theme } = useTheme();
   return (
     <View style={styles.sectionHeader}>
-      <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
+        {count ? (
+          <View style={[styles.countBadge, { backgroundColor: theme.primary + "18", borderColor: theme.primary + "30" }]}>
+            <Text style={[styles.countBadgeText, { color: theme.primary }]}>{count}</Text>
+          </View>
+        ) : null}
+      </View>
       <Pressable onPress={onSeeAll} style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}>
         <Text style={[styles.seeAll, { color: theme.primary }]}>See all →</Text>
       </Pressable>
@@ -422,8 +456,11 @@ const styles = StyleSheet.create({
   walletChipBalance: { fontSize: 16, fontFamily: "Inter_700Bold", marginTop: 2 },
   txItem: { flexDirection: "row", alignItems: "center", borderRadius: 16, padding: 14, gap: 12 },
   txIcon: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
-  txInfo: { flex: 1, gap: 3 },
+  txInfo: { flex: 1, gap: 2 },
   txCategory: { fontSize: 15, fontFamily: "Inter_600SemiBold" },
   txSub: { fontSize: 12, fontFamily: "Inter_400Regular" },
+  txNote: { fontSize: 11, fontFamily: "Inter_400Regular", fontStyle: "italic" },
   txAmount: { fontSize: 15, fontFamily: "Inter_700Bold" },
+  countBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 10, borderWidth: 1 },
+  countBadgeText: { fontSize: 11, fontFamily: "Inter_600SemiBold" },
 });
