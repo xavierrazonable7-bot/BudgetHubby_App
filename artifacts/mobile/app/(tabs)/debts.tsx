@@ -64,7 +64,13 @@ export default function DebtsScreen() {
     <ScreenWrapper>
       {/* Header */}
       <View style={[styles.header, { paddingTop: Platform.OS === "web" ? 67 : insets.top + 12 }]}>
-        <View>
+        <Pressable
+          onPress={() => router.back()}
+          style={({ pressed }) => [styles.backBtn, { backgroundColor: theme.surface, opacity: pressed ? 0.6 : 1 }]}
+        >
+          <Ionicons name="arrow-back" size={20} color={theme.text} />
+        </Pressable>
+        <View style={{ flex: 1 }}>
           <Text style={[styles.screenLabel, { color: theme.textSecondary }]}>Utang tracker</Text>
           <Text style={[styles.title, { color: theme.text }]}>Debts</Text>
         </View>
@@ -242,11 +248,12 @@ export default function DebtsScreen() {
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "center",
+    gap: 12,
     paddingHorizontal: 20,
     paddingBottom: 16,
   },
+  backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   screenLabel: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 2 },
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
   addBtn: {

@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, Pressable, Platform, Dimensions } from "react-native";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -174,7 +175,13 @@ export default function InsightsScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View>
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.backBtn, { backgroundColor: theme.surface, opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Ionicons name="arrow-back" size={20} color={theme.text} />
+          </Pressable>
+          <View style={{ flex: 1 }}>
             <Text style={[styles.screenLabel, { color: theme.textSecondary }]}>Analytics</Text>
             <Text style={[styles.title, { color: theme.text }]}>Insights</Text>
           </View>
@@ -345,11 +352,12 @@ export default function InsightsScreen() {
 const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
+    alignItems: "center",
+    gap: 12,
     paddingHorizontal: 20,
     marginBottom: 20,
   },
+  backBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
   screenLabel: { fontSize: 13, fontFamily: "Inter_400Regular", marginBottom: 2 },
   title: { fontSize: 28, fontFamily: "Inter_700Bold", letterSpacing: -0.4 },
   periodRow: { flexDirection: "row", gap: 6, alignItems: "center" },

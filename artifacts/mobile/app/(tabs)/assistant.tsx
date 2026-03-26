@@ -12,6 +12,7 @@ import {
   Alert,
   Clipboard,
 } from "react-native";
+import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -485,6 +486,12 @@ export default function AssistantScreen() {
             },
           ]}
         >
+          <Pressable
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.backBtn, { backgroundColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", opacity: pressed ? 0.6 : 1 }]}
+          >
+            <Ionicons name="arrow-back" size={20} color={theme.text} />
+          </Pressable>
           <LinearGradient
             colors={["#6366F130", "#6366F118"]}
             style={[styles.aiAvatar, { borderWidth: 1.5, borderColor: "#6366F150", shadowColor: "#6366F1", shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 12, elevation: 6 }]}
@@ -627,6 +634,7 @@ const styles = StyleSheet.create({
     gap: 12,
     borderBottomWidth: 1,
   },
+  backBtn: { width: 36, height: 36, borderRadius: 18, alignItems: "center", justifyContent: "center" },
   aiAvatar: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
   headerText: { flex: 1, gap: 3 },
   headerTitle: { fontSize: 17, fontFamily: "Inter_700Bold" },
