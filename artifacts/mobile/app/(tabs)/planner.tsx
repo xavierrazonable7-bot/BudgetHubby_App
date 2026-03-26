@@ -503,7 +503,7 @@ function NotesPane() {
                   {note.content}
                 </Text>
               ) : note.type === "checklist" && note.items ? (
-                <View style={{ gap: 8, marginTop: 4 }}>
+                <View style={{ gap: 8, marginTop: 4, paddingLeft: 10 }}>
                   {note.items.slice(0, 4).map((item) => (
                     <Pressable
                       key={item.id}
@@ -784,7 +784,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 14,
     paddingRight: 12,
-    paddingLeft: 16,
+    paddingLeft: 0,
     gap: 12,
     borderWidth: 1,
     overflow: "hidden",
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
   taskIconBlock: {
     width: 46, height: 46, borderRadius: 23,
     alignItems: "center", justifyContent: "center",
-    marginLeft: 8,
+    marginLeft: 10,
   },
   taskRightCol: {
     alignItems: "center",
@@ -836,7 +836,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingVertical: 14,
     paddingRight: 12,
-    paddingLeft: 16,
+    paddingLeft: 0,
     gap: 12,
     borderWidth: 1,
     overflow: "hidden",
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   eventIconBlock: {
     width: 46, height: 46, borderRadius: 23,
     alignItems: "center", justifyContent: "center",
-    marginLeft: 8,
+    marginLeft: 10,
   },
   eventContent: { flex: 1, gap: 5 },
   eventTopRow: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -871,7 +871,7 @@ const styles = StyleSheet.create({
   /* Note card */
   noteCard: {
     borderRadius: 18, borderWidth: 1,
-    paddingVertical: 14, paddingRight: 14, paddingLeft: 18,
+    paddingVertical: 14, paddingRight: 14, paddingLeft: 0,
     gap: 10, overflow: "hidden",
   },
   noteStripe: {
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 18,
     borderBottomLeftRadius: 18,
   },
-  noteHeader: { flexDirection: "row", alignItems: "center", gap: 10 },
+  noteHeader: { flexDirection: "row", alignItems: "center", gap: 10, paddingLeft: 10 },
   noteIconWrap: {
     width: 46, height: 46, borderRadius: 23,
     alignItems: "center", justifyContent: "center",
@@ -891,13 +891,13 @@ const styles = StyleSheet.create({
   noteProgress: { fontSize: 11, fontFamily: "Inter_500Medium" },
   noteActions: { flexDirection: "row", gap: 6 },
   noteActionBtn: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center" },
-  noteContent: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19 },
+  noteContent: { fontSize: 13, fontFamily: "Inter_400Regular", lineHeight: 19, paddingLeft: 10 },
   checkRow: { flexDirection: "row", alignItems: "center", gap: 10 },
   checkBox: {
     width: 20, height: 20, borderRadius: 10,
     borderWidth: 1.5, alignItems: "center", justifyContent: "center",
   },
   checkText: { fontSize: 13, fontFamily: "Inter_400Regular", flex: 1 },
-  noteFooter: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 },
+  noteFooter: { flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2, paddingLeft: 10 },
   noteDate: { fontSize: 11, fontFamily: "Inter_400Regular" },
 });
