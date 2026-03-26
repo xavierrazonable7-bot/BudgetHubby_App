@@ -624,7 +624,7 @@ export default function PlannerScreen() {
       <View style={styles.statsRow}>
         {[
           { label: "Pending",  value: pendingTasks,   color: "#F59E0B", icon: "time-outline" },
-          { label: "Upcoming", value: upcomingEvents,  color: "#6366F1", icon: "calendar-outline" },
+          { label: "Events",   value: upcomingEvents,  color: "#6366F1", icon: "calendar-outline" },
           { label: "Notes",    value: notesCount,      color: "#2DD4BF", icon: "document-text-outline" },
         ].map((s) => (
           <LinearGradient
