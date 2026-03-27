@@ -116,9 +116,11 @@ Expo React Native mobile app — **BudgetBuddy**. Philippine Peso budget tracker
 - `app/add-wallet.tsx` — Create wallet modal
 - `app/transaction-detail.tsx` — Transaction detail/delete
 - `context/AppContext.tsx` — Global state (AsyncStorage)
-- `context/NotificationContext.tsx` — Notification system (in-app + device push)
+- `context/NotificationContext.tsx` — Notification system (in-app + device push + tap-to-navigate)
 - `context/ThemeContext.tsx` — Dark/light theme (default dark)
 - `app/notifications.tsx` — Full-page notifications screen with settings
+- `app/settings.tsx` — Settings (profile, theme, currency, about)
+- `app/pdf-export.tsx` — Export data (PDF/Excel/CSV)
 - `constants/colors.ts` — Color palette
 - `components/ScreenWrapper.tsx` — 3-stop gradient background wrapper
 - `components/ui/` — Button (LinearGradient glow), Input (focus glow), AmountInput (accent bar + 42px display), Card, CategoryPicker, EmptyState, WalletPicker
@@ -131,3 +133,4 @@ Expo React Native mobile app — **BudgetBuddy**. Philippine Peso budget tracker
 - `expo-linear-gradient` installed; `react-native-chart-kit` in devDependencies
 - Inter font family: 400/500/600/700 loaded in `_layout.tsx`
 - AsyncStorage only (no backend); STORAGE_KEYS in utils/storage.ts
+- Notification tap-to-navigate: device push notifs (all app states) and in-app cards navigate to relevant screen (planner events/tasks tab, transactions). Uses `NotifNavData` with `screen/tab/id` fields. Planner accepts `tab` and `highlightId` search params for deep-link scrolling. Cold-start dedup via `lastHandledResponseId` ref.

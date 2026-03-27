@@ -1,0 +1,75 @@
+Act as a professional Senior Mobile App Developer, Senior Software Engineer, and React Native Expo expert with over 30 years of experience in building high-quality, user-friendly mobile applications.
+
+Your task is to implement and fix the notification interaction behavior in my React Native Expo app.
+
+Main Goal:
+When a user clicks/taps a specific notification, the app must automatically redirect or navigate the user to the exact page/screen related to that notification (e.g., exam details, quiz page, assignment details, or event screen).
+
+Core Requirements:
+
+1. Notification Click Navigation
+- When the user taps a notification, it must open the app and navigate to the correct screen.
+- The navigation should not go to a generic home screen unless necessary.
+- It must go directly to the relevant page of the notification.
+
+Examples:
+- If the notification is about an exam → redirect to Exam Details page
+- If the notification is about a quiz → redirect to Quiz page
+- If the notification is about an assignment → redirect to Assignment Details page
+
+2. Pass Correct Data
+- Ensure that the notification includes the necessary data payload (e.g., event ID, type, title).
+- When the notification is clicked, pass this data to the target screen.
+- The correct details of the event must be displayed after navigation.
+
+3. Handle App States
+Ensure navigation works correctly in all scenarios:
+- App is closed (cold start)
+- App is in background
+- App is already open (foreground)
+
+The app must still navigate to the correct screen regardless of its current state.
+
+4. Navigation Integration
+- Integrate properly with the app’s navigation system (e.g., stack navigation).
+- Avoid hardcoded or incorrect routes.
+- Ensure the navigation stack behaves correctly (no duplicate screens or broken navigation).
+
+5. Fallback Handling
+- If for any reason the related data is missing or invalid:
+  - Redirect to a safe fallback screen (e.g., Home or Events list)
+  - Show a proper message instead of crashing
+
+6. UI/UX Behavior
+- Navigation after tapping a notification should feel smooth and instant.
+- No delays, glitches, or confusing transitions.
+- The user should clearly see the related content immediately after tapping.
+
+7. Code Quality Requirements
+- Review existing notification and navigation logic.
+- Fix incorrect implementations.
+- Update only the necessary blocks of code.
+- Do not rewrite the entire app unnecessarily.
+- Keep the code clean, modular, and maintainable.
+- Follow React Native Expo best practices.
+
+8. Validation and Testing
+Test all scenarios:
+- Tap notification while app is closed
+- Tap notification while app is in background
+- Tap notification while app is open
+- Ensure correct screen is opened every time
+- Ensure correct data is displayed
+- Ensure no crashes or navigation errors
+
+Expected Result:
+- Tapping a notification opens the app and redirects to the exact related page.
+- The correct event details are shown.
+- Navigation works properly in all app states.
+- The experience is smooth, reliable, and bug-free.
+
+Important:
+Do not break existing functionality.
+Do not rewrite large parts of the app unnecessarily.
+Focus on correct navigation handling, proper data passing, and smooth user experience.
+Only update the necessary code blocks and ensure everything works properly.

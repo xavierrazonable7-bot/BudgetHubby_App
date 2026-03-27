@@ -4,10 +4,17 @@ import React, {
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import { useApp, AcademicEvent, Task } from "./AppContext";
 
 export type NotifType  = "task" | "event" | "budget" | "system";
 export type PermStatus = "granted" | "denied" | "undetermined";
+
+export interface NotifNavData {
+  screen: string;
+  tab?: string;
+  id?: string;
+}
 
 export interface AppNotification {
   id:        string;
@@ -18,6 +25,7 @@ export interface AppNotification {
   icon:      string;
   createdAt: string;
   read:      boolean;
+  navData?:  NotifNavData;
 }
 
 export interface NotifPreferences {
@@ -45,6 +53,7 @@ interface NotificationContextType {
   markRead:             (id: string) => void;
   refreshNotifications: () => void;
   updatePreferences:    (updates: Partial<NotifPreferences>) => void;
+  navigateToNotification: (notification: AppNotification) => void;
 }
 
 if (Platform.OS !== "web") {
@@ -100,7 +109,8 @@ function buildNotifications(
   const add = (
     id: string, title: string, body: string,
     type: NotifType, color: string, icon: string,
-  ) => list.push({ id, title, body, type, color, icon, createdAt: new Date().toISOString(), read: readIds.has(id) });
+    navData?: NotifNavData,
+  ) => list.push({ id, title, body, type, color, icon, createdAt: new Date().toISOString(), read: readIds.has(id), navData });
 
   if (prefs.tasks) {
     const overdue = tasks.filter((t) => {
@@ -116,6 +126,7 @@ function buildNotifications(
         `${overdue.length} Overdue Task${overdue.length > 1 ? "s" : ""}`,
         `${sample}${extra} ${overdue.length > 1 ? "are" : "is"} past deadline.`,
         "task", "#E05A6D", "alert-circle",
+        { screen: "planner", tab: "tasks" },
       );
     }
 
@@ -126,7 +137,8 @@ function buildNotifications(
     }).forEach((t) =>
       add(`task-today-${t.id}`, "Task Due Today",
         `"${t.title}" is due today. Don't forget to complete it!`,
-        "task", "#F59E0B", "time"),
+        "task", "#F59E0B", "time",
+        { screen: "planner", tab: "tasks", id: t.id }),
     );
 
     tasks.filter((t) => {
@@ -136,7 +148,8 @@ function buildNotifications(
     }).forEach((t) =>
       add(`task-tomorrow-${t.id}`, "Task Due Tomorrow",
         `"${t.title}" is due tomorrow. Plan ahead!`,
-        "task", "#F59E0B", "time-outline"),
+        "task", "#F59E0B", "time-outline",
+        { screen: "planner", tab: "tasks", id: t.id }),
     );
   }
 
@@ -149,7 +162,8 @@ function buildNotifications(
       const meta = getEventMeta(e.type);
       add(`event-today-${e.id}`, `${meta.label} Today`,
         `"${e.title}" is scheduled for today at ${formatEventTime(e.date)}.`,
-        "event", meta.color, meta.icon);
+        "event", meta.color, meta.icon,
+        { screen: "planner", tab: "events", id: e.id });
     });
 
     events.filter((e) => {
@@ -160,7 +174,8 @@ function buildNotifications(
       const meta = getEventMeta(e.type);
       add(`event-tomorrow-${e.id}`, `Upcoming ${meta.label} Tomorrow`,
         `"${e.title}" is coming up tomorrow. Be prepared!`,
-        "event", meta.color, meta.icon);
+        "event", meta.color, meta.icon,
+        { screen: "planner", tab: "events", id: e.id });
     });
 
     events.filter((e) => {
@@ -171,7 +186,8 @@ function buildNotifications(
       const meta = getEventMeta(e.type);
       add(`event-soon-${e.id}`, `${meta.label} in 2 Days`,
         `"${e.title}" is in 2 days. Start preparing!`,
-        "event", meta.color, meta.icon + "-outline");
+        "event", meta.color, meta.icon + "-outline",
+        { screen: "planner", tab: "events", id: e.id });
     });
   }
 
@@ -180,18 +196,21 @@ function buildNotifications(
     if (ratio >= 1) {
       add("over-budget", "Over Budget",
         `You've exceeded your monthly income. Review your spending.`,
-        "budget", "#E05A6D", "warning");
+        "budget", "#E05A6D", "warning",
+        { screen: "transactions" });
     } else if (ratio >= 0.8) {
       add("budget-warning", "Budget Alert",
         `You've used ${Math.round(ratio * 100)}% of your monthly income. Spend mindfully.`,
-        "budget", "#F59E0B", "trending-up");
+        "budget", "#F59E0B", "trending-up",
+        { screen: "transactions" });
     }
   }
 
   if (list.length === 0) {
     add("welcome-budgetbuddy", "Welcome to BudgetBuddy!",
       "Track your budget, plan tasks, and stay productive. You're all set!",
-      "system", "#6366F1", "sparkles");
+      "system", "#6366F1", "sparkles",
+      { screen: "home" });
   }
 
   return list;
@@ -230,7 +249,7 @@ async function scheduleDeviceNotifications(
             content: {
               title: `Upcoming ${meta.label} Tomorrow: ${event.title}`,
               body: `"${event.title}" is tomorrow at ${formatEventTime(event.date)}. Prepare ahead!`,
-              data: { timpla: true, type: "event", id: event.id },
+              data: { timpla: true, type: "event", id: event.id, eventType: event.type },
             },
             trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: dayBefore },
           });
@@ -243,7 +262,7 @@ async function scheduleDeviceNotifications(
             content: {
               title: `${meta.label} Reminder: ${event.title}`,
               body: `"${event.title}" starts in 2 hours. Get ready!`,
-              data: { timpla: true, type: "event", id: event.id },
+              data: { timpla: true, type: "event", id: event.id, eventType: event.type },
             },
             trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: twoHrsBefore },
           });
@@ -256,7 +275,7 @@ async function scheduleDeviceNotifications(
             content: {
               title: `${meta.label} Starting Soon: ${event.title}`,
               body: `"${event.title}" begins in 30 minutes!`,
-              data: { timpla: true, type: "event", id: event.id },
+              data: { timpla: true, type: "event", id: event.id, eventType: event.type },
             },
             trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: thirtyMinBefore },
           });
@@ -317,6 +336,30 @@ async function scheduleDeviceNotifications(
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
+function handleNotifNavigation(data: Record<string, any> | undefined) {
+  if (!data) return;
+  try {
+    const type = data.type as string;
+    const id = data.id as string | undefined;
+
+    if (type === "event") {
+      const params: Record<string, string> = { tab: "events" };
+      if (id) params.highlightId = id;
+      router.push({ pathname: "/(tabs)/planner", params });
+    } else if (type === "task") {
+      const params: Record<string, string> = { tab: "tasks" };
+      if (id) params.highlightId = id;
+      router.push({ pathname: "/(tabs)/planner", params });
+    } else if (type === "budget") {
+      router.push("/(tabs)/transactions" as any);
+    } else {
+      router.push("/(tabs)/" as any);
+    }
+  } catch {
+    router.push("/(tabs)/" as any);
+  }
+}
+
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
   const { tasks, events, monthlyIncome, monthlyExpenses } = useApp();
 
@@ -326,6 +369,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [preferences, setPreferences]         = useState<NotifPreferences>(DEFAULT_PREFS);
   const initialLoadDone                       = useRef(false);
   const lastScheduleKey                       = useRef("");
+  const coldStartHandled                      = useRef(false);
+  const lastHandledResponseId                 = useRef<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -347,6 +392,37 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       }
       initialLoadDone.current = true;
     })();
+  }, []);
+
+  useEffect(() => {
+    if (Platform.OS === "web") return;
+
+    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+      const responseId = response.notification.request.identifier;
+      if (responseId === lastHandledResponseId.current) return;
+      lastHandledResponseId.current = responseId;
+      const data = response.notification.request.content.data as Record<string, any> | undefined;
+      if (data?.timpla) {
+        setTimeout(() => handleNotifNavigation(data), 300);
+      }
+    });
+
+    if (!coldStartHandled.current) {
+      coldStartHandled.current = true;
+      Notifications.getLastNotificationResponseAsync().then((response) => {
+        if (response) {
+          const responseId = response.notification.request.identifier;
+          if (responseId === lastHandledResponseId.current) return;
+          lastHandledResponseId.current = responseId;
+          const data = response.notification.request.content.data as Record<string, any> | undefined;
+          if (data?.timpla) {
+            setTimeout(() => handleNotifNavigation(data), 600);
+          }
+        }
+      });
+    }
+
+    return () => responseListener.remove();
   }, []);
 
   const refreshNotifications = useCallback(() => {
@@ -397,12 +473,33 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     });
   }, []);
 
+  const navigateToNotification = useCallback((notification: AppNotification) => {
+    markRead(notification.id);
+    const nav = notification.navData;
+    if (!nav) {
+      router.push("/(tabs)/" as any);
+      return;
+    }
+    const { screen, tab, id } = nav;
+    if (screen === "planner") {
+      const params: Record<string, string> = {};
+      if (tab) params.tab = tab;
+      if (id) params.highlightId = id;
+      router.push({ pathname: "/(tabs)/planner", params });
+    } else if (screen === "transactions") {
+      router.push("/(tabs)/transactions" as any);
+    } else {
+      router.push("/(tabs)/" as any);
+    }
+  }, [markRead]);
+
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   return (
     <NotificationContext.Provider value={{
       notifications, unreadCount, permStatus, preferences,
       requestPermission, markAllRead, markRead, refreshNotifications, updatePreferences,
+      navigateToNotification,
     }}>
       {children}
     </NotificationContext.Provider>

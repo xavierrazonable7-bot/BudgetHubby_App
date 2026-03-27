@@ -37,7 +37,13 @@ function RootLayoutNav() {
       <Stack.Screen name="add-transaction" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="add-debt" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="add-wallet" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="add-event" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="add-task" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="add-note" options={{ headerShown: false, presentation: "modal" }} />
       <Stack.Screen name="transaction-detail" options={{ headerShown: false, presentation: "modal" }} />
+      <Stack.Screen name="settings" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="pdf-export" options={{ headerShown: false, animation: "slide_from_right" }} />
+      <Stack.Screen name="notes" options={{ headerShown: false, animation: "slide_from_right" }} />
     </Stack>
   );
 }

@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   View, Text, StyleSheet, FlatList, Pressable,
   Platform, Alert,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -47,11 +47,26 @@ function urgencyLabel(days: number): { text: string; color: string } {
 }
 
 // ─── Tasks Pane ───────────────────────────────────────────────────────────────
-function TasksPane() {
+function TasksPane({ highlightId }: { highlightId?: string }) {
   const { theme, isDark } = useTheme();
   const { tasks, updateTask, deleteTask } = useApp();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<TaskFilter>("all");
+  const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
+  const flatListRef = useRef<FlatList>(null);
+
+  useEffect(() => {
+    if (!highlightId) return;
+    setActiveHighlight(highlightId);
+    const idx = tasks.findIndex((t) => t.id === highlightId);
+    if (idx >= 0 && flatListRef.current) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({ index: idx, animated: true, viewPosition: 0.3 });
+      }, 400);
+    }
+    const timer = setTimeout(() => setActiveHighlight(null), 3000);
+    return () => clearTimeout(timer);
+  }, [highlightId, tasks]);
 
   const filtered = useMemo(() => {
     let list = tasks;
@@ -114,6 +129,7 @@ function TasksPane() {
       </View>
 
       <FlatList
+        ref={flatListRef}
         data={filtered}
         keyExtractor={(t) => t.id}
         showsVerticalScrollIndicator={false}
@@ -122,6 +138,9 @@ function TasksPane() {
           paddingBottom: insets.bottom + 110,
           gap: 10,
         }}
+        onScrollToIndexFailed={(info) => {
+          setTimeout(() => flatListRef.current?.scrollToIndex({ index: info.index, animated: true }), 200);
+        }}
         ListEmptyComponent={
           <EmptyState icon="checkbox-outline" title="No tasks" subtitle="Tap + to add a task" />
         }
@@ -129,6 +148,7 @@ function TasksPane() {
           const pc  = PRIORITY_CONFIG[task.priority];
           const urg = task.deadline ? urgencyLabel(daysUntil(task.deadline)) : null;
           const iconColor = task.completed ? theme.textTertiary : pc.color;
+          const isHighlighted = activeHighlight === task.id;
 
           return (
             <Animated.View entering={FadeInDown.delay(index * 40).duration(280)}>
@@ -137,9 +157,12 @@ function TasksPane() {
                   styles.taskCard,
                   {
                     backgroundColor: theme.surface,
-                    borderColor: task.completed
-                      ? isDark ? "rgba(255,255,255,0.05)" : theme.border
-                      : pc.color + "25",
+                    borderColor: isHighlighted
+                      ? theme.primary
+                      : task.completed
+                        ? isDark ? "rgba(255,255,255,0.05)" : theme.border
+                        : pc.color + "25",
+                    borderWidth: isHighlighted ? 2 : 1,
                     shadowColor: task.completed ? "#000" : pc.color,
                     shadowOffset: { width: 0, height: 3 },
                     shadowOpacity: task.completed ? (isDark ? 0.15 : 0.04) : (isDark ? 0.2 : 0.08),
@@ -236,15 +259,30 @@ function TasksPane() {
 }
 
 // ─── Events Pane ──────────────────────────────────────────────────────────────
-function EventsPane() {
+function EventsPane({ highlightId }: { highlightId?: string }) {
   const { theme, isDark } = useTheme();
   const { events, deleteEvent } = useApp();
   const insets = useSafeAreaInsets();
+  const [activeHighlight, setActiveHighlight] = useState<string | null>(null);
+  const flatListRef = useRef<FlatList>(null);
 
   const sorted = useMemo(
     () => [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()),
     [events],
   );
+
+  useEffect(() => {
+    if (!highlightId) return;
+    setActiveHighlight(highlightId);
+    const idx = sorted.findIndex((e) => e.id === highlightId);
+    if (idx >= 0 && flatListRef.current) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({ index: idx, animated: true, viewPosition: 0.3 });
+      }, 400);
+    }
+    const timer = setTimeout(() => setActiveHighlight(null), 3000);
+    return () => clearTimeout(timer);
+  }, [highlightId, sorted]);
 
   const handleDelete = (id: string) =>
     Alert.alert("Delete Event", "Remove this event?", [
@@ -254,6 +292,7 @@ function EventsPane() {
 
   return (
     <FlatList
+      ref={flatListRef}
       data={sorted}
       keyExtractor={(e) => e.id}
       showsVerticalScrollIndicator={false}
@@ -261,6 +300,9 @@ function EventsPane() {
         paddingHorizontal: 20,
         paddingBottom: insets.bottom + 110,
         gap: 10,
+      }}
+      onScrollToIndexFailed={(info) => {
+        setTimeout(() => flatListRef.current?.scrollToIndex({ index: info.index, animated: true }), 200);
       }}
       ListEmptyComponent={
         <EmptyState
@@ -273,6 +315,7 @@ function EventsPane() {
         const ec   = EVENT_CONFIG[event.type] ?? { color: "#9CA3AF", icon: "calendar" };
         const days = daysUntil(event.date);
         const urg  = urgencyLabel(days);
+        const isHighlighted = activeHighlight === event.id;
         return (
           <Animated.View entering={FadeInDown.delay(index * 40).duration(280)}>
             <LinearGradient
@@ -281,7 +324,8 @@ function EventsPane() {
               style={[
                 styles.eventCard,
                 {
-                  borderColor: ec.color + "28",
+                  borderColor: isHighlighted ? theme.primary : ec.color + "28",
+                  borderWidth: isHighlighted ? 2 : 1,
                   shadowColor: ec.color,
                   shadowOffset: { width: 0, height: 4 },
                   shadowOpacity: isDark ? 0.2 : 0.07,
@@ -567,7 +611,14 @@ export default function PlannerScreen() {
   const { theme, isDark } = useTheme();
   const { tasks, events, notes } = useApp();
   const insets = useSafeAreaInsets();
+  const { tab, highlightId } = useLocalSearchParams<{ tab?: string; highlightId?: string }>();
   const [activeTab, setActiveTab] = useState<PlannerTab>("tasks");
+
+  useEffect(() => {
+    if (tab === "events" || tab === "tasks" || tab === "notes") {
+      setActiveTab(tab);
+    }
+  }, [tab]);
 
   const pendingTasks   = tasks.filter((t) => !t.completed).length;
   const upcomingEvents = events.filter((e) => daysUntil(e.date) >= 0).length;
@@ -685,8 +736,8 @@ export default function PlannerScreen() {
 
       {/* ── Content ── */}
       <View style={{ flex: 1, paddingTop: 12 }}>
-        {activeTab === "tasks"  && <TasksPane />}
-        {activeTab === "events" && <EventsPane />}
+        {activeTab === "tasks"  && <TasksPane highlightId={activeTab === "tasks" ? highlightId : undefined} />}
+        {activeTab === "events" && <EventsPane highlightId={activeTab === "events" ? highlightId : undefined} />}
         {activeTab === "notes"  && <NotesPane />}
       </View>
     </ScreenWrapper>

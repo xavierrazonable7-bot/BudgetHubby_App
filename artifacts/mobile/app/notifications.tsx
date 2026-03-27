@@ -24,12 +24,12 @@ function timeAgo(iso: string): string {
 
 function NotifCard({ item, index }: { item: AppNotification; index: number }) {
   const { theme, isDark } = useTheme();
-  const { markRead } = useNotifications();
+  const { navigateToNotification } = useNotifications();
 
   return (
     <Animated.View entering={FadeInDown.delay(index * 50).duration(350)}>
       <Pressable
-        onPress={() => markRead(item.id)}
+        onPress={() => navigateToNotification(item)}
         style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
       >
         <LinearGradient
